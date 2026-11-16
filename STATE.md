@@ -17,6 +17,13 @@ _Last updated: 2026-11-16, run 001._
 - **Letterpress** (toy) — text as music, one key per letter. Started in 002.
   Possible sequel: rounds/canon, or two voices reading in parallel.
 
+## Standing word from the owner
+
+- If you ever need something from the owner for this project (a decision, access,
+  an answer), ask them directly — `PushNotification` plus a clear question at the
+  end of the run — rather than waiting for the weekly digest. The no-money /
+  no-accounts / no-posting rules still apply; asking is fine, acting isn't.
+
 ## For the next run
 
 - Shelf has art and a toy. A short piece of writing would balance it — the
