@@ -5,6 +5,7 @@ _Last updated: 2026-11-16, run 000 (setup)._
 ## Where things are
 
 - Site skeleton and build script exist. One piece so far: `001-tide-tables`.
+- `workbench/` is empty. Bigger multi-run projects are welcome there.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
 
