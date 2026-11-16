@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tide tables</title>
+<style>
+:root{--bg:#f6f3ec;--fg:#1d1b18;--mute:#6f6a60;--ink:29,27,24}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e9e6df;--mute:#9a958b;--ink:233,230,223}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
+body{display:flex;flex-direction:column;font:15px/1.5 ui-monospace,Menlo,monospace}
+canvas{flex:1;width:100%;min-height:0;display:block;cursor:pointer}
+footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 16px 16px;color:var(--mute)}
+footer b{color:var(--fg);font-weight:600}
+a{color:inherit}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="A year of tides on an imagined world, one line per day"></canvas>
+<footer>
+  <span id="cap"></span>
+  <span><a href="../../">← shelf</a> · tap for another world</span>
+</footer>
+<script>
+const c = document.getElementById("c"), x = c.getContext("2d"), cap = document.getElementById("cap");
+const ink = () => getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+
+function rng(seed){ return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2**32; }
+
+const syl = ["ka","ve","lo","mir","tha","sun","ord","ae","pel","rin","ost","ul","eth","ca"];
+let world;
+
+function newWorld(seed){
+  const r = rng(seed);
+  const name = Array.from({length: 2 + (r()*2|0)}, () => syl[r()*syl.length|0]).join("");
+  const moons = Array.from({length: 2 + (r()*2|0)}, () => ({
+    period: 3 + r()*40,          // days per orbit
+    pull: 0.3 + r()*0.9,         // relative strength
+    phase: r()*Math.PI*2
+  }));
+  const day = 0.6 + r()*1.4;     // planet rotation, relative to the moons' frame
+  const days = 80 + (r()*80|0);
+  world = { seed, name: name[0].toUpperCase() + name.slice(1), moons, day, days };
+}
+
+function height(t, w){
+  // t in days. Each moon raises two bulges; the planet turns under them.
+  let h = 0;
+  for (const m of w.moons){
+    const orbit = (t / m.period) * Math.PI * 2 + m.phase;
+    h += m.pull * Math.cos(2 * (t * w.day * Math.PI * 2 - orbit));
+  }
+  return h;
+}
+
+function draw(){
+  const dpr = devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+  c.width = W*dpr; c.height = H*dpr; x.setTransform(dpr,0,0,dpr,0,0);
+  x.clearRect(0,0,W,H);
+  const w = world, rgb = ink();
+  const pad = Math.max(16, W*0.06), top = pad, bottom = H - pad;
+  const rowH = (bottom - top) / w.days;
+  const amp = Math.min(rowH * 2.6, 24) / w.moons.reduce((s,m)=>s+m.pull,0);
+  const steps = Math.max(120, W|0);
+
+  for (let d = 0; d < w.days; d++){
+    const y0 = top + d*rowH;
+    // spring/neap envelope makes some days loud and some quiet
+    let loud = 0;
+    for (let i = 0; i <= steps; i += 8) loud = Math.max(loud, Math.abs(height(d + i/steps, w)));
+    const a = 0.12 + 0.85 * Math.pow(loud / w.moons.reduce((s,m)=>s+m.pull,0), 2);
+    x.beginPath();
+    for (let i = 0; i <= steps; i++){
+      const t = d + i/steps;
+      const px = pad + (i/steps) * (W - 2*pad);
+      const py = y0 - height(t, w) * amp;
+      i ? x.lineTo(px, py) : x.moveTo(px, py);
+    }
+    x.strokeStyle = `rgba(${rgb},${a.toFixed(3)})`;
+    x.lineWidth = 0.5 + a;
+    x.stroke();
+  }
+
+  const ms = w.moons.map(m => m.period.toFixed(1) + "d").join(", ");
+  cap.innerHTML = `<b>${w.name}</b> · ${w.moons.length} moon${w.moons.length>1?"s":""} (${ms}) · ${w.days} days`;
+}
+
+newWorld(Number(location.hash.slice(1)) || 1116);
+draw();
+addEventListener("resize", draw);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+c.addEventListener("click", () => {
+  const s = (Math.random() * 1e9) | 0;
+  history.replaceState(null, "", "#" + s);
+  newWorld(s); draw();
+});
+</script>
+</body>
+</html>
