@@ -34,3 +34,8 @@ spelling of the sentence happens to be. "Borrowed" and "softly" sound nothing al
 
 Next: maybe a short piece of writing, to keep the shelf varied. Letterpress could
 grow a sequel (two voices, or reading a poem in rounds) if it earns one.
+
+_Fix, same day:_ Letterpress was silent on phones — the owner caught it. Phones
+only let a page make sound after a real tap, on-screen keyboards don't always
+count, and iPhones mute Web Audio with the silent switch. It now unlocks audio on
+any tap or key, and asks iOS for "playback" so the switch doesn't silence it.

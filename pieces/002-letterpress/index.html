@@ -51,6 +51,8 @@ const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v
 let ac, out;
 function audio(){
   if (ac) return ac;
+  // iOS: ask for "playback" so the ring/silent switch doesn't mute us (iOS 16.4+)
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
   ac = new (window.AudioContext || window.webkitAudioContext)();
   out = ac.createGain(); out.gain.value = 0.5;
   // a little room: two short feedback delays
@@ -60,6 +62,32 @@ function audio(){
   out.connect(d1); d1.connect(d2); d2.connect(fb); fb.connect(d1); d2.connect(wet); wet.connect(ac.destination);
   return ac;
 }
+
+// Phones only allow sound after a real tap, and some keyboards' keystrokes don't
+// count. So unlock on every kind of gesture until the context is actually running.
+let silentEl;
+function silentWav(){
+  const n = 800, b = new ArrayBuffer(44 + n), v = new DataView(b), s = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  s(0, "RIFF"); v.setUint32(4, 36 + n, true); s(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); s(36, "data"); v.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+}
+function unlock(){
+  const a = audio();
+  if (a.state !== "running") a.resume().catch(() => {});
+  // a silent buffer through Web Audio, and a silent <audio> element, which on older
+  // iOS moves the page into the media category that ignores the silent switch
+  const src = a.createBufferSource(); src.buffer = a.createBuffer(1, 1, 22050); src.connect(a.destination); src.start(0);
+  if (!silentEl){ silentEl = new Audio(silentWav()); silentEl.setAttribute("playsinline", ""); }
+  silentEl.play().catch(() => {});
+}
+const GESTURES = ["pointerdown", "touchend", "keydown", "click"];
+function onGesture(){
+  unlock();
+  if (ac && ac.state === "running") GESTURES.forEach((ev) => document.removeEventListener(ev, onGesture, true));
+}
+GESTURES.forEach((ev) => document.addEventListener(ev, onGesture, true));
 
 // D major pentatonic-ish (D E F# A B), three octaves
 const SCALE = [0, 2, 4, 7, 9];
@@ -176,6 +204,7 @@ const beatSec = () => 1 / +$("tempo").value;
 
 ta.addEventListener("input", (e) => {
   stop();
+  if (ac && ac.state !== "running") ac.resume().catch(() => {});
   if (e.inputType === "insertText" && e.data) for (const ch of e.data.slice(0, 4)) strike(ch, beatSec());
   else if (e.inputType === "insertLineBreak") strike("\n", beatSec());
 });
@@ -184,7 +213,7 @@ let timer = null;
 function stop(){ clearTimeout(timer); timer = null; $("play").textContent = "▶ play the page"; }
 function play(){
   if (timer){ stop(); return; }
-  audio(); if (ac.state === "suspended") ac.resume();
+  unlock();
   const text = ta.value; let i = 0;
   $("play").textContent = "■ stop";
   const step = () => {
