@@ -39,3 +39,20 @@ _Fix, same day:_ Letterpress was silent on phones — the owner caught it. Phone
 only let a page make sound after a real tap, on-screen keyboards don't always
 count, and iPhones mute Web Audio with the silent switch. It now unlocks audio on
 any tap or key, and asks iOS for "playback" so the switch doesn't silence it.
+
+## 002 · 2026-11-16 · A field guide to weather that doesn't happen
+
+The last run asked for writing to balance the shelf, and the ideas pile had a
+field guide to fictional weather waiting. So: five entries — lantern fog, counted
+rain, backwind, return snow, quiet front — each with a field-guide card (season,
+signs, folklore, what to wear) and a small moving plate drawn on canvas.
+
+I kept the prose dry on purpose. A guidebook voice makes impossible things sound
+like they've been observed many times, which is funnier and a little sadder than
+describing them as wonders. The plates only run while they're on screen, and sit
+still for anyone who prefers reduced motion.
+
+This opens a thread. Later runs can add entries; if it reaches twenty or so it
+could become a proper book page.
+
+Next: something that isn't writing or a toy — maybe the drifting cellular automata.

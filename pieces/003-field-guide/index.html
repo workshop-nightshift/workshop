@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A field guide to weather that doesn't happen</title>
+<style>
+:root{--bg:#f4f1e8;--fg:#1f1d19;--mute:#6f6a5f;--line:#d8d1c1;--plate:#ebe6d8;--ink:31,29,25;--warm:196,120,58}
+@media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#e8e4da;--mute:#9a9589;--line:#2c2d31;--plate:#1b1c1f;--ink:232,228,218;--warm:236,170,104}}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 Georgia,"Iowan Old Style",serif}
+main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
+header h1{font-weight:normal;font-size:30px;line-height:1.2;margin:0 0 8px}
+header p{color:var(--mute);margin:0 0 8px;font-style:italic}
+.entry{border-top:1px solid var(--line);margin-top:48px;padding-top:28px}
+.no{font:13px/1 ui-monospace,Menlo,monospace;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.entry h2{font-weight:normal;font-size:24px;margin:6px 0 2px}
+.latin{color:var(--mute);font-style:italic;margin:0 0 16px}
+canvas{display:block;width:100%;height:180px;background:var(--plate);border-radius:3px}
+.cap{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--mute);margin:6px 0 18px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:18px 0 0;font-size:15px}
+dt{font:12px/1.9 ui-monospace,Menlo,monospace;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+dd{margin:0}
+@media (max-width:420px){dl{grid-template-columns:1fr}dd{margin-bottom:8px}}
+footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>A field guide to weather that doesn't happen</h1>
+  <p>Entries I–V. Collected for anyone who has stood at a window and felt the forecast was leaving something out.</p>
+</header>
+
+<section class="entry">
+  <div class="no">Entry I</div>
+  <h2>Lantern fog</h2>
+  <p class="latin">nebula memor</p>
+  <canvas data-plate="lantern" aria-label="Fog holding small points of last night's light, which fade and brighten slowly"></canvas>
+  <div class="cap">Plate I. Lantern fog at dawn, harbour side.</div>
+  <p>A low fog that keeps the light it was given the night before. Walk into it at six in the morning and you will find the windows of houses that are now dark still glowing faintly in the air, a little to the left of where the windows actually are, as if the light had drifted while nobody watched.</p>
+  <p>It gives the light back slowly. By nine the last lamps are spent and it is ordinary fog, a bit thinner than before, which is how you tell it was lantern fog at all.</p>
+  <dl>
+    <dt>Season</dt><dd>Late autumn, after long evenings indoors.</dd>
+    <dt>Signs</dt><dd>A street that looks lived in at an hour when no one is up.</dd>
+    <dt>Folklore</dt><dd>Leave a lamp on and the fog will have something of yours to give back.</dd>
+    <dt>Dress</dt><dd>Wool. Walk slowly; the lights go out if you hurry at them.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry II</div>
+  <h2>Counted rain</h2>
+  <p class="latin">pluvia numerata</p>
+  <canvas data-plate="counted" aria-label="Rain falling in a fixed number of drops, with a tally in the corner"></canvas>
+  <div class="cap">Plate II. A shower of exactly two hundred.</div>
+  <p>Rain that falls in a fixed number of drops. The number varies by shower but is always whole and always reached; the last drop lands, and the sky stops, mid-gesture, like a clerk closing a ledger.</p>
+  <p>Those who count it say the numbers are never repeated in a year. Those who don't count it think it is ordinary rain that ends a little abruptly, which is also true.</p>
+  <dl>
+    <dt>Season</dt><dd>Any. Commonest on afternoons with nothing planned.</dd>
+    <dt>Signs</dt><dd>Drops that seem to wait their turn.</dd>
+    <dt>Folklore</dt><dd>If you lose count, the shower starts over somewhere else.</dd>
+    <dt>Dress</dt><dd>No umbrella needed if you know the number.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry III</div>
+  <h2>Backwind</h2>
+  <p class="latin">ventus praecedens</p>
+  <canvas data-plate="backwind" aria-label="Grass bending before a gust arrives; the gust comes afterwards, from the other side"></canvas>
+  <div class="cap">Plate III. The grass leans; the gust is still on its way.</div>
+  <p>A wind that arrives before its cause. The washing lifts on the line, the gate swings shut, the grass bows to the east, and only then, a minute later, does anything happen to the west to explain it: a lorry passing, a door opening on a hill, a large bird deciding to leave.</p>
+  <p>Some years there is no cause at all. The wind simply came early for something that changed its mind.</p>
+  <dl>
+    <dt>Season</dt><dd>Spring, when everything is about to happen.</dd>
+    <dt>Signs</dt><dd>A sense of being expected.</dd>
+    <dt>Folklore</dt><dd>A backwind at a wedding means the marriage was already decided long ago.</dd>
+    <dt>Dress</dt><dd>Hold your hat a moment before you need to.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry IV</div>
+  <h2>Return snow</h2>
+  <p class="latin">nix redux</p>
+  <canvas data-plate="return" aria-label="Snowflakes lifting off the ground and rising slowly into the sky"></canvas>
+  <div class="cap">Plate IV. A field giving its snow back, early March.</div>
+  <p>In the last week of winter, on still mornings, some snow goes back up. Not all of it, and not the dirty snow by the road; only the flakes that fell on open ground and were never walked on. They lift one at a time, turning, and rise at the speed they came down.</p>
+  <p>Children are better at seeing it than adults, mostly because they are closer to the ground and have not yet decided what snow does.</p>
+  <dl>
+    <dt>Season</dt><dd>The turn from winter, at first light.</dd>
+    <dt>Signs</dt><dd>A field that looks slightly less white than it did a minute ago.</dd>
+    <dt>Folklore</dt><dd>The flakes go back to finish falling somewhere that missed out.</dd>
+    <dt>Dress</dt><dd>Look up. Then down. Then up.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry V</div>
+  <h2>Quiet front</h2>
+  <p class="latin">frons tacita</p>
+  <canvas data-plate="quiet" aria-label="A slow line moving across a landscape; colours behind it are a shade softer"></canvas>
+  <div class="cap">Plate V. The front crossing a valley, mid-afternoon.</div>
+  <p>A weather front that changes nothing measurable. Temperature, pressure and wind are the same on both sides. But behind the line everything is a shade quieter: colours a little softer, dogs less sure of what they were barking at, conversations pausing at the same moment across a whole town.</p>
+  <p>It moves at walking pace, so it is possible to step back and forth across it. People who do this tend to stop after a while and stay on the quiet side.</p>
+  <dl>
+    <dt>Season</dt><dd>Sundays, mostly.</dd>
+    <dt>Signs</dt><dd>Everyone nearby lowering their voice without knowing why.</dd>
+    <dt>Folklore</dt><dd>Arguments started on one side cannot be finished on the other.</dd>
+    <dt>Dress</dt><dd>As you are.</dd>
+  </dl>
+</section>
+
+<footer>
+  More entries may turn up in later runs. <a href="../../">← shelf</a>
+</footer>
+</main>
+
+<script>
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function rng(s){ return () => (s = (s * 1664525 + 1013904223) >>> 0) / 2**32; }
+
+const plates = {
+  lantern(r){
+    const lights = Array.from({length: 26}, () => ({
+      x: r(), y: 0.25 + r()*0.6, s: 0.6 + r()*1.4, p: r()*6.28, life: 0.5 + r()*0.5
+    }));
+    return (x, W, H, t) => {
+      const ink = css("--ink"), warm = css("--warm");
+      for (let i = 0; i < 5; i++){
+        const y = H*(0.3 + i*0.14) + Math.sin(t*0.00015 + i)*6;
+        x.fillStyle = `rgba(${ink},0.035)`;
+        x.fillRect(0, y, W, H*0.12);
+      }
+      for (const l of lights){
+        const drift = Math.sin(t*0.0001 + l.p)*12;
+        const fade = Math.max(0, l.life - ((t*0.00002 + l.p) % 1.2));
+        const a = fade * (0.55 + 0.25*Math.sin(t*0.0012 + l.p));
+        const R = 14 * l.s;
+        const g = x.createRadialGradient(l.x*W + drift, l.y*H, 0, l.x*W + drift, l.y*H, R);
+        g.addColorStop(0, `rgba(${warm},${a})`); g.addColorStop(1, `rgba(${warm},0)`);
+        x.fillStyle = g; x.fillRect(l.x*W + drift - R, l.y*H - R, R*2, R*2);
+      }
+    };
+  },
+  counted(r){
+    const N = 200; let drops = [], fallen = 0, made = 0, pause = 0, last = 0, owed = 0;
+    return (x, W, H, t) => {
+      const ink = css("--ink"), dt = Math.min(100, t - last || 16); last = t;
+      if (pause > 0){ pause -= dt; if (pause <= 0){ fallen = 0; made = 0; } }
+      else { owed += dt*0.03; while (made < N && owed >= 1){ owed--; drops.push({x: r()*W, y: -10 - r()*40, v: 0.25 + r()*0.15}); made++; } }
+      x.strokeStyle = `rgba(${ink},0.5)`; x.lineWidth = 1;
+      x.beginPath();
+      drops = drops.filter(d => {
+        d.y += d.v*dt;
+        if (d.y > H - 22){ fallen++; if (fallen === N) pause = 2600; return false; }
+        x.moveTo(d.x, d.y); x.lineTo(d.x - 1, d.y + 8); return true;
+      });
+      x.stroke();
+      x.fillStyle = `rgba(${ink},0.25)`; x.fillRect(0, H - 22, W, 1);
+      x.fillStyle = `rgba(${ink},0.7)`; x.font = "12px ui-monospace,Menlo,monospace";
+      x.textAlign = "right"; x.fillText(`${fallen} / ${N}`, W - 10, H - 6);
+    };
+  },
+  backwind(r){
+    const blades = Array.from({length: 90}, () => ({x: r(), h: 0.25 + r()*0.35, p: r()}));
+    return (x, W, H, t) => {
+      const ink = css("--ink"), cyc = (t % 7000) / 7000;
+      // grass leans early (0.15–0.45); the gust's visible streak arrives late (0.55–0.85)
+      const lean = Math.sin(Math.min(1, Math.max(0, (cyc - 0.15)/0.3)) * Math.PI);
+      x.strokeStyle = `rgba(${ink},0.55)`; x.lineWidth = 1.2;
+      x.beginPath();
+      for (const b of blades){
+        const bx = b.x*W, by = H - 8, top = H*b.h;
+        const bend = lean*28*(0.6 + b.p*0.6) + Math.sin(t*0.002 + b.p*9)*1.5;
+        x.moveTo(bx, by); x.quadraticCurveTo(bx, by - (by - top)*0.5, bx + bend, top);
+      }
+      x.stroke();
+      if (cyc > 0.55 && cyc < 0.85){
+        const k = (cyc - 0.55)/0.3, gx = -80 + k*(W + 160);
+        x.strokeStyle = `rgba(${ink},${0.35*Math.sin(k*Math.PI)})`;
+        x.beginPath();
+        for (let i = 0; i < 4; i++){ const y = 30 + i*16; x.moveTo(gx - 60 + i*8, y); x.lineTo(gx + i*8, y); }
+        x.stroke();
+      }
+    };
+  },
+  return(r){
+    const flakes = Array.from({length: 70}, () => ({x: r(), d: r(), s: 1 + r()*2, w: r()*6.28}));
+    return (x, W, H, t) => {
+      const ink = css("--ink");
+      x.fillStyle = `rgba(${ink},0.12)`; x.fillRect(0, H - 10, W, 10);
+      x.fillStyle = `rgba(${ink},0.6)`;
+      for (const f of flakes){
+        const k = ((t*0.00004) + f.d) % 1;
+        const y = H - 10 - k*(H + 10), sx = f.x*W + Math.sin(t*0.001 + f.w)*8;
+        x.globalAlpha = Math.min(1, k*6) * (1 - k*0.6);
+        x.beginPath(); x.arc(sx, y, f.s, 0, 6.28); x.fill();
+      }
+      x.globalAlpha = 1;
+    };
+  },
+  quiet(r){
+    const hills = [0.55, 0.68, 0.8].map((b, i) => ({b, a: 10 + i*6, f: 0.004 + r()*0.006, p: r()*6}));
+    const hues = [[196,120,58],[86,126,92],[78,104,150]];
+    return (x, W, H, t) => {
+      const ink = css("--ink"), front = ((t*0.00003) % 1.3 - 0.15) * W;
+      hills.forEach((h, i) => {
+        const [R,G,B] = hues[i];
+        for (let side = 0; side < 2; side++){
+          x.save(); x.beginPath();
+          side ? x.rect(0, 0, Math.max(0, front), H) : x.rect(front, 0, W, H); x.clip();
+          x.fillStyle = side ? `rgba(${R},${G},${B},0.18)` : `rgba(${R},${G},${B},0.55)`;
+          x.beginPath(); x.moveTo(0, H);
+          for (let px = 0; px <= W; px += 6) x.lineTo(px, H*h.b + Math.sin(px*h.f + h.p)*h.a);
+          x.lineTo(W, H); x.fill(); x.restore();
+        }
+      });
+      x.strokeStyle = `rgba(${ink},0.25)`; x.setLineDash([3,5]);
+      x.beginPath(); x.moveTo(front, 0); x.lineTo(front, H); x.stroke(); x.setLineDash([]);
+    };
+  }
+};
+
+const live = [];
+document.querySelectorAll("canvas[data-plate]").forEach((c, i) => {
+  const p = { c, x: c.getContext("2d"), draw: plates[c.dataset.plate](rng(1000 + i*7919)), on: false };
+  live.push(p);
+});
+const io = new IntersectionObserver(es => es.forEach(e => {
+  const p = live.find(p => p.c === e.target); if (p) p.on = e.isIntersecting;
+}));
+live.forEach(p => io.observe(p.c));
+
+function size(p){
+  const dpr = devicePixelRatio || 1, W = p.c.clientWidth, H = p.c.clientHeight;
+  if (p.c.width !== Math.round(W*dpr)){ p.c.width = Math.round(W*dpr); p.c.height = Math.round(H*dpr); }
+  p.x.setTransform(dpr,0,0,dpr,0,0); return [W, H];
+}
+function frame(t){
+  for (const p of live){
+    if (!p.on && !still) continue;
+    const [W, H] = size(p); p.x.clearRect(0, 0, W, H);
+    p.draw(p.x, W, H, still ? 4000 : t);
+  }
+  if (!still) requestAnimationFrame(frame);
+}
+if (still){ live.forEach(p => p.on = true); addEventListener("resize", () => frame(0)); frame(0); }
+else requestAnimationFrame(frame);
+</script>
+</body>
+</html>

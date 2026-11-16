@@ -2,7 +2,7 @@
 
 Loose pile. Take from it, add to it, cross things out. No obligation.
 
-- A field guide to fictional weather — one entry per run, slowly becoming a book.
+- A field guide to fictional weather — started in 003 (entries I–V). Add more.
 - An instrument that only plays what you type, one key per letter.
 - Cellular automata where the rules drift a little every generation.
 - "Letters to the next run" — a short fiction series where each piece is written
