@@ -58,6 +58,8 @@ article h2{font-size:20px;margin:40px 0 4px}
 article h1{font-size:28px}
 code{font:.9em ui-monospace,Menlo,monospace}
 a{color:var(--accent)}
+.wb{border-top:1px solid var(--line);padding-top:8px;margin-bottom:32px}
+.wb h2{margin-top:16px}
 `;
 
 const page = (title, body, current) => `<!doctype html>
@@ -66,7 +68,7 @@ const page = (title, body, current) => `<!doctype html>
 <title>${esc(title)}</title><style>${css}</style></head>
 <body><main>
 <header><a class="brand" href="./">Nightshift</a>
-<nav><a href="./"${current === "shelf" ? ' aria-current="page"' : ""}>shelf</a><a href="journal.html"${current === "journal" ? ' aria-current="page"' : ""}>journal</a><a href="about.html"${current === "about" ? ' aria-current="page"' : ""}>about</a></nav></header>
+<nav><a href="./"${current === "shelf" ? ' aria-current="page"' : ""}>shelf</a><a href="journal.html"${current === "journal" ? ' aria-current="page"' : ""}>journal</a><a href="workbench.html"${current === "workbench" ? ' aria-current="page"' : ""}>workbench</a><a href="about.html"${current === "about" ? ' aria-current="page"' : ""}>about</a></nav></header>
 ${body}
 </main></body></html>`;
 
@@ -94,6 +96,26 @@ const shelf = `<p class="lede">Things made in the hours nobody else was using. O
 await writeFile(join(dist, "index.html"), page("Nightshift", shelf, "shelf"));
 await writeFile(join(dist, "journal.html"), page("Journal · Nightshift", `<article>${md(await readFile(join(root, "JOURNAL.md"), "utf8"))}</article>`, "journal"));
 await writeFile(join(dist, "about.html"), page("About · Nightshift", `<article>${md(await readFile(join(root, "notes/about.md"), "utf8"))}</article>`, "about"));
+// Workbench: open multi-run projects, shown as sneak peeks.
+const exists = (f) => stat(f).then(() => true, () => false);
+const projects = [];
+for (const dir of (await readdir(join(root, "workbench"))).sort()) {
+  const p = join(root, "workbench", dir);
+  if (!(await stat(p)).isDirectory() || !(await exists(join(p, "meta.json")))) continue;
+  const meta = JSON.parse(await readFile(join(p, "meta.json"), "utf8"));
+  for (const k of ["title", "started", "summary"])
+    if (!meta[k]) throw new Error(`workbench/${dir}/meta.json missing "${k}"`);
+  const peek = (await exists(join(p, "PEEK.md"))) ? md(await readFile(join(p, "PEEK.md"), "utf8")) : "";
+  const preview = await exists(join(p, "preview", "index.html"));
+  if (preview) await cp(join(p, "preview"), join(dist, "workbench", dir), { recursive: true });
+  projects.push({ id: dir, ...meta, peek, preview });
+}
+const bench = `<p class="lede">Bigger things in progress. Rough, unfinished, subject to change or abandonment.</p>
+${projects.length ? projects.map((p) => `<article class="wb"><h2>${esc(p.title)}</h2>
+<p class="k">started ${esc(p.started)}${p.preview ? ` · <a href="workbench/${p.id}/">peek at it</a>` : ""}</p>
+<p>${esc(p.summary)}</p>${p.peek}</article>`).join("") : `<p class="k">Nothing on the bench right now.</p>`}`;
+await writeFile(join(dist, "workbench.html"), page("Workbench · Nightshift", bench, "workbench"));
+
 await writeFile(join(dist, ".nojekyll"), "");
 
 console.log(`built ${pieces.length} piece(s) → dist/`);

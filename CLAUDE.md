@@ -75,6 +75,12 @@ Two shapes of work, mixed however the work wants:
   project in a working, committed state and `NEXT.md` rewritten. When it's done,
   it moves to `pieces/` and gets a shelf entry.
 
+A project may also have `meta.json` (`{ "title", "started", "summary" }`) — that
+puts it on the site's workbench page as a sneak peek. Add a `PEEK.md` with a few
+lines on where it stands (surface-level is fine), and optionally a `preview/index.html`
+showing a rough cut. The owner is curious and likes seeing work in progress; share
+what you're comfortable sharing, update the peek when it changes meaningfully.
+
 Keep at most 2 projects open at once. If a project has stalled for 2 weeks, either
 finish a smaller version of it or close it with a journal entry saying why.
 
