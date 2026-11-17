@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>House Rules</title>
+<style>
+:root{--bg:#ece8df;--fg:#1d1b18;--mute:#77705f;--line:#d3ccbb;--card:#f8f5ee;--pin:#a8432c;--ghost:rgba(29,27,24,.13);--keep:#1d1b18;--mark:#a8432c}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e8e4db;--mute:#9b9588;--line:#2d2e32;--card:#1a1b1e;--pin:#e07a5f;--ghost:rgba(232,228,219,.12);--keep:#f3efe6;--mark:#e8957b}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:18px 16px 28px;display:flex;justify-content:center}
+main{width:100%;max-width:600px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 14px;font-style:italic}
+#tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+#tabs button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer;touch-action:manipulation}
+#tabs button[aria-pressed=true]{border-color:var(--pin);color:var(--pin)}
+.card{position:relative;background:var(--card);border:1px solid var(--line);padding:26px 22px 22px;box-shadow:0 1px 0 var(--line),0 8px 22px -14px rgba(0,0,0,.35)}
+.card::before{content:"";position:absolute;top:9px;left:50%;width:9px;height:9px;margin-left:-4.5px;border-radius:50%;background:var(--pin)}
+#notice{font:16px/1.75 "Courier New",Courier,monospace;text-align:justify;hyphens:none;overflow-wrap:normal}
+#notice h2{font:inherit;font-weight:bold;text-align:center;letter-spacing:.32em;margin:0 0 12px}
+#notice p{margin:0 0 .7em}
+#notice p:last-child{margin:0}
+.w{white-space:nowrap}
+.l{color:var(--fg);transition:color .5s ease,text-shadow .5s ease}
+.erasing .l{color:var(--ghost)}
+.erasing .l.k{color:var(--keep);text-shadow:0 0 .01px var(--keep)}
+.own .w{cursor:pointer}
+.own .w:hover .l{color:var(--mute)}
+.own .w:hover .l.k{color:var(--keep)}
+#reading{min-height:5em;margin:16px 4px 0;font-style:italic;color:var(--fg)}
+#reading .who{font-style:normal;color:var(--mute);font-size:13px;letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:4px}
+#reading span.line{display:block}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:12px;color:var(--mute);font-size:14px}
+.row button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+.row button[hidden]{display:none}
+a{color:inherit}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+@media (max-width:420px){#notice{font-size:14px;line-height:1.7}.card{padding:24px 14px 18px}}
+@media (prefers-reduced-motion:reduce){.l{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>House Rules</h1>
+  <p class="sub">A notice pinned in a hallway, and three people who read it differently.</p>
+  <div id="tabs" role="group" aria-label="Who is reading"></div>
+  <div class="card"><div id="notice"></div></div>
+  <div id="reading" aria-live="polite"></div>
+  <div class="row">
+    <span><button id="clear" hidden>clear</button> <button id="slow">read slowly</button></span>
+    <span><a href="../../">← shelf</a></span>
+  </div>
+  <details><summary>about this</summary>
+    <p>An erasure poem, or four. The notice is the same every time; each reader keeps only some of its
+    letters, in the order they stand on the card, and lets the rest go grey. Nothing is moved and nothing is added.</p>
+    <p>The last tab is yours: tap words on the notice to keep them. What you keep is remembered in this browser.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const NOTICE = {
+  head: "NOTICE TO LODGERS",
+  paras: [
+    "Breakfast is served from seven until half past eight and not after. Lodgers are asked to keep their rooms in good order and to leave the key at the desk when going out. No cooking in rooms. Lamps are to be put out by eleven.",
+    "The bath may be used once weekly by arrangement; hot water is not promised. Visitors are received in the front parlour only and must leave by nine. Rent is due each Friday in advance. Rooms not paid for will be let.",
+    "The house regrets it cannot be answerable for letters, parcels or belongings left behind. Please close the gate. Please do not sing on the stairs. Anything found will be kept for one month, then given away.",
+    "The management thanks you for your stay and hopes you will come again."
+  ]
+};
+// Each reader: lines of words. A word must be a whole word of the notice, found in order;
+// "~x" means the letters x taken from inside a longer word.
+const READERS = [
+  { id: "lodger", name: "the lodger", lines: [
+    "~I leave the key at the desk", "going out.", "No", "hot water is not promised.",
+    "Visitors", "only", "leave.", "~I do not sing", "on the stairs.",
+    "Anything found", "will be given away", "for your stay." ] },
+  { id: "landlady", name: "the landlady", lines: [
+    "served from seven", "until", "eleven.", "Not promised", "received", "only", "rent.",
+    "regrets", "it cannot be answerable", "for letters", "left behind.", "~Thank you", "come again." ] },
+  { id: "house", name: "the house", lines: [
+    "~I ~am", "used", "by", "water,", "visitors", "must leave.", "Rooms,", "letters,",
+    "belongings", "left behind,", "kept for one month,", "then given away.", "Come again." ] }
+];
+
+// ---- build the notice as letter spans
+const notice = $("notice");
+const words = []; // {el, letters:[span], text}
+function addText(container, text) {
+  text.split(" ").forEach((tok, i, arr) => {
+    const w = document.createElement("span"); w.className = "w";
+    const letters = [];
+    for (const ch of tok) {
+      const s = document.createElement("span"); s.className = "l"; s.textContent = ch;
+      w.appendChild(s); letters.push(s);
+    }
+    container.appendChild(w);
+    if (i < arr.length - 1) container.appendChild(document.createTextNode(" "));
+    const idx = words.length;
+    w.dataset.i = idx;
+    words.push({ el: w, letters, text: tok });
+  });
+}
+const h2 = document.createElement("h2"); addText(h2, NOTICE.head); notice.appendChild(h2);
+for (const p of NOTICE.paras) { const el = document.createElement("p"); addText(el, p); notice.appendChild(el); }
+
+const norm = s => s.toLowerCase().replace(/[^a-z]/g, "");
+// ---- match a reader against the notice: returns Set of "wordIndex:charIndex" kept
+function match(reader) {
+  const keep = new Set();
+  let wi = 0, ci = 0; // next search position
+  for (const line of reader.lines) {
+    for (const raw of line.split(" ")) {
+      const partial = raw.startsWith("~");
+      const want = norm(raw);
+      let found = false;
+      for (let j = wi; j < words.length && !found; j++) {
+        const t = words[j].text, lower = t.toLowerCase();
+        const from = j === wi ? ci : 0;
+        if (partial) {
+          const at = lower.indexOf(want, from);
+          if (at >= 0) { for (let k = 0; k < want.length; k++) keep.add(j + ":" + (at + k));
+            wi = j; ci = at + want.length; found = true; }
+        } else if (from === 0 && norm(t) === want) {
+          // keep only the letters (and trailing punctuation if the poem has it)
+          [...t].forEach((ch, k) => { if (/[a-z]/i.test(ch) || raw.includes(ch)) keep.add(j + ":" + k); });
+          wi = j + 1; ci = 0; found = true;
+        }
+      }
+      if (!found) console.error("House Rules: no match for", raw, "in", reader.id);
+    }
+  }
+  return keep;
+}
+READERS.forEach(r => r.keep = match(r));
+
+// ---- your own erasure: set of kept word indices
+let own = new Set();
+try { own = new Set(JSON.parse(localStorage.getItem("house-rules-own") || "[]")); } catch (e) {}
+const saveOwn = () => { try { localStorage.setItem("house-rules-own", JSON.stringify([...own])); } catch (e) {} };
+const ownKeep = () => { const k = new Set(); own.forEach(i => words[i] && words[i].letters.forEach((_, c) => k.add(i + ":" + c))); return k; };
+
+// ---- tabs
+const TABS = [{ id: "notice", name: "the notice" }, ...READERS, { id: "own", name: "you" }];
+const tabs = $("tabs");
+TABS.forEach(t => {
+  const b = document.createElement("button"); b.textContent = t.name; b.dataset.id = t.id;
+  b.addEventListener("click", () => show(t.id)); tabs.appendChild(b);
+});
+
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let current = "notice", timers = [];
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+
+function apply(keep, slow) {
+  clearTimers();
+  const all = [];
+  words.forEach((w, i) => w.letters.forEach((s, c) => all.push([s, keep.has(i + ":" + c)])));
+  if (!slow || reduce) { all.forEach(([s, k]) => s.classList.toggle("k", k)); return; }
+  // read slowly: erased letters go one by one, in reading order, kept ones linger first
+  all.forEach(([s]) => s.classList.add("k"));
+  const gone = all.filter(([, k]) => !k);
+  const step = Math.max(6, 5200 / gone.length);
+  gone.forEach(([s], n) => timers.push(setTimeout(() => s.classList.remove("k"), 300 + n * step)));
+}
+
+function reading(id) {
+  const r = $("reading"); r.textContent = "";
+  if (id === "notice") return;
+  const who = document.createElement("span"); who.className = "who";
+  const t = TABS.find(t => t.id === id); who.textContent = t.name; r.appendChild(who);
+  let lines;
+  if (id === "own") {
+    const kept = [...own].sort((a, b) => a - b).map(i => words[i].text.replace(/[^A-Za-z'’]/g, "") );
+    lines = kept.length ? [kept.join(" ")] : ["(tap words on the notice to keep them)"];
+  } else lines = t.lines.map(l => l.replace(/~/g, ""));
+  lines.forEach(l => { const s = document.createElement("span"); s.className = "line"; s.textContent = l; r.appendChild(s); });
+}
+
+function show(id, slow) {
+  current = id;
+  [...tabs.children].forEach(b => b.setAttribute("aria-pressed", b.dataset.id === id));
+  notice.classList.toggle("erasing", id !== "notice");
+  notice.classList.toggle("own", id === "own");
+  $("clear").hidden = id !== "own";
+  $("slow").hidden = id === "notice" || id === "own";
+  const keep = id === "own" ? ownKeep() : id === "notice" ? new Set() : READERS.find(r => r.id === id).keep;
+  apply(keep, slow);
+  reading(id);
+}
+
+notice.addEventListener("click", e => {
+  if (current !== "own") return;
+  const w = e.target.closest(".w"); if (!w) return;
+  const i = +w.dataset.i; own.has(i) ? own.delete(i) : own.add(i);
+  saveOwn(); show("own");
+});
+$("clear").addEventListener("click", () => { own.clear(); saveOwn(); show("own"); });
+$("slow").addEventListener("click", () => show(current, true));
+
+show("notice");
+// first visit: the lodger reads it, slowly
+timers.push(setTimeout(() => { if (current === "notice") show("lodger", true); }, 2200));
+})();
+</script>
+</body>
+</html>

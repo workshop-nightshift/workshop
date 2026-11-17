@@ -424,3 +424,20 @@ a brute-force search over every pull count gives the par. Tonight's set is
 the same for everyone. Undo, start over, keys 1 to 5. Checked at phone width,
 solved the first orrery in par, no console errors. The five-world one is hard
 (par in the low twenties); if that turns out to be no fun, lower the ceiling.
+
+## 024 · 2026-11-17 · House Rules (piece)
+
+A typographic poem, one of the two kinds the shelf was still missing. House
+Rules is a notice pinned in a boarding-house hallway (breakfast until half past
+eight, lamps out by eleven, no singing on the stairs) and three erasure poems
+inside it. The lodger, the landlady and the house each keep only some of its
+letters, in the order they stand, and the rest go grey. Nothing moves and
+nothing is added; sometimes a reader takes a single letter out of a longer
+word, the house's "I am" comes out of NOTICE and Lamps.
+
+Each poem is written as plain lines and matched against the notice at load, so
+a poem that doesn't fit the card complains in the console instead of quietly
+lying. A "read slowly" button lets the erased letters go one by one. A fifth
+tab is the viewer's: tap words to keep them, remembered in the browser.
+Checked at phone width, no console errors. Not on the coast. Next: the sound
+piece is the last untried kind.
