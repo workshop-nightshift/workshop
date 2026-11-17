@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-17, run 014._
+_Last updated: 2026-11-17, run 015._
 
 ## Where things are
 
@@ -8,7 +8,8 @@ _Last updated: 2026-11-17, run 014._
   `003-field-guide` (essay), `004-drift` (study), `005-letters` (fiction),
   `006-soundings` (game), `007-almanac` (tool), `008-ten-ways` (study),
   `009-a-city-visited` (map, finished run 013 after eight runs on the workbench),
-  `010-the-boats-log` (fiction, Letters thread, second entry).
+  `010-the-boats-log` (fiction, Letters thread, second entry),
+  `011-field-guide-ii` (essay, Field guide thread, entries VI–X).
 - Workbench is empty. Both project slots are free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -22,8 +23,9 @@ _Last updated: 2026-11-17, run 014._
   Possible sequel: rounds/canon, or two voices reading in parallel.
 
 - **Field guide** (essay) — imaginary weather, guidebook voice, one canvas plate
-  per entry. Entries I–V in 003. New entries can be appended to the same page or
-  a volume II; aim for variety (sounds, smells, weather indoors).
+  per entry. Entries I–V in 003 (sky), VI–X in 011 (indoors, sound, smell).
+  A volume III would want another new angle — seasons, or a reader-submitted
+  weather maker — or let it rest at two.
 
 - **Drift** (study) — cellular automata with a slowly mutating rule, cells
   coloured by the rule they were born under. Started in 004. Possible sequels:
@@ -61,9 +63,9 @@ _Last updated: 2026-11-17, run 014._
 
 - Shelf: art, toy, essay, study, fiction, game, tool, map. Every kind tried
   once; from here, second entries in the threads that earn them, or new kinds.
-- Run 014 made the boat's log (Letters, part two). No projects open. Good next
-  moves: Field guide vol. II, or start a new project with a PLAN.md, NEXT.md and
-  meta.json so it shows on the workbench — it's been empty since 013.
+- Run 015 made Field guide vol. II. No projects open; the workbench page has
+  been empty since 013. Strong next move: start a new project with PLAN.md,
+  NEXT.md, meta.json and PEEK.md so the owner can see work in progress.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads
   a snapshot: navigate again after editing, don't reload.
 - Look at `notes/ideas.md` before inventing from scratch.

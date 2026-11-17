@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A field guide to weather that doesn't happen, vol. II</title>
+<style>
+:root{--bg:#f4f1e8;--fg:#1f1d19;--mute:#6f6a5f;--line:#d8d1c1;--plate:#ebe6d8;--ink:31,29,25;--warm:196,120,58;--cool:70,102,140}
+@media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#e8e4da;--mute:#9a9589;--line:#2c2d31;--plate:#1b1c1f;--ink:232,228,218;--warm:236,170,104;--cool:132,168,210}}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 Georgia,"Iowan Old Style",serif}
+main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
+header h1{font-weight:normal;font-size:30px;line-height:1.2;margin:0 0 8px}
+header p{color:var(--mute);margin:0 0 8px;font-style:italic}
+.entry{border-top:1px solid var(--line);margin-top:48px;padding-top:28px}
+.no{font:13px/1 ui-monospace,Menlo,monospace;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.entry h2{font-weight:normal;font-size:24px;margin:6px 0 2px}
+.latin{color:var(--mute);font-style:italic;margin:0 0 16px}
+canvas{display:block;width:100%;height:180px;background:var(--plate);border-radius:3px}
+.cap{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--mute);margin:6px 0 18px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:18px 0 0;font-size:15px}
+dt{font:12px/1.9 ui-monospace,Menlo,monospace;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+dd{margin:0}
+@media (max-width:420px){dl{grid-template-columns:1fr}dd{margin-bottom:8px}}
+footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>A field guide to weather that doesn't happen</h1>
+  <p>Volume II, entries VI–X. Weather indoors, weather you hear, weather you smell. Volume I covered the sky; this one comes closer.</p>
+</header>
+
+<section class="entry">
+  <div class="no">Entry VI</div>
+  <h2>Hallway drizzle</h2>
+  <p class="latin">pluvia transitus</p>
+  <canvas data-plate="hallway" aria-label="A corridor of closed doors; a fine rain falls only in the gaps between them"></canvas>
+  <div class="cap">Plate VI. First-floor landing, a house let in rooms.</div>
+  <p>A fine rain that falls in corridors and nowhere else. It never enters a room, and it stops at the top of the stairs as if at a doorstep. It is commonest in long houses that have been divided up, where many people pass each other on the way to somewhere and nobody stays in the hall.</p>
+  <p>It doesn't wet anything, exactly. Coats come in from it feeling a little heavier than they went out, and the carpet runner is always slightly darker down the middle, where people walk.</p>
+  <dl>
+    <dt>Season</dt><dd>Winter, when everyone is home but in separate rooms.</dd>
+    <dt>Signs</dt><dd>Footsteps outside your door that sound like they have somewhere to be.</dd>
+    <dt>Folklore</dt><dd>Stop and talk to a neighbour on the landing and it eases off for a week.</dd>
+    <dt>Dress</dt><dd>Slippers. Leave your door open a crack if you'd like it to pass.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry VII</div>
+  <h2>Late thunder</h2>
+  <p class="latin">tonitrus serotinus</p>
+  <canvas data-plate="late" aria-label="A clear horizon; slow rings arrive from storms long ago, each marked with a year"></canvas>
+  <div class="cap">Plate VII. A clear evening receiving a storm of some years back.</div>
+  <p>Thunder from a storm that has already finished, sometimes long ago. Sound is slow, and on certain still evenings the air seems to remember that it is a carrier, and delivers something it was holding. There is no flash and no cloud: only a low roll from a clear sky, coming from the direction the old storm stood.</p>
+  <p>Older people sometimes recognise it. "That's the August one," they say, and name a year, and nobody can prove them wrong.</p>
+  <dl>
+    <dt>Season</dt><dd>Clear evenings at the end of summer.</dd>
+    <dt>Signs</dt><dd>A dog that looks at the horizon before you hear anything.</dd>
+    <dt>Folklore</dt><dd>Count the seconds as you would for lightning, and the number is the years.</dd>
+    <dt>Dress</dt><dd>Whatever you were wearing then.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry VIII</div>
+  <h2>Forescent</h2>
+  <p class="latin">odor praeveniens</p>
+  <canvas data-plate="forescent" aria-label="Faint particles rising from dry ground and drifting towards a rain that has not come yet"></canvas>
+  <div class="cap">Plate VIII. Dry ground, smelling of next week.</div>
+  <p>The smell of rain on dry ground, arriving some days before the rain does. It is the same smell, earthy and slightly metallic, but there is nothing to account for it: the pavements are dry, the sky is high and clean, the forecast is fine for the week.</p>
+  <p>Gardeners trust it more than the forecast. The rain it promises is not always large, but it always comes, and it always comes to the same place the smell was strongest.</p>
+  <dl>
+    <dt>Season</dt><dd>Long dry spells, about the time people stop expecting a change.</dd>
+    <dt>Signs</dt><dd>Passers-by sniffing the air and looking puzzled.</dd>
+    <dt>Folklore</dt><dd>It is the ground practising.</dd>
+    <dt>Dress</dt><dd>Bring the washing in on Thursday.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry IX</div>
+  <h2>Closed-room weather</h2>
+  <p class="latin">caelum conclusum</p>
+  <canvas data-plate="closed" aria-label="A floor plan of three rooms; in the one with its door shut, a small cloud turns slowly"></canvas>
+  <div class="cap">Plate IX. Plan of a flat, back bedroom shut since spring.</div>
+  <p>Shut a room long enough and it begins to keep its own weather. At first it is only a change in the air when you open the door, cooler or warmer than the rest of the house. Leave it longer and it develops a sky: a small grey cloud turning near the ceiling, a light frost on the inside of the window in a month that has no frost.</p>
+  <p>It goes the moment the room is used again. Open the door, sit on the bed for an hour, and the cloud thins and settles as dust. What is left is the faint impression that the room had been getting on fine without you.</p>
+  <dl>
+    <dt>Season</dt><dd>Any. Commonest in rooms that belonged to someone who moved out.</dd>
+    <dt>Signs</dt><dd>A draught under a door with no window open behind it.</dd>
+    <dt>Folklore</dt><dd>Knock before going in; it is polite, and the weather has time to tidy itself.</dd>
+    <dt>Dress</dt><dd>A cardigan, kept on the hook by that door.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry X</div>
+  <h2>Listening calm</h2>
+  <p class="latin">tranquillitas auscultans</p>
+  <canvas data-plate="calm" aria-label="Grass slowing to stillness; as it stops, faint rings appear from small far-off sources"></canvas>
+  <div class="cap">Plate X. A field going still; sounds arriving from three parishes away.</div>
+  <p>A calm so complete that sound travels further than it should. The wind drops, the grass stops, and then you begin to hear things from much too far away: a gate in the next valley, a spoon in a cup in a kitchen you can't see, two people on a distant road agreeing about something.</p>
+  <p>It lasts a few minutes. Anyone caught in it tends to go quiet themselves, from a sense that they are now audible to the same distances. When the wind returns, everyone talks a little louder than before, to make up for it.</p>
+  <dl>
+    <dt>Season</dt><dd>Evening, at the turn of the tide, inland or not.</dd>
+    <dt>Signs</dt><dd>Hearing your own pulse in an open field.</dd>
+    <dt>Folklore</dt><dd>Whatever you say in it will be heard by somebody, eventually, somewhere.</dd>
+    <dt>Dress</dt><dd>Nothing that rustles.</dd>
+  </dl>
+</section>
+
+<footer>
+  Volume I has entries I–V: <a href="../003-field-guide/">lantern fog, counted rain, backwind, return snow, quiet front</a>. <a href="../../">← shelf</a>
+</footer>
+</main>
+
+<script>
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function rng(s){ return () => (s = (s * 1664525 + 1013904223) >>> 0) / 2**32; }
+
+const plates = {
+  hallway(r){
+    const drops = Array.from({length: 140}, () => ({x: r(), k: r(), v: 0.6 + r()*0.6}));
+    return (x, W, H, t) => {
+      const ink = css("--ink"), cool = css("--cool");
+      const floor = H - 22, doorH = H*0.58, n = W < 420 ? 4 : 5;
+      const slot = W / n, doorW = Math.min(46, slot*0.36);
+      // runner down the middle, darker
+      x.fillStyle = `rgba(${ink},0.06)`; x.fillRect(0, floor, W, 22);
+      x.fillStyle = `rgba(${ink},0.08)`; x.fillRect(0, floor + 7, W, 8);
+      x.strokeStyle = `rgba(${ink},0.35)`; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(0, floor + .5); x.lineTo(W, floor + .5); x.stroke();
+      const doors = [];
+      for (let i = 0; i < n; i++){
+        const dx = slot*i + slot/2 - doorW/2; doors.push([dx, dx + doorW]);
+        x.fillStyle = `rgba(${ink},0.07)`; x.fillRect(dx, floor - doorH, doorW, doorH);
+        x.strokeStyle = `rgba(${ink},0.45)`; x.strokeRect(dx + .5, floor - doorH + .5, doorW - 1, doorH - 1);
+        x.fillStyle = `rgba(${ink},0.5)`; x.beginPath(); x.arc(dx + doorW - 7, floor - doorH*0.48, 1.6, 0, 6.28); x.fill();
+        x.font = "10px ui-monospace,Menlo,monospace"; x.textAlign = "center";
+        x.fillText(String(i + 1), dx + doorW/2, floor - doorH - 6);
+      }
+      x.strokeStyle = `rgba(${cool},0.55)`; x.lineWidth = 1;
+      x.beginPath();
+      for (const d of drops){
+        const px = d.x*W;
+        if (doors.some(([a, b]) => px > a - 4 && px < b + 4)) continue;
+        const y = ((t*0.00018*d.v + d.k) % 1) * (floor - 8);
+        x.moveTo(px, y); x.lineTo(px - 0.6, y + 5);
+      }
+      x.stroke();
+    };
+  },
+  late(r){
+    const storms = [1931, 1958, 1976, 1989, 2003].map((y, i) => ({y, x: 0.1 + r()*0.8, p: i/5 + r()*0.05}));
+    return (x, W, H, t) => {
+      const ink = css("--ink"), warm = css("--warm"), hz = H*0.72;
+      const g = x.createLinearGradient(0, 0, 0, hz);
+      g.addColorStop(0, `rgba(${warm},0)`); g.addColorStop(1, `rgba(${warm},0.14)`);
+      x.fillStyle = g; x.fillRect(0, 0, W, hz);
+      x.fillStyle = `rgba(${ink},0.12)`;
+      x.beginPath(); x.moveTo(0, H);
+      for (let px = 0; px <= W; px += 6) x.lineTo(px, hz + Math.sin(px*0.013)*3 + Math.sin(px*0.041)*1.5);
+      x.lineTo(W, H); x.fill();
+      x.font = "10px ui-monospace,Menlo,monospace"; x.textAlign = "center";
+      for (const s of storms){
+        const k = ((t*0.000045) + s.p) % 1, cx = s.x*W;
+        const R = k*W*0.9, a = 0.4*Math.sin(Math.min(1, k*1.2)*Math.PI);
+        if (a <= 0.01) continue;
+        x.strokeStyle = `rgba(${ink},${a})`; x.lineWidth = 1;
+        for (let j = 0; j < 3; j++){
+          const rr = R - j*5; if (rr <= 0) continue;
+          x.beginPath(); x.arc(cx, hz, rr, Math.PI, 2*Math.PI); x.stroke();
+        }
+        x.fillStyle = `rgba(${ink},${Math.min(0.7, a*1.6)})`;
+        x.fillText(String(s.y), cx, hz + 14);
+      }
+    };
+  },
+  forescent(r){
+    const motes = Array.from({length: 90}, () => ({x: r(), k: r(), w: r()*6.28, s: 0.8 + r()*1.4}));
+    return (x, W, H, t) => {
+      const ink = css("--ink"), warm = css("--warm"), cool = css("--cool"), ground = H - 18;
+      x.fillStyle = `rgba(${warm},0.22)`; x.fillRect(0, ground, W, 18);
+      x.strokeStyle = `rgba(${ink},0.3)`; x.setLineDash([2,3]);
+      // cracks in dry ground
+      x.beginPath();
+      for (let i = 0; i < 9; i++){ const cx = (i + 0.5)/9*W; x.moveTo(cx, ground + 3); x.lineTo(cx + 6, ground + 9); x.lineTo(cx + 2, ground + 15); }
+      x.stroke(); x.setLineDash([]);
+      // the rain that hasn't come: a faint outline far off to the right
+      const cx = W*0.84, cy = H*0.22, pulse = 0.18 + 0.08*Math.sin(t*0.0008);
+      x.strokeStyle = `rgba(${cool},${pulse})`; x.setLineDash([3,4]);
+      x.beginPath(); x.ellipse(cx, cy, W*0.11, 14, 0, 0, 6.28); x.stroke(); x.setLineDash([]);
+      x.fillStyle = `rgba(${ink},0.55)`; x.font = "10px ui-monospace,Menlo,monospace"; x.textAlign = "center";
+      x.fillText("next tuesday", cx, cy + 30);
+      for (const m of motes){
+        const k = ((t*0.00005) + m.k) % 1;
+        const sx = m.x*W*0.7 + k*(cx - m.x*W*0.7)*0.9 + Math.sin(t*0.0011 + m.w)*6;
+        const sy = ground - k*(ground - cy - 10);
+        x.fillStyle = `rgba(${warm},${0.55*(1 - k)*Math.min(1, k*8)})`;
+        x.beginPath(); x.arc(sx, sy, m.s, 0, 6.28); x.fill();
+      }
+    };
+  },
+  closed(r){
+    const puffs = Array.from({length: 9}, () => ({a: r()*6.28, d: 0.3 + r()*0.6, s: 0.6 + r()*0.6}));
+    const frost = Array.from({length: 22}, () => ({y: r(), l: 2 + r()*5, a: r()*3.14}));
+    return (x, W, H, t) => {
+      const ink = css("--ink"), cool = css("--cool");
+      const m = 14, w = W - m*2, h = H - m*2;
+      const split1 = m + w*0.36, split2 = m + w*0.62, mid = m + h*0.55;
+      x.strokeStyle = `rgba(${ink},0.6)`; x.lineWidth = 2;
+      x.strokeRect(m, m, w, h);
+      x.lineWidth = 1.5; x.beginPath();
+      x.moveTo(split1, m); x.lineTo(split1, mid - 14); x.moveTo(split1, mid + 14); x.lineTo(split1, m + h);
+      x.moveTo(split2, m); x.lineTo(split2, m + h);
+      x.stroke();
+      // open door on the first wall (gap + swing), shut door on the second (solid leaf)
+      x.lineWidth = 1; x.strokeStyle = `rgba(${ink},0.3)`;
+      x.beginPath(); x.arc(split1, mid - 14, 28, Math.PI/2, Math.PI/2 + 0.9); x.stroke();
+      x.strokeStyle = `rgba(${ink},0.75)`; x.lineWidth = 3;
+      x.beginPath(); x.moveTo(split2, mid - 14); x.lineTo(split2, mid + 14); x.stroke();
+      x.font = "10px ui-monospace,Menlo,monospace"; x.textAlign = "center"; x.fillStyle = `rgba(${ink},0.5)`;
+      x.fillText("kitchen", (m + split1)/2, m + h - 10);
+      x.fillText("hall", (split1 + split2)/2, m + h - 10);
+      x.fillText("back room", (split2 + m + w)/2, m + h - 10);
+      // window on the closed room's outer wall, frosted
+      const wx = m + w, wy1 = m + h*0.2, wy2 = m + h*0.5;
+      x.strokeStyle = `rgba(${cool},0.8)`; x.lineWidth = 3;
+      x.beginPath(); x.moveTo(wx, wy1); x.lineTo(wx, wy2); x.stroke();
+      x.lineWidth = 1; x.strokeStyle = `rgba(${cool},0.5)`;
+      x.beginPath();
+      for (const f of frost){ const fy = wy1 + f.y*(wy2 - wy1); x.moveTo(wx - 2, fy); x.lineTo(wx - 2 - Math.cos(f.a)*f.l, fy + Math.sin(f.a - 1.57)*f.l*0.6); }
+      x.stroke();
+      // the room's own small cloud
+      const rcx = (split2 + m + w)/2, rcy = m + h*0.4, rad = Math.min((m + w - split2)*0.3, h*0.22);
+      for (const p of puffs){
+        const a = p.a + t*0.00025;
+        const px = rcx + Math.cos(a)*rad*p.d, py = rcy + Math.sin(a)*rad*p.d*0.45;
+        const g = x.createRadialGradient(px, py, 0, px, py, 16*p.s);
+        g.addColorStop(0, `rgba(${ink},0.16)`); g.addColorStop(1, `rgba(${ink},0)`);
+        x.fillStyle = g; x.fillRect(px - 20, py - 20, 40, 40);
+      }
+    };
+  },
+  calm(r){
+    const blades = Array.from({length: 80}, () => ({x: r(), h: 0.45 + r()*0.3, p: r()}));
+    const far = [[0.08, 0.2, "gate"], [0.5, 0.12, "spoon"], [0.9, 0.26, "voices"]].map(([fx, fy, label], i) => ({fx, fy, label, p: i*0.33}));
+    return (x, W, H, t) => {
+      const ink = css("--ink"), cyc = (t % 14000) / 14000;
+      // wind falls to nothing over the first 40%, stays still, returns at the end
+      const wind = cyc < 0.4 ? 1 - cyc/0.4 : cyc > 0.88 ? (cyc - 0.88)/0.12 : 0;
+      const hush = 1 - wind;
+      x.strokeStyle = `rgba(${ink},0.5)`; x.lineWidth = 1.1;
+      x.beginPath();
+      for (const b of blades){
+        const bx = b.x*W, by = H - 6, top = H*b.h;
+        const bend = wind*(10*Math.sin(t*0.003 + b.p*9) + 8);
+        x.moveTo(bx, by); x.quadraticCurveTo(bx, by - (by - top)*0.5, bx + bend, top);
+      }
+      x.stroke();
+      if (hush > 0.6){
+        const vis = (hush - 0.6)/0.4;
+        x.font = "10px ui-monospace,Menlo,monospace"; x.textAlign = "center";
+        for (const f of far){
+          const k = ((t*0.0004) + f.p) % 1, cx = f.fx*W, cy = f.fy*H + 14;
+          x.strokeStyle = `rgba(${ink},${0.4*vis*(1 - k)})`;
+          x.beginPath(); x.arc(cx, cy, 3 + k*40, 0, 6.28); x.stroke();
+          x.fillStyle = `rgba(${ink},${0.6*vis})`;
+          x.beginPath(); x.arc(cx, cy, 1.6, 0, 6.28); x.fill();
+          x.fillText(f.label, cx, cy - 8);
+        }
+      }
+    };
+  }
+};
+
+const live = [];
+document.querySelectorAll("canvas[data-plate]").forEach((c, i) => {
+  const p = { c, x: c.getContext("2d"), draw: plates[c.dataset.plate](rng(2000 + i*7919)), on: false };
+  live.push(p);
+});
+const io = new IntersectionObserver(es => es.forEach(e => {
+  const p = live.find(p => p.c === e.target); if (p) p.on = e.isIntersecting;
+}));
+live.forEach(p => io.observe(p.c));
+
+function size(p){
+  const dpr = devicePixelRatio || 1, W = p.c.clientWidth, H = p.c.clientHeight;
+  if (p.c.width !== Math.round(W*dpr)){ p.c.width = Math.round(W*dpr); p.c.height = Math.round(H*dpr); }
+  p.x.setTransform(dpr,0,0,dpr,0,0); return [W, H];
+}
+function frame(t){
+  for (const p of live){
+    if (!p.on && !still) continue;
+    const [W, H] = size(p); p.x.clearRect(0, 0, W, H);
+    p.draw(p.x, W, H, still ? 6500 : t);
+  }
+  if (!still) requestAnimationFrame(frame);
+}
+if (still){ live.forEach(p => p.on = true); addEventListener("resize", () => frame(0)); frame(0); }
+else requestAnimationFrame(frame);
+</script>
+</body>
+</html>

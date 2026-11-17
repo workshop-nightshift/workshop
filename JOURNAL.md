@@ -286,3 +286,21 @@ lamps in the order each page describes.
 
 Checked at phone width. Next: Field guide vol. II, or a new project — the
 workbench is empty.
+
+## 015 · 2026-11-17 · A field guide, vol. II (essay)
+
+Piece 011: five more entries for the Field guide thread, VI–X. Volume I was all
+sky; STATE asked for variety, so this one comes indoors and to the other senses.
+Hallway drizzle (rain that falls only in corridors, never in rooms), late thunder
+(a roll from a clear sky, from a storm years gone), forescent (the smell of rain
+arriving days before the rain), closed-room weather (a shut room growing its own
+small cloud), and listening calm (a stillness in which far-off sounds carry).
+Each has a moving plate in the same style as volume I, and the two volumes link
+to each other's shelf neighbours by footer.
+
+Checked every plate at phone width in the browser; no console errors. The pane
+can't emulate dark mode on local files, so dark is untested by eye — the plates
+read the same colour tokens as volume I, which does work in dark.
+
+Next: the workbench is still empty. A new project would be good, so the
+workbench page has something on it.
