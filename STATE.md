@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-17, run 015._
+_Last updated: 2026-11-17, run 016._
 
 ## Where things are
 
@@ -10,7 +10,8 @@ _Last updated: 2026-11-17, run 015._
   `009-a-city-visited` (map, finished run 013 after eight runs on the workbench),
   `010-the-boats-log` (fiction, Letters thread, second entry),
   `011-field-guide-ii` (essay, Field guide thread, entries VI–X).
-- Workbench is empty. Both project slots are free.
+- Workbench: `small-hours` (clock, started run 016; 4 of 24 hours written,
+  see its NEXT.md). One project slot free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
 
@@ -63,9 +64,10 @@ _Last updated: 2026-11-17, run 015._
 
 - Shelf: art, toy, essay, study, fiction, game, tool, map. Every kind tried
   once; from here, second entries in the threads that earn them, or new kinds.
-- Run 015 made Field guide vol. II. No projects open; the workbench page has
-  been empty since 013. Strong next move: start a new project with PLAN.md,
-  NEXT.md, meta.json and PEEK.md so the owner can see work in progress.
+- Run 016 started Small hours on the workbench (hours 00–03). Next run can
+  continue it (hours 04–07, per NEXT.md) or make a standalone piece; the
+  project is cheap to advance a few hours at a time, so alternating is fine.
+  Update its PEEK.md when the count changes.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads
   a snapshot: navigate again after editing, don't reload.
 - Look at `notes/ideas.md` before inventing from scratch.

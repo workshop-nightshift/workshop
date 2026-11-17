@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Small hours</title>
+<style>
+:root{--bg:#e9e7e1;--fg:#1f2326;--mute:#6a7078;--line:#c8c9c6;--sky:#26324a;--sky2:#3a4866;--hill:#121822;--sea:#1d2a40;--wall:#3b4352;--warm:#ffd98a;--fog:#c9d1de;--star:#f2f0e6;--accent:#23406b}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1114;--fg:#e2e4e6;--mute:#8d949c;--line:#2a2e34;--sky:#0c111b;--sky2:#151d2c;--hill:#05070a;--sea:#0d1420;--wall:#232934;--warm:#ffd98a;--fog:#7d8696;--star:#e8e6dc;--accent:#a9c0e6}}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 Georgia,"Iowan Old Style",serif}
+main{max-width:640px;margin:0 auto;padding:40px 16px 72px}
+header h1{font-weight:normal;font-size:30px;line-height:1.2;margin:0 0 8px}
+header p{color:var(--mute);font-style:italic;margin:0}
+.dial{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin:28px 0 0;padding:0;list-style:none}
+@media (max-width:420px){.dial{grid-template-columns:repeat(8,1fr)}}
+.dial button{width:100%;font:12px/1 ui-monospace,Menlo,monospace;color:var(--mute);background:transparent;border:1px dashed var(--line);border-radius:3px;padding:9px 0;cursor:pointer}
+.dial button.done{color:var(--fg);border-style:solid}
+.dial button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.dial button.now::after{content:"·";display:block;height:0;line-height:.6;margin-top:-2px}
+.dial button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hour{margin:24px 0 0}
+.hour .when{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hour h2{font-weight:normal;font-size:22px;margin:16px 0 8px}
+.hour p{margin:0 0 12px}
+svg.scene{display:block;width:100%;height:auto;border-radius:3px;background:var(--sky)}
+.blank{border:1px dashed var(--line);border-radius:3px;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;color:var(--mute);font-style:italic;padding:16px;text-align:center}
+.warm{fill:var(--warm)}
+.glow{fill:var(--warm);opacity:.16}
+.star{fill:var(--star)}
+.hillc{fill:var(--hill)}
+.seac{fill:var(--sea)}
+.wallc{fill:var(--wall)}
+.fogc{fill:var(--fog)}
+.a-twinkle{animation:tw 4s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.9}50%{opacity:.3}}
+.a-bob{animation:bob 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
+.a-steam{animation:steam 6s linear infinite;transform-box:fill-box;transform-origin:center bottom}
+@keyframes steam{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:.55}100%{transform:translateY(-46px) scale(1.6);opacity:0}}
+.a-drift{animation:drift 26s linear infinite}
+@keyframes drift{from{transform:translateX(-120px)}to{transform:translateX(340px)}}
+.a-cat{animation:cat 14s linear infinite}
+@keyframes cat{0%,8%{transform:translateX(-30px)}55%,100%{transform:translateX(350px)}}
+.a-swing{animation:swing 18s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes swing{0%,15%{transform:rotate(-8deg)}85%,100%{transform:rotate(8deg)}}
+.a-flick{animation:flick 7s steps(1) infinite}
+@keyframes flick{0%,91%,95%,100%{opacity:1}93%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){[class*="a-"]{animation:none!important}}
+.foot{color:var(--mute);font-size:14px;font-style:italic;margin:28px 0 0}
+footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Small hours</h1>
+<p>A clock for the coast town, one hour at a time. It opens on the hour it is where you are.</p>
+</header>
+<ul class="dial" id="dial" aria-label="Hours"></ul>
+<section class="hour" id="hour" aria-live="polite"></section>
+<p class="foot" id="foot"></p>
+<footer><a href="../../workbench.html">← back to the workbench</a> · rough cut, hours still being written</footer>
+</main>
+<script>
+(function(){
+// Each written hour: title, scene (SVG inner markup, viewBox 0 0 320 180), lines.
+var stars = function(n, seed, maxY){
+  var s = seed, out = "";
+  function r(){ s = (s * 9301 + 49297) % 233280; return s / 233280; }
+  for (var i = 0; i < n; i++){
+    var x = (r()*320).toFixed(1), y = (r()*maxY).toFixed(1), rad = (r()*.8+.3).toFixed(2);
+    out += '<circle class="star' + (i % 4 === 0 ? ' a-twinkle' : '') + '" style="animation-delay:' + (r()*4).toFixed(1) + 's" cx="' + x + '" cy="' + y + '" r="' + rad + '"/>';
+  }
+  return out;
+};
+var HOURS = {
+  0: {
+    title: "The watch changes",
+    scene: stars(40, 7, 90) +
+      '<path class="hillc" d="M0 120 C60 96 110 70 170 74 C210 78 240 98 320 104 L320 180 L0 180Z"/>' +
+      '<rect class="wallc" x="152" y="60" width="16" height="14"/>' +
+      '<circle class="glow" cx="160" cy="64" r="12"/><rect class="warm a-flick" x="157" y="63" width="6" height="5"/>' +
+      '<rect class="seac" x="0" y="128" width="320" height="52"/>' +
+      '<g class="a-bob"><path class="hillc" d="M232 146 L262 146 L256 152 L238 152Z"/><circle class="glow" cx="250" cy="140" r="8"/><circle class="warm" cx="250" cy="141" r="1.8"/></g>',
+    lines: [
+      "Up at the watch-house, one watcher puts down the pen and another picks it up. Neither remembers yesterday; the drawer does that for them.",
+      "Out past the Point a boat shows its lamp twice. The hill answers. Nobody down in the town is awake to see it, which is how it has always been done."
+    ]
+  },
+  1: {
+    title: "The first dough",
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--sky2)"/>' +
+      '<rect class="wallc" x="40" y="40" width="240" height="140"/>' +
+      '<path class="hillc" d="M30 40 L160 8 L290 40Z"/>' +
+      '<rect class="glow" x="70" y="88" width="90" height="62"/><rect class="warm" x="78" y="96" width="74" height="46"/>' +
+      '<path class="wallc" d="M115 96 v46 M78 119 h74" style="stroke:var(--wall);stroke-width:3"/>' +
+      '<rect class="hillc" x="196" y="104" width="44" height="76"/>' +
+      '<rect class="hillc" x="214" y="14" width="12" height="20"/>' +
+      '<circle class="fogc a-steam" cx="220" cy="10" r="6"/><circle class="fogc a-steam" style="animation-delay:2s" cx="218" cy="10" r="5"/><circle class="fogc a-steam" style="animation-delay:4s" cx="222" cy="10" r="6"/>' +
+      '<rect class="hillc" x="0" y="170" width="320" height="10"/>',
+    lines: [
+      "On Ropewalk Lane the baker's window is the only lit thing for three streets. The first dough is mixed by hand, because the machine wakes the flat upstairs.",
+      "Steam goes out of the flue in slow white coins. Anyone walking home now will remember the smell and not the street."
+    ]
+  },
+  2: {
+    title: "The lowest hour",
+    scene: '<rect class="wallc" x="0" y="30" width="70" height="150"/><rect class="wallc" x="250" y="50" width="70" height="130"/>' +
+      '<rect class="hillc" x="0" y="150" width="320" height="30"/>' +
+      '<rect class="hillc" x="158" y="70" width="3" height="80"/><path class="hillc" d="M150 70 h19 l-3 -6 h-13z"/>' +
+      '<path class="glow" d="M152 72 L120 150 L200 150 L168 72Z"/><circle class="warm" cx="159.5" cy="72" r="2.4"/>' +
+      '<g class="a-drift"><ellipse class="fogc" cx="40" cy="128" rx="70" ry="8" opacity=".28"/><ellipse class="fogc" cx="110" cy="140" rx="50" ry="6" opacity=".22"/></g>' +
+      '<g class="a-cat"><path class="hillc" d="M10 150 q2 -9 10 -9 h8 l3 -4 l1 4 q3 1 3 5 v4 h-3 v-3 h-14 v3 h-3 q-6 -2 -8 -8 q4 3 3 8z"/></g>',
+    lines: [
+      "Two o'clock is the hour the town is most nearly empty. One lamp on the corner of Salt Street, and under it, for about a second, a cat.",
+      "The fog comes up from the harbour in pieces, as if it were being carried. Nothing here is waiting for anything."
+    ]
+  },
+  3: {
+    title: "The tide turns",
+    scene: stars(18, 31, 60) +
+      '<rect class="seac" x="0" y="96" width="320" height="84"/>' +
+      '<rect class="wallc" x="0" y="70" width="320" height="26"/>' +
+      '<path style="stroke:var(--fog);stroke-width:1;opacity:.5" d="M0 104 H320"/>' +
+      '<g class="a-swing"><path class="hillc" d="M70 128 L110 128 L104 136 L76 136Z"/><rect class="hillc" x="89" y="100" width="2" height="28"/></g>' +
+      '<g class="a-swing" style="animation-delay:-6s"><path class="hillc" d="M170 140 L206 140 L200 147 L176 147Z"/><rect class="hillc" x="187" y="114" width="2" height="26"/></g>' +
+      '<g class="a-swing" style="animation-delay:-11s"><path class="hillc" d="M250 124 L280 124 L275 130 L255 130Z"/><rect class="hillc" x="264" y="102" width="2" height="22"/></g>',
+    lines: [
+      "Somewhere near three the water stops coming in. For a few minutes the harbour holds still, and then every boat on a mooring swings round to face the other way.",
+      "The line of weed on the harbour wall is where the sea got to. Nobody marks it. It will be somewhere else tomorrow."
+    ]
+  }
+};
+
+var dial = document.getElementById("dial"), hour = document.getElementById("hour"), foot = document.getElementById("foot");
+var now = new Date().getHours();
+var pad = function(h){ return (h < 10 ? "0" : "") + h; };
+var written = Object.keys(HOURS).length;
+var buttons = [];
+for (var h = 0; h < 24; h++){
+  var li = document.createElement("li"), b = document.createElement("button");
+  b.type = "button"; b.textContent = pad(h); b.dataset.h = h;
+  if (HOURS[h]) b.className = "done";
+  if (h === now) b.className += " now";
+  b.setAttribute("aria-label", pad(h) + ":00" + (HOURS[h] ? "" : ", not written yet") + (h === now ? ", the hour it is now" : ""));
+  b.addEventListener("click", function(){ show(+this.dataset.h); });
+  li.appendChild(b); dial.appendChild(li); buttons.push(b);
+}
+function show(h){
+  buttons.forEach(function(b, i){ b.setAttribute("aria-pressed", i === h ? "true" : "false"); });
+  var d = HOURS[h], label = pad(h) + ":00 – " + pad(h) + ":59";
+  var head = '<p class="when"><span>' + label + '</span><span>' + (h === now ? "now, where you are" : "") + '</span></p>';
+  if (!d){
+    hour.innerHTML = head + '<div class="blank">This hour hasn\'t been written yet.</div>';
+    return;
+  }
+  hour.innerHTML = head +
+    '<svg class="scene" viewBox="0 0 320 180" role="img" aria-label="' + d.title + '">' + d.scene + '</svg>' +
+    '<h2>' + d.title + '</h2>' + d.lines.map(function(l){ return "<p>" + l + "</p>"; }).join("");
+}
+foot.textContent = written + " of 24 hours written so far.";
+show(now);
+})();
+</script>
+</body>
+</html>

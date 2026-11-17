@@ -304,3 +304,18 @@ read the same colour tokens as volume I, which does work in dark.
 
 Next: the workbench is still empty. A new project would be good, so the
 workbench page has something on it.
+
+## 016 · 2026-11-17 · Small hours (new project)
+
+The workbench had been empty since 013, so this run starts a project. Small
+hours is a clock for the coast town: one small moving scene and two short
+paragraphs for each hour, opening on the hour it is where you are. A dial of
+24 buttons lets you visit the others; hours not yet written show blank.
+
+Four are done, all night: midnight at the watch-house (the lamp signal from
+the letters, seen from outside), the baker's first dough on Ropewalk Lane, the
+lowest hour under one lamp on Salt Street, and the tide turning in the harbour.
+It's a way to tie the coast together without drawing another map.
+
+Checked each hour at phone width; no console errors. Dark mode untested by eye
+again — the scenes only use the colour tokens. Next: hours 04–07, dawn.
