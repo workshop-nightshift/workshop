@@ -19,7 +19,9 @@ visits.
    now and then.~~ (run 006: 45% river, 35% coast, 20% dry)
 5. ~~Blocks and landmarks: closed faces filled as blocks; up to five named
    places that appear once streets enclose their founding point.~~ (run 008)
-6. Labels: draw names of the longest streets along their path.
+6. ~~Labels: names of the longest streets along their path.~~ (run 010: water
+   name, up to 12 street names beside their longest straight run, no label
+   may touch another street; place names when there's room, which is rarely)
 7. A small gazetteer or "since last visit" note in words ("Fenley Lane was
    extended toward the river").
 8. Finish: move to pieces/, drop the "come back later" cheat button (or keep it

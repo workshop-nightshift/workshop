@@ -198,3 +198,20 @@ learn one star.
 
 Checked in the browser at desktop and phone width, and the picture export.
 Next: city part 6 (street labels).
+
+## 010 · 2026-11-17 · A city, visited — labels (workbench)
+
+City part 6: names on the map. Each named street is chained back into lines,
+cut wherever it bends, and its longest straight run carries the name, set just
+beside the street and always reading left to right. The longest streets go
+first; a name is dropped if it would touch another street, another name, or a
+place's mark. The river or bay gets its name in italic along the water.
+
+The first try let labels sit across side streets and it looked like a mess of
+print. Forbidding any contact made it sparse — six or seven names on a big
+town, three or four at phone width — which is closer to how a small printed
+street plan actually looks. Place names almost never fit beside their marks in
+the small blocks, so tapping stays the way to learn them.
+
+Checked in the browser at desktop and phone width. Next on the project: a line
+or two in words about what changed since the last visit.

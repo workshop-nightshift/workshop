@@ -401,6 +401,137 @@ function draw() {
       x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke();
     }
   }
+  drawLabels(P, sc, lw, col, W, H);
+}
+
+// ---- labels ----
+// Each named street is chained into polylines; its longest nearly straight run
+// carries the name, set beside the street, reading left to right. Longest
+// streets go first; a label that would collide with one already placed, or with
+// a place's mark, is dropped.
+function streetRuns(P) {
+  const by = new Map();
+  city.edges.forEach((E, i) => { if (city.streets[E.street].name) { if (!by.has(E.street)) by.set(E.street, []); by.get(E.street).push(i); } });
+  const out = [];
+  for (const [st, es] of by) {
+    const inc = new Map(), used = new Set();
+    const add = (n, e) => { if (!inc.has(n)) inc.set(n, []); inc.get(n).push(e); };
+    let world = 0;
+    for (const e of es) { const E = city.edges[e]; add(E.a, e); add(E.b, e); world += Math.hypot(city.nodes[E.a].x - city.nodes[E.b].x, city.nodes[E.a].y - city.nodes[E.b].y); }
+    const starts = [...inc.keys()].sort((p, q) => inc.get(p).length - inc.get(q).length);
+    const runs = [];
+    for (const s of starts) {
+      for (const e0 of inc.get(s)) {
+        if (used.has(e0)) continue;
+        // Walk a chain from s.
+        const line = [s];
+        let n = s, e = e0;
+        while (e != null && !used.has(e)) {
+          used.add(e);
+          const E = city.edges[e]; n = E.a === n ? E.b : E.a; line.push(n);
+          e = (inc.get(n) || []).find(f => !used.has(f));
+        }
+        // Split the chain into nearly straight runs.
+        const pts = line.map(k => P(city.nodes[k]));
+        let i0 = 0;
+        for (let i = 1; i < pts.length; i++) {
+          const a0 = Math.atan2(pts[i0 + 1][1] - pts[i0][1], pts[i0 + 1][0] - pts[i0][0]);
+          const a1 = i + 1 < pts.length ? Math.atan2(pts[i + 1][1] - pts[i][1], pts[i + 1][0] - pts[i][0]) : null;
+          let d = a1 == null ? 9 : Math.abs(a1 - a0);
+          if (d > Math.PI) d = Math.PI * 2 - d;
+          if (d > 0.3) { runs.push([pts[i0], pts[i]]); i0 = i; }
+        }
+      }
+    }
+    let best = null, bl = 0;
+    for (const [A, B] of runs) { const l = Math.hypot(B[0] - A[0], B[1] - A[1]); if (l > bl) { bl = l; best = [A, B]; } }
+    if (best) out.push({ st, world, A: best[0], B: best[1], len: bl });
+  }
+  return out.sort((p, q) => q.world - p.world);
+}
+
+function drawLabels(P, sc, lw, col, W, H) {
+  const fs = W < 520 ? 10 : 11;
+  const taken = []; // circles [x, y, r] already occupied
+  const segs = city.edges.map(E => [...P(city.nodes[E.a]), ...P(city.nodes[E.b])]);
+  const free = cs => cs.every(([px, py, pr]) => px - pr > 2 && px + pr < W - 2 && py - pr > 2 && py + pr < H - 2 &&
+    taken.every(([qx, qy, qr]) => Math.hypot(px - qx, py - qy) > pr + qr) &&
+    segs.every(([ax, ay, bx, by]) => distSeg(px, py, ax, ay, bx, by) > pr + lw / 2));
+  const s = Math.max(6, Math.min(11, sc * 5));
+  for (const b of city.blocks) if (b.mark) { const [cx, cy] = P({ x: b.cx, y: b.cy }); taken.push([cx, cy, s + 3]); }
+  x.textBaseline = "middle"; x.textAlign = "center";
+  x.lineJoin = "round";
+  const halo = (t, px, py) => { x.strokeStyle = col("--bg"); x.lineWidth = 3; x.strokeText(t, px, py); x.fillText(t, px, py); };
+  // Water first, in italic, in the middle of what's visible.
+  if (city.water) {
+    x.font = `italic ${fs + 1}px ui-serif,Georgia,serif`;
+    const t = city.water.name.replace(/^the /, "The "), tw = x.measureText(t).width;
+    const Wt = city.water;
+    // Walk along the water's middle line and take the first spot where the name fits on screen.
+    const cu = ((W / 2 - view.ox) / sc) * Math.cos(Wt.theta) + ((H / 2 - view.oy) / sc) * Math.sin(Wt.theta);
+    for (let k = 0; k < 40; k++) {
+      const u = cu + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 12;
+      const v = Wt.kind === "river" ? Wt.mid(u) : Wt.mid(u) + Wt.side * (14 + fs / sc);
+      const [wx, wy] = Wt.xy(u, v), [wx2, wy2] = Wt.xy(u + 1, Wt.kind === "river" ? Wt.mid(u + 1) : Wt.mid(u + 1) + Wt.side * (14 + fs / sc));
+      let a = Math.atan2(wy2 - wy, wx2 - wx);
+      if (a > Math.PI / 2) a -= Math.PI; else if (a < -Math.PI / 2) a += Math.PI;
+      const px = wx * sc + view.ox, py = wy * sc + view.oy;
+      const cs = [];
+      for (let d = -tw / 2; d <= tw / 2; d += fs * 0.8) cs.push([px + Math.cos(a) * d, py + Math.sin(a) * d, fs * 0.6]);
+      if (!free(cs)) continue;
+      taken.push(...cs);
+      x.save(); x.translate(px, py); x.rotate(a); x.fillStyle = col("--mute");
+      x.strokeStyle = col("--water"); x.lineWidth = 3; x.strokeText(t, 0, 0); x.fillText(t, 0, 0);
+      x.restore();
+      break;
+    }
+  }
+  x.font = `${fs}px ui-serif,Georgia,serif`;
+  let placed = 0;
+  const max = W < 520 ? 7 : 12;
+  for (const R of streetRuns(P)) {
+    if (placed >= max) break;
+    if (R.st === sel) continue;
+    const t = city.streets[R.st].name, tw = x.measureText(t).width;
+    if (tw > R.len * 0.92) continue;
+    let [A, B] = [R.A, R.B];
+    if (B[0] < A[0]) [A, B] = [B, A];
+    const a = Math.atan2(B[1] - A[1], B[0] - A[0]);
+    const nx = -Math.sin(a), ny = Math.cos(a), off = lw / 2 + fs * 0.5 + 1;
+    const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2;
+    let done = false;
+    // Try either side, and a little up and down the run.
+    for (const shift of [0, -0.15, 0.15, -0.3, 0.3, -0.45, 0.45]) for (const side of [-1, 1]) {
+      if (done) break;
+      const px = mx + Math.cos(a) * shift * (R.len - tw) + nx * off * side;
+      const py = my + Math.sin(a) * shift * (R.len - tw) + ny * off * side;
+      const cs = [];
+      for (let d = -tw / 2; d <= tw / 2; d += fs * 0.7) cs.push([px + Math.cos(a) * d, py + Math.sin(a) * d, fs * 0.4]);
+      if (!free(cs)) continue;
+      taken.push(...cs);
+      x.save(); x.translate(px, py); x.rotate(a); x.fillStyle = col("--mute"); halo(t, 0, 0); x.restore();
+      placed++; done = true;
+    }
+  }
+  // Names of the places, small italic, beside the mark if there's room.
+  x.font = `italic ${fs}px ui-serif,Georgia,serif`;
+  for (const b of city.blocks) if (b.mark) {
+    const [cx, cy] = P({ x: b.cx, y: b.cy });
+    const t = b.mark.name.replace(/^the /, ""), tw = x.measureText(t).width;
+    for (const dy of [s + fs * 0.9, -(s + fs * 0.9)]) {
+      const cs = [];
+      for (let d = -tw / 2; d <= tw / 2; d += fs * 0.6) cs.push([cx + d, cy + dy, fs * 0.4]);
+      // The place's own mark doesn't count against its name.
+      const own = taken.findIndex(([qx, qy]) => qx === cx && qy === cy);
+      const mine = own >= 0 ? taken.splice(own, 1)[0] : null;
+      const ok = free(cs);
+      if (mine) taken.push(mine);
+      if (!ok) continue;
+      taken.push(...cs);
+      x.fillStyle = col("--fg"); halo(t, cx, cy + dy);
+      break;
+    }
+  }
 }
 
 function drawBlocks(P, sc, lw, col) {
