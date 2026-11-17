@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drift</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d1b18;--mute:#716b60;--line:#d9d3c6;--sat:38%;--lit:38%}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--sat:45%;--lit:66%}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
+body{display:flex;flex-direction:column;font:14px/1.5 ui-monospace,Menlo,monospace}
+canvas{flex:1;width:100%;min-height:0;display:block;cursor:pointer;image-rendering:pixelated}
+#bar{display:flex;justify-content:space-between;align-items:baseline;gap:8px 16px;flex-wrap:wrap;padding:10px 16px 4px;border-top:1px solid var(--line)}
+#rule{font-weight:600;font-size:16px}
+#ledger{padding:0 16px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ledger span{display:inline-block;width:.8em;height:.8em;border-radius:2px;margin-right:4px;vertical-align:-1px}
+footer{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;padding:6px 16px 14px;color:var(--mute)}
+button{font:inherit;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 10px;cursor:pointer}
+a{color:inherit}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="A grid of cells living under rules that change a little every so often"></canvas>
+<div id="bar"><span id="rule"></span><span id="gen"></span></div>
+<div id="ledger" aria-live="off"></div>
+<footer>
+  <span><button id="pp">pause</button> <button id="st">step</button></span>
+  <span><a href="../../">← shelf</a> · tap the grid to scatter new seed</span>
+</footer>
+<script>
+const c = document.getElementById("c"), x = c.getContext("2d");
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Rule: born[n] / keep[n] for n live neighbours. Starts as the familiar B3/S23.
+let born = [0,0,0,1,0,0,0,0,0], keep = [0,0,1,1,0,0,0,0,0];
+let epoch = 0, gen = 0, nextDrift = 90, churn = 0;
+const ledger = [];               // [{rule, epoch}]
+const EVERY = 90;                // generations between drifts
+
+let W, H, S = 4, a, b, era;      // a: alive now, b: scratch, era: epoch each cell was born in
+
+function ruleStr(){
+  let s = "B"; born.forEach((v,i)=>{ if(v) s += i; });
+  s += "/S"; keep.forEach((v,i)=>{ if(v) s += i; });
+  return s;
+}
+function hue(e){ return (e * 137.5 + 20) % 360; }
+
+function size(){
+  const dpr = devicePixelRatio || 1;
+  S = Math.max(3, Math.round(Math.min(c.clientWidth, c.clientHeight) / 160));
+  W = Math.max(20, Math.floor(c.clientWidth / S));
+  H = Math.max(20, Math.floor(c.clientHeight / S));
+  c.width = W; c.height = H;                 // one canvas pixel per cell; CSS scales it
+  a = new Uint8Array(W*H); b = new Uint8Array(W*H); era = new Uint16Array(W*H);
+  scatter(W/2, H/2, Math.max(W,H), 0.3);
+}
+
+function scatter(cx, cy, r, p){
+  for (let y = Math.max(0, cy-r|0); y < Math.min(H, cy+r); y++)
+    for (let xx = Math.max(0, cx-r|0); xx < Math.min(W, cx+r); xx++){
+      if ((xx-cx)**2 + (y-cy)**2 > r*r) continue;
+      if (Math.random() < p){ a[y*W+xx] = 1; era[y*W+xx] = epoch; }
+    }
+}
+
+function step(){
+  let pop = 0, changed = 0;
+  for (let y = 0; y < H; y++){
+    const yu = ((y-1+H)%H)*W, ym = y*W, yd = ((y+1)%H)*W;
+    for (let i = 0; i < W; i++){
+      const l = (i-1+W)%W, r = (i+1)%W;
+      const n = a[yu+l]+a[yu+i]+a[yu+r]+a[ym+l]+a[ym+r]+a[yd+l]+a[yd+i]+a[yd+r];
+      const k = ym+i, alive = a[k];
+      const v = alive ? keep[n] : born[n];
+      b[k] = v;
+      if (v){ pop++; if (!alive) era[k] = epoch; }
+      if (v !== alive) changed++;
+    }
+  }
+  [a, b] = [b, a];
+  gen++;
+  churn = churn * 0.9 + (changed / (W*H)) * 0.1;   // smoothed share of cells flipping per step
+  if (pop < W*H*0.002 && nextDrift - gen > 12) nextDrift = gen + 12;   // an empty field doesn't wait long
+  if (gen >= nextDrift) drift(pop);
+  return pop;
+}
+
+// The drift: flip one entry of the rule. A few guard rails keep it watchable —
+// B0 would strobe the whole field, and a dead or saturated grid gets nudged back.
+function drift(pop){
+  const frac = pop / (W*H);
+  const cands = [];
+  for (let n = 1; n <= 8; n++){ cands.push(["B", n]); cands.push(["S", n]); }
+  let pick;
+  if (frac < 0.02){           // dying: favour adding births/keeps
+    const add = cands.filter(([t,n]) => !(t=="B"?born:keep)[n] && !(t=="B" && n < 2));
+    pick = add[Math.random()*add.length|0];
+  } else if (frac > 0.45 || churn > 0.12){    // choking or boiling: favour removing, low births first
+    const rem = cands.filter(([t,n]) => (t=="B"?born:keep)[n]);
+    const hot = rem.filter(([t,n]) => t=="B" && n <= 2);
+    pick = hot.length ? hot[Math.random()*hot.length|0] : rem[Math.random()*rem.length|0];
+  } else {
+    pick = cands[Math.random()*cands.length|0];
+    // births on one or two neighbours tend to boil the field into static; let them in rarely
+    if (pick[0]=="B" && pick[1] <= 2 && !born[pick[1]] && Math.random() < .85) pick = ["S", 1 + (Math.random()*8|0)];
+  }
+  if (pick){ const arr = pick[0]=="B" ? born : keep; arr[pick[1]] ^= 1; }
+  if (!born.some(Boolean)) born[3] = 1;      // a rule with no births is just an ending
+  epoch++;
+  ledger.push({ rule: ruleStr(), epoch });
+  if (ledger.length > 40) ledger.shift();
+  nextDrift = gen + EVERY;
+  if (frac < 0.005) scatter(Math.random()*W, Math.random()*H, Math.min(W,H)/5, 0.35);
+  paintLedger();
+}
+
+function paintLedger(){
+  $("ledger").innerHTML = ledger.slice().reverse().slice(0, 8).map(l =>
+    `<span style="background:hsl(${hue(l.epoch)} var(--sat) var(--lit))"></span>${l.rule}`).join("  ← ");
+}
+
+let img, pal = [];
+function palette(){
+  const cs = getComputedStyle(document.documentElement);
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  pal = [];
+  for (let e = 0; e < 64; e++){
+    const h = hue(e) / 360, s = dark ? .45 : .38, l = dark ? .66 : .38;
+    pal.push(hsl(h, s, l));
+  }
+  const bg = cs.getPropertyValue("--bg").trim();
+  pal.bg = [parseInt(bg.slice(1,3),16), parseInt(bg.slice(3,5),16), parseInt(bg.slice(5,7),16)];
+}
+function hsl(h, s, l){
+  const f = n => { const k = (n + h*12) % 12, q = s * Math.min(l, 1-l);
+    return Math.round(255 * (l - q * Math.max(-1, Math.min(k-3, 9-k, 1)))); };
+  return [f(0), f(8), f(4)];
+}
+
+function draw(){
+  if (!img || img.width !== W || img.height !== H) img = x.createImageData(W, H);
+  const d = img.data, bg = pal.bg;
+  for (let k = 0, p = 0; k < W*H; k++, p += 4){
+    const col = a[k] ? pal[era[k] % 64] : bg;
+    d[p] = col[0]; d[p+1] = col[1]; d[p+2] = col[2]; d[p+3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  $("rule").textContent = ruleStr();
+  $("gen").textContent = `gen ${gen} · drift in ${nextDrift - gen}`;
+}
+
+let running = !reduce, last = 0;
+const interval = reduce ? 400 : 1000/24;
+function loop(t){
+  if (running && t - last >= interval){ last = t; step(); draw(); }
+  requestAnimationFrame(loop);
+}
+
+$("pp").onclick = () => { running = !running; $("pp").textContent = running ? "pause" : "play"; };
+$("pp").textContent = running ? "pause" : "play";
+$("st").onclick = () => { step(); draw(); };
+c.addEventListener("pointerdown", e => {
+  const r = c.getBoundingClientRect();
+  scatter((e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H, Math.min(W,H)/8, 0.4);
+  draw();
+});
+let rt;
+addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { size(); draw(); }, 200); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { palette(); draw(); });
+
+palette(); size();
+ledger.push({ rule: ruleStr(), epoch: 0 });
+paintLedger(); draw();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
