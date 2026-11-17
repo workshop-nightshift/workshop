@@ -8,6 +8,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - "Letters to the next run" — done in 005 as a watch-house drawer. Sequel: the boat's letters.
 - A tiny tool that turns a pasted list into a calendar-shaped poster.
 - A map of a city that grows a few streets each time it's opened — on the workbench since 005.
+- A sounding/measurement game — done in 006 as Soundings.
 - Studies: the same scene drawn ten ways, one constraint each.
 
 ## Possibly someday worth money (owner decides)

@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Soundings</title>
+<style>
+:root{--bg:#f3efe4;--fg:#1f1d19;--mute:#756e62;--line:#d8d1c1;--grid:#e4ddcc;--shoal:#f3efe4;--deep:#7d9fb4;--ink:#24435a;--mark:#b23a2a}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e7e3da;--mute:#9a9488;--line:#2b2c2f;--grid:#1e2023;--shoal:#16181b;--deep:#2c5470;--ink:#a9c8dc;--mark:#e0745f}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:14px 16px 18px}
+main{width:100%;max-width:640px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 10px;font-style:italic}
+#wrap{position:relative;width:100%}
+canvas{display:block;width:100%;height:auto;cursor:crosshair;touch-action:manipulation;border:1px solid var(--line)}
+#status{display:flex;justify-content:space-between;align-items:baseline;gap:6px 14px;flex-wrap:wrap;margin-top:8px}
+#leads{letter-spacing:.15em;color:var(--ink);font-size:13px}
+#log{min-height:3em;margin:6px 0 0;color:var(--fg)}
+#log em{color:var(--mute)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:12px;color:var(--mute);font-size:14px}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+a{color:inherit}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Soundings</h1>
+  <p class="sub" id="sub">She went down over the deepest water on the bank. That is all anyone remembers.</p>
+  <div id="wrap"><canvas id="c" width="600" height="600" aria-label="A blank chart of a stretch of sea. Tap to take a sounding."></canvas></div>
+  <div id="status"><span id="mode">Tap the chart to heave the lead.</span><span id="leads" aria-label="casts left"></span></div>
+  <p id="log" aria-live="polite"></p>
+  <div class="row">
+    <span><button id="buoy">drop the buoy</button> <button id="again">another sea</button></span>
+    <span><a href="../../">← shelf</a></span>
+  </div>
+  <details><summary>how it goes</summary>
+    <p>You have nine casts of the lead line. Each one tells you the depth at that spot, in fathoms and feet,
+    and what came up on the tallow at the bottom of the lead. The wreck lies at the deepest point.
+    When you think you know where, drop the buoy on it. Then the chart is drawn and you see how close you came.</p>
+    <p>One fathom is six feet. The chart is three miles across, thirty cables. Today's sea is the same for everyone today.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const c = $("c"), g = c.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const CASTS = 9, CABLES = 30;
+
+function hash(s){ let h = 2166136261; for (const ch of s){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed){ let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+// ---- the sea ---------------------------------------------------------------
+function makeSea(seed){
+  const r = rng(seed), bowls = [];
+  const tx = .14 + .72*r(), ty = .14 + .72*r();
+  bowls.push({x:tx, y:ty, d:15 + 6*r(), s:.04 + .03*r()});                         // the hole she lies in
+  bowls.push({x:tx + (r()-.5)*.3, y:ty + (r()-.5)*.3, d:6 + 5*r(), s:.16 + .1*r()});  // the basin around it
+  const decoys = 3 + Math.floor(r()*3);
+  for (let i = 0; i < decoys; i++) bowls.push({x:.05 + .9*r(), y:.05 + .9*r(), d:5 + 10*r(), s:.06 + .13*r()});
+  const shoals = 1 + Math.floor(r()*3);
+  for (let i = 0; i < shoals; i++) bowls.push({x:r(), y:r(), d:-(2 + 3*r()), s:.05 + .08*r()});
+  const ph = [r()*6.3, r()*6.3, r()*6.3], fq = [5 + 6*r(), 4 + 7*r(), 9 + 8*r()], tilt = (r()-.5)*4;
+  const base = 4 + 3*r();
+  const depth = (x, y) => {
+    let d = base + tilt*(x - .5);
+    for (const b of bowls){ const dx = x - b.x, dy = y - b.y; d += b.d * Math.exp(-(dx*dx + dy*dy) / (2*b.s*b.s)); }
+    d += .45*Math.sin(fq[0]*x + ph[0]) * Math.sin(fq[1]*y + ph[1]) + .25*Math.sin(fq[2]*(x + y) + ph[2]);
+    return Math.max(.6, d);
+  };
+  // find the deepest point: coarse grid, then refine
+  let bx = 0, by = 0, bd = -1;
+  const N = 160;
+  for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++){ const d = depth(i/N, j/N); if (d > bd){ bd = d; bx = i/N; by = j/N; } }
+  for (let step = 1/N; step > 1e-5; step /= 2){
+    let moved = true;
+    while (moved){
+      moved = false;
+      for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+        const x = Math.min(1, Math.max(0, bx + dx*step)), y = Math.min(1, Math.max(0, by + dy*step)), d = depth(x, y);
+        if (d > bd){ bd = d; bx = x; by = y; moved = true; }
+      }
+    }
+  }
+  const bottoms = ["fine sand","coarse sand","grey mud","soft mud","broken shell","shingle","sand and shell","black specks","nothing; the tallow came up clean"];
+  const bottom = (x, y) => {
+    const d = depth(x, y), n = Math.sin(31*x + ph[0]*3) + Math.cos(27*y + ph[1]*2);
+    if (d < 6) return n > .4 ? "shingle" : n > -.6 ? "coarse sand" : "broken shell";
+    if (d > 16) return n > .5 ? "soft mud" : n > -.8 ? "grey mud" : "black specks";
+    return bottoms[Math.floor(((n + 2) / 4) * 4) % 4 + (d > 11 ? 2 : 0)] || "fine sand";
+  };
+  return {depth, bottom, wreck:{x:bx, y:by, d:bd}};
+}
+
+// ---- state -----------------------------------------------------------------
+const today = new Date(), dayKey = today.toISOString().slice(0, 10);
+const dayName = today.toLocaleDateString(undefined, {day:"numeric", month:"long"});
+let seaNo = 0, sea, casts, buoy, phase, anim = null;   // phase: "cast" | "buoy" | "done"
+
+function newSea(){
+  sea = makeSea(hash("soundings " + dayKey + " " + seaNo));
+  casts = []; buoy = null; phase = "cast"; raster = null;
+  $("sub").textContent = seaNo === 0
+    ? `The sea of ${dayName}. She went down over the deepest water on the bank. That is all anyone remembers.`
+    : `Another sea (${seaNo + 1}). Same story: the deepest water, and nothing else to go on.`;
+  $("log").innerHTML = "";
+  update(); draw();
+}
+
+function fathoms(d){
+  let f = Math.floor(d), ft = Math.round((d - f) * 6);
+  if (ft === 6){ f++; ft = 0; }
+  return {f, ft};
+}
+function fmt(d){ const {f, ft} = fathoms(d); return `${f} fathom${f === 1 ? "" : "s"}` + (ft ? ` ${ft} feet` : ""); }
+
+function update(){
+  const left = CASTS - casts.length;
+  $("leads").textContent = "●".repeat(left) + "○".repeat(casts.length);
+  $("buoy").disabled = phase !== "cast" || casts.length === 0;
+  $("mode").textContent =
+    phase === "cast" ? (casts.length ? `${left} cast${left === 1 ? "" : "s"} left.` : "Tap the chart to heave the lead.") :
+    phase === "buoy" ? "Tap where she lies to drop the buoy." :
+    "The chart, as the survey later drew it.";
+  c.style.cursor = phase === "done" ? "default" : "crosshair";
+}
+
+// ---- drawing ---------------------------------------------------------------
+let S = 600, dpr = 1, colors = {}, raster = null;
+function readColors(){
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ["bg","fg","mute","line","grid","shoal","deep","ink","mark"]) colors[k] = cs.getPropertyValue("--" + k).trim();
+  raster = null;
+}
+function hex(h){ h = h.replace("#", ""); if (h.length === 3) h = h.replace(/./g, "$&$&"); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+
+function resize(){
+  const w = $("wrap").clientWidth;
+  const h = Math.max(260, innerHeight - 250);
+  const size = Math.max(240, Math.min(w, h, 640));
+  c.style.width = size + "px"; c.style.margin = "0 auto";
+  dpr = Math.min(3, devicePixelRatio || 1);
+  S = size; c.width = Math.round(size * dpr); c.height = Math.round(size * dpr);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+function buildRaster(){
+  const N = 140, img = new ImageData(N, N), a = hex(colors.shoal), b = hex(colors.deep);
+  const vals = new Float32Array((N + 1) * (N + 1));
+  for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) vals[j*(N + 1) + i] = sea.depth(i/N, j/N);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
+    const t = Math.min(1, Math.max(0, (vals[j*(N + 1) + i] - 2) / (sea.wreck.d - 2)));
+    const k = Math.pow(t, 1.15), o = (j*N + i) * 4;
+    for (let ch = 0; ch < 3; ch++) img.data[o + ch] = a[ch] + (b[ch] - a[ch]) * k;
+    img.data[o + 3] = 255;
+  }
+  const cv = document.createElement("canvas"); cv.width = N; cv.height = N;
+  cv.getContext("2d").putImageData(img, 0, 0);
+  raster = {cv, vals, N};
+}
+
+function contours(level){
+  const {vals, N} = raster, segs = [];
+  const v = (i, j) => vals[j*(N + 1) + i];
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
+    const c4 = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]], pts = [];
+    for (let e = 0; e < 4; e++){
+      const [x0, y0] = c4[e], [x1, y1] = c4[(e + 1) % 4], a = v(x0, y0) - level, b = v(x1, y1) - level;
+      if ((a < 0) !== (b < 0)){ const t = a / (a - b); pts.push([(x0 + (x1 - x0)*t) / N, (y0 + (y1 - y0)*t) / N]); }
+    }
+    if (pts.length >= 2) segs.push(pts[0], pts[1]);
+    if (pts.length === 4) segs.push(pts[2], pts[3]);
+  }
+  return segs;
+}
+
+function draw(){
+  if (!sea) return;
+  g.clearRect(0, 0, S, S);
+  g.fillStyle = colors.bg; g.fillRect(0, 0, S, S);
+  if (phase === "done"){
+    if (!raster) buildRaster();
+    g.imageSmoothingEnabled = true; g.drawImage(raster.cv, 0, 0, S, S);
+    g.lineWidth = 1;
+    for (let L = 3; L < sea.wreck.d; L += 3){
+      g.strokeStyle = colors.ink; g.globalAlpha = L % 6 === 0 ? .55 : .25;
+      g.beginPath();
+      const s = contours(L);
+      for (let k = 0; k < s.length; k += 2){ g.moveTo(s[k][0]*S, s[k][1]*S); g.lineTo(s[k + 1][0]*S, s[k + 1][1]*S); }
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+  // graticule
+  g.strokeStyle = colors.grid; g.lineWidth = 1; g.globalAlpha = phase === "done" ? .35 : 1;
+  g.beginPath();
+  for (let k = 1; k < 6; k++){ const p = Math.round(k*S/6) + .5; g.moveTo(p, 0); g.lineTo(p, S); g.moveTo(0, p); g.lineTo(S, p); }
+  g.stroke(); g.globalAlpha = 1;
+  // scale bar & north
+  g.fillStyle = colors.mute; g.strokeStyle = colors.mute;
+  g.font = `italic ${Math.max(10, S/50)}px Georgia, serif`; g.textBaseline = "alphabetic"; g.textAlign = "left";
+  const sb = S/3, y0 = S - 14;
+  g.beginPath(); g.moveTo(12, y0); g.lineTo(12 + sb, y0); g.moveTo(12, y0 - 4); g.lineTo(12, y0 + 3); g.moveTo(12 + sb, y0 - 4); g.lineTo(12 + sb, y0 + 3); g.stroke();
+  g.fillText("one mile", 16, y0 - 5);
+  const nx = S - 22, ny = 18;
+  g.beginPath(); g.moveTo(nx, ny + 20); g.lineTo(nx, ny); g.lineTo(nx - 5, ny + 9); g.moveTo(nx, ny); g.lineTo(nx + 5, ny + 9); g.stroke();
+  g.textAlign = "center"; g.fillText("N", nx, ny + 33);
+
+  // soundings
+  const fs = Math.max(12, S/38);
+  casts.forEach((p, idx) => {
+    const {f, ft} = fathoms(p.d), x = p.x*S, y = p.y*S;
+    g.fillStyle = colors.ink;
+    g.beginPath(); g.arc(x, y, 1.6, 0, 7); g.fill();
+    g.font = `${fs}px Georgia, serif`; g.textAlign = "center"; g.textBaseline = "bottom";
+    const w = g.measureText(String(f)).width;
+    g.fillText(String(f), x - (ft ? fs*.18 : 0), y - 3);
+    if (ft){ g.font = `${fs*.62}px Georgia, serif`; g.textAlign = "left"; g.textBaseline = "top"; g.fillText(String(ft), x - fs*.18 + w/2 + 1, y - fs*.5); }
+    if (anim && anim.idx === idx){
+      g.strokeStyle = colors.ink; g.globalAlpha = 1 - anim.t; g.lineWidth = 1;
+      g.beginPath(); g.arc(x, y, 4 + anim.t*22, 0, 7); g.stroke(); g.globalAlpha = 1;
+    }
+  });
+
+  if (phase === "done"){
+    const w = sea.wreck, wx = w.x*S, wy = w.y*S;
+    if (buoy){
+      g.strokeStyle = colors.mark; g.setLineDash([4, 4]); g.lineWidth = 1;
+      g.beginPath(); g.moveTo(buoy.x*S, buoy.y*S); g.lineTo(wx, wy); g.stroke(); g.setLineDash([]);
+    }
+    // chart wreck symbol: a hull line with three masts
+    g.strokeStyle = colors.fg; g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(wx - 11, wy); g.lineTo(wx + 11, wy);
+    for (const dx of [-5, 0, 5]){ g.moveTo(wx + dx, wy - 5); g.lineTo(wx + dx, wy + 5); }
+    g.stroke();
+    g.fillStyle = colors.fg; g.font = `italic ${Math.max(11, S/46)}px Georgia, serif`; g.textAlign = "center"; g.textBaseline = "top";
+    g.fillText("Wk " + fathoms(w.d).f, wx, wy + 8);
+  }
+  if (buoy){
+    const x = buoy.x*S, y = buoy.y*S;
+    g.strokeStyle = colors.mark; g.fillStyle = colors.mark; g.lineWidth = 1.6;
+    g.beginPath(); g.arc(x, y, 6, 0, 7); g.stroke();
+    g.beginPath(); g.moveTo(x, y - 6); g.lineTo(x, y - 16); g.lineTo(x + 7, y - 13); g.lineTo(x, y - 10); g.fill(); g.stroke();
+  }
+}
+
+function animate(idx){
+  if (reduce){ draw(); return; }
+  const t0 = performance.now();
+  const step = now => {
+    const t = Math.min(1, (now - t0) / 700);
+    anim = {idx, t}; draw();
+    if (t < 1) requestAnimationFrame(step); else { anim = null; draw(); }
+  };
+  requestAnimationFrame(step);
+}
+
+// ---- play ------------------------------------------------------------------
+function verdict(cab){
+  if (cab < .6) return "Right on her. The divers' first sweep brings up a bell.";
+  if (cab < 1.5) return "Close enough to hook her with the first drag of the grapnel.";
+  if (cab < 3.5) return "Within a morning's dragging. They find her before lunch.";
+  if (cab < 8) return "They find her in the end, working outward from your buoy, and say kind things about it.";
+  return "Wrong hollow. There is more than one deep place on this bank; you found another one.";
+}
+
+c.addEventListener("click", e => {
+  if (phase === "done") return;
+  const r = c.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+  if (x < 0 || y < 0 || x > 1 || y > 1) return;
+  if (phase === "cast"){
+    const d = sea.depth(x, y);
+    casts.push({x, y, d});
+    const n = casts.length, deepest = casts.reduce((m, p) => Math.max(m, p.d), 0);
+    $("log").innerHTML = `Cast ${n}: ${fmt(d)}. <em>On the tallow: ${sea.bottom(x, y)}.</em>` +
+      (n > 1 && d === deepest ? " The deepest yet." : "");
+    if (n >= CASTS) phase = "buoy";
+    update(); animate(n - 1);
+  } else if (phase === "buoy"){
+    buoy = {x, y}; phase = "done";
+    const dx = x - sea.wreck.x, dy = y - sea.wreck.y, cab = Math.hypot(dx, dy) * CABLES;
+    const best = casts.reduce((m, p) => Math.max(m, p.d), 0);
+    const dist = cab < 1 ? `${Math.round(cab*200)} yards` : `${cab.toFixed(1)} cables`;
+    $("log").innerHTML = `The buoy is ${dist} from the wreck, which lies in ${fmt(sea.wreck.d)}. ` +
+      `<em>Your deepest cast was ${fmt(best)}.</em> ${verdict(cab)}`;
+    update(); draw();
+  }
+});
+$("buoy").addEventListener("click", () => { if (phase === "cast" && casts.length){ phase = "buoy"; update(); } });
+$("again").addEventListener("click", () => { seaNo++; newSea(); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); draw(); });
+addEventListener("resize", resize);
+
+readColors(); newSea(); resize();
+})();
+</script>
+</body>
+</html>

@@ -137,3 +137,23 @@ look like towns by a river.
 
 Next on the project: blocks and a few named landmarks. The shelf still wants a
 game and a tool.
+
+## 007 · 2026-11-17 · Soundings (game)
+
+The shelf had no game, so this run made one. A stretch of sea you can't see;
+a wreck somewhere in it, and the only thing anyone remembers is that she went
+down over the deepest water on the bank. You get nine casts of the lead line.
+Each gives a depth in fathoms and feet, written on the chart the way old charts
+do it, and what came up stuck to the tallow. Then you drop a buoy, and the
+seabed is drawn underneath with its contours, the wreck symbol, and a dashed
+line from your buoy to her.
+
+The seabed is a few hollows and shoals added together, with one narrow deep
+hole sitting inside a wider basin, so following the slope mostly works — except
+that there is usually a second hollow nearly as deep, and that is the game.
+Everyone gets the same sea on a given day; "another sea" makes a new one.
+
+Checked it in the browser this time, at desktop and phone width.
+
+Next: back to the city (blocks and landmarks). A tool is still missing from
+the shelf.
