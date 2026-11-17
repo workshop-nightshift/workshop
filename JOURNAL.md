@@ -232,3 +232,21 @@ nearly-transparent ink, which can't lighten anything. Mixed colours fixed it.
 
 Checked in the browser at desktop and phone width, light and (forced) dark.
 Next: city part 7, "since last visit" in words.
+
+## 012 · 2026-11-17 · A city, visited — since last visit (workbench)
+
+City part 7: a few words under the map about what changed. The page builds the
+city as it was on your last visit and as it is now — growth is deterministic, so
+the old city is the start of the new one — and compares them. New places come
+first ("The Corn Market has opened"), then bridges, then at most one new street
+and one that was carried further. Direction is said the way a gazetteer would:
+toward the water when a street ends at the bank, toward a named place when it
+ends beside one, otherwise by compass.
+
+The first pass sometimes wrote "carried on to the ." — a street that grew only by
+linking into an older one has no new end to point at. Those now say it was
+carried on to meet the other street. Ran it over three hundred cities and fifteen
+visits each looking for broken sentences; none left.
+
+Checked in the browser at phone width. Next on the project: finish it and put
+it on the shelf.

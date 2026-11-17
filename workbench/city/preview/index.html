@@ -325,6 +325,96 @@ function placeLandmarks(city, seed) {
   }
 }
 
+// ---- since last visit ----
+// Growth is deterministic, so the city as it was last time is a prefix of the
+// city now: same streets at the same indices, older edges keep their visit.
+// Compare the two and say the most interesting few things, gazetteer voice.
+const COMPASS = ["east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east"];
+const compass = (dx, dy) => COMPASS[((Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) % 8) + 8) % 8];
+const cap = t => t.replace(/^the/, "The");
+function sinceNote(prev, cur, visit) {
+  const r = rng(visit * 977 + cur.nodes.length);
+  const len = E => { const A = cur.nodes[E.a], B = cur.nodes[E.b]; return Math.hypot(B.x - A.x, B.y - A.y); };
+  // Centre of the town as it was.
+  let ox = 0, oy = 0;
+  for (const n of prev.nodes) { ox += n.x; oy += n.y; }
+  ox /= prev.nodes.length; oy /= prev.nodes.length;
+  const nearWater = n => cur.water && [0, 1, 2, 3, 4, 5, 6, 7].some(k =>
+    cur.water.wet(n.x + Math.cos(k * Math.PI / 4) * 13, n.y + Math.sin(k * Math.PI / 4) * 13));
+  const shore = !cur.water ? "" : cur.water.kind === "river" ? cur.water.name : "the shore";
+  const placeNear = n => cur.blocks.find(b => b.mark && Math.hypot(b.cx - n.x, b.cy - n.y) < 30);
+
+  // New edges, grouped by street.
+  const by = new Map();
+  for (const E of cur.edges) if (E.visit === visit) {
+    if (!by.has(E.street)) by.set(E.street, []);
+    by.get(E.street).push(E);
+  }
+  const lines = [];
+  // Places that turned up.
+  const had = new Set(prev.blocks.filter(b => b.mark).map(b => b.mark.name));
+  for (const b of cur.blocks) if (b.mark && !had.has(b.mark.name)) {
+    const n = cap(b.mark.name), k = b.mark.kind;
+    lines.push({ w: 100, t: k === "square" ? `${n} has been laid out.`
+      : k === "church" ? pick(r, [`${n} has been found among the new streets.`, `${n} now has streets on every side.`])
+      : k === "market" ? `${n} has opened.`
+      : k === "school" ? `${n} has opened its doors.`
+      : pick(r, [`${n} has been walled in.`, `${n} is enclosed at last.`]) });
+  }
+  for (const [si, es] of by) {
+    const st = cur.streets[si], total = es.reduce((a, E) => a + len(E), 0);
+    // The far end of the new work: the new node farthest from the old centre.
+    let far = null, fd = -1;
+    for (const E of es) for (const k of [E.a, E.b]) {
+      const n = cur.nodes[k], d = Math.hypot(n.x - ox, n.y - oy);
+      if (k >= prev.nodes.length && d > fd) { fd = d; far = n; }
+    }
+    if (es.some(E => E.bridge) && cur.water) {
+      lines.push({ w: 90, t: st.name ? `${st.name} now crosses ${cur.water.name} on a bridge.` : `A footbridge now crosses ${cur.water.name}.` });
+      continue;
+    }
+    if (!st.name) continue;
+    const fresh = si >= prev.streets.length;
+    if (!far) {
+      // Nothing new at the end: it was a link through to an older street.
+      const ends = new Set(es.flatMap(E => [E.a, E.b]));
+      const other = cur.edges.find(E => E.street !== si && cur.streets[E.street].name && (ends.has(E.a) || ends.has(E.b)));
+      if (other) lines.push({ k: fresh ? "new" : "ext", w: 20 + total / 4, t: fresh
+        ? `${st.name} was cut through to meet ${cur.streets[other.street].name}.`
+        : `${st.name} was carried on to meet ${cur.streets[other.street].name}.` });
+      continue;
+    }
+    const lm = far && placeNear(far);
+    const where = !far ? "" : nearWater(far) ? ` toward ${shore}` : lm ? ` toward ${lm.mark.name}` : "";
+    if (fresh) {
+      const dir = far ? compass(far.x - ox, far.y - oy) : "";
+      lines.push({ k: "new", w: 40 + total / 4 + (where ? 15 : 0), t: where
+        ? pick(r, [`${st.name} was laid out${where}.`, `A new street, ${st.name}, runs${where}.`])
+        : pick(r, [`${st.name} was laid out on the ${dir} side.`, `A new street, ${st.name}, on the ${dir} side.`]) });
+    } else {
+      // Which way it went: from the old part of the street to the new.
+      let qx = 0, qy = 0, m = 0;
+      for (const E of cur.edges) if (E.street === si && E.visit < visit) { const A = cur.nodes[E.a]; qx += A.x; qy += A.y; m++; }
+      const dir = far && m ? compass(far.x - qx / m, far.y - qy / m) : "";
+      lines.push({ k: "ext", w: 30 + total / 4 + (where ? 15 : 0), t: where
+        ? pick(r, [`${st.name} was carried on${where}.`, `${st.name} has been extended${where}.`])
+        : pick(r, [`${st.name} was carried on to the ${dir}.`, `${st.name} goes further ${dir} now.`]) });
+    }
+  }
+  if (!lines.length) {
+    const any = cur.edges.some(E => E.visit === visit);
+    return any ? "A few passages have been cut between the streets." : "Nothing has changed since you were last here.";
+  }
+  lines.sort((a, b) => b.w - a.w);
+  // At most one sentence about a new street and one about an extension, unless
+  // there's nothing else to say.
+  const out = [];
+  for (const L of lines) if (out.length < 3 && !(L.k && out.some(o => o.k === L.k))) out.push(L);
+  // If only one kind of sentence survived and there's room, allow a second.
+  for (const L of lines) if (out.length < 2 && !out.includes(L)) out.push(L);
+  return out.map(o => o.t).join(" ");
+}
+
 // ---- state ----
 let state = { seed: 0, visits: 0 };
 try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.seed) state = s; } catch {}
@@ -333,14 +423,16 @@ state.visits++;
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
 save();
 
-let city, view, sel = -1, selB = null;
+let city, view, sel = -1, selB = null, note = "";
 function regen() {
   city = build(state.seed, state.visits);
+  note = state.visits === 1 ? "Founded today. Come back another time; it will have grown."
+    : sinceNote(build(state.seed, state.visits - 1), city, state.visits);
   sel = -1; selB = null;
   $("name").textContent = city.name;
   const fresh = city.edges.filter(e => e.visit === state.visits).length;
   $("count").textContent = `visit ${state.visits} · ${city.streets.filter(t => t.name).length} streets` + (state.visits > 1 ? ` · ${fresh} new stretches since you were last here` : "");
-  $("info").textContent = state.visits === 1 ? "Founded today. Come back another time; it will have grown." : "";
+  $("info").textContent = note;
   draw();
 }
 
@@ -572,10 +664,9 @@ c.addEventListener("click", ev => {
   const wx = (px - view.ox) / view.sc, wy = (py - view.oy) / view.sc;
   const blk = sel < 0 ? city.blocks.find(b => b.mark && inPoly(wx, wy, b.pts)) : null;
   selB = blk && blk !== selB ? blk : null;
-  const cap = t => t.replace(/^the/, "The");
   $("info").textContent = sel >= 0 ? city.streets[sel].name || "a passage with no name"
     : selB ? cap(selB.mark.name)
-    : city.water && city.water.wet(wx, wy) ? cap(city.water.name) : "";
+    : city.water && city.water.wet(wx, wy) ? cap(city.water.name) : note;
   draw();
 });
 $("again").onclick = () => { state.visits++; save(); regen(); };

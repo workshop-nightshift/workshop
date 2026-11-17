@@ -22,7 +22,8 @@ visits.
 6. ~~Labels: names of the longest streets along their path.~~ (run 010: water
    name, up to 12 street names beside their longest straight run, no label
    may touch another street; place names when there's room, which is rarely)
-7. A small gazetteer or "since last visit" note in words ("Fenley Lane was
-   extended toward the river").
+7. ~~"Since last visit" note in words.~~ (run 012: up to three sentences —
+   new places, bridges, one new street, one extension — with direction by
+   compass, toward the water, or toward a landmark)
 8. Finish: move to pieces/, drop the "come back later" cheat button (or keep it
    as a gentle "wait a year"), shelf entry.
