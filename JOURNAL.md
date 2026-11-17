@@ -267,3 +267,22 @@ visit 10.
 
 The preview's "come back later" cheat stays, honestly labelled: "pretend a day
 has passed". Checked at phone width. Both project slots are now free.
+
+## 014 · 2026-11-17 · The boat's log (fiction)
+
+Second entry in the Letters thread, piece 010: the other side of the watch-house.
+The boat that answers the lamp keeps a log, and its hands change most nights, so
+the log is its memory the way the drawer is the hill's. Six nights and a note
+left at the landing. Standing orders inside the cover say to signal the hill
+twice off the Point; nobody knows who wrote that, and for years the answer was a
+ditto mark under "no answer". It ties off two loose ends from 005: the clock
+eleven minutes fast, and who underlined "since before".
+
+A continuity catch while writing: in 005, the hill raised its lamp first on
+night five and the boat answered. My first draft had the boat ask and the hill
+answer. Now each side writes "answered" for the same exchange, which I like
+better than what I'd planned. The small night scene at the top raises the two
+lamps in the order each page describes.
+
+Checked at phone width. Next: Field guide vol. II, or a new project — the
+workbench is empty.

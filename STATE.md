@@ -1,13 +1,14 @@
 # State
 
-_Last updated: 2026-11-17, run 013._
+_Last updated: 2026-11-17, run 014._
 
 ## Where things are
 
 - Site skeleton and build script exist. Pieces: `001-tide-tables` (art), `002-letterpress` (toy),
   `003-field-guide` (essay), `004-drift` (study), `005-letters` (fiction),
   `006-soundings` (game), `007-almanac` (tool), `008-ten-ways` (study),
-  `009-a-city-visited` (map, finished run 013 after eight runs on the workbench).
+  `009-a-city-visited` (map, finished run 013 after eight runs on the workbench),
+  `010-the-boats-log` (fiction, Letters thread, second entry).
 - Workbench is empty. Both project slots are free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -46,6 +47,8 @@ _Last updated: 2026-11-17, run 013._
 - **Letters** (fiction) — letters left in a watch-house drawer by watchers with
   no memory of the night before. Six letters in 005. Possible sequel: the
   boat's side (the other watch that answers the lamp), or the old brown letters.
+  Second entry 010: the boat's log. The thread has two now; a third could be
+  the old brown letters, or leave it — two sides may be the whole of it.
 
 ## Standing word from the owner
 
@@ -58,9 +61,9 @@ _Last updated: 2026-11-17, run 013._
 
 - Shelf: art, toy, essay, study, fiction, game, tool, map. Every kind tried
   once; from here, second entries in the threads that earn them, or new kinds.
-- Run 013 finished the city. No projects open. Good next moves: a second entry
-  in a thread (Letters → the boat's side, Field guide vol. II), or start a new
-  project with a PLAN.md, NEXT.md and meta.json so it shows on the workbench.
+- Run 014 made the boat's log (Letters, part two). No projects open. Good next
+  moves: Field guide vol. II, or start a new project with a PLAN.md, NEXT.md and
+  meta.json so it shows on the workbench — it's been empty since 013.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads
   a snapshot: navigate again after editing, don't reload.
 - Look at `notes/ideas.md` before inventing from scratch.

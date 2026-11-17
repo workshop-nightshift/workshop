@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The boat's log</title>
+<style>
+:root{--bg:#e4e6e3;--fg:#1f2326;--mute:#68707a;--line:#c9cdd0;--rule:#b8c6d6;--page:#f7f6f0;--margin:#d98c86;--shadow:rgba(20,30,45,.16);--ink:#23406b;--red:#a33a2e;--sky:#1b2433;--hill:#0e131b;--sea:#223047;--lamp:#ffd98a}
+@media (prefers-color-scheme:dark){:root{--bg:#101215;--fg:#e2e4e6;--mute:#8f979f;--line:#2b2f35;--rule:#2a3442;--page:#1b1d20;--margin:#6b3b38;--shadow:rgba(0,0,0,.55);--ink:#a9c0e6;--red:#e08a7c;--sky:#0b0f16;--hill:#05070a;--sea:#121a27;--lamp:#ffd98a}}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 Georgia,"Iowan Old Style",serif}
+main{max-width:640px;margin:0 auto;padding:40px 16px 72px}
+header h1{font-weight:normal;font-size:30px;line-height:1.2;margin:0 0 8px}
+header p{color:var(--mute);font-style:italic;margin:0}
+.scene{display:block;width:100%;height:auto;margin:28px 0 0;border-radius:3px}
+.scene .lamp{fill:var(--lamp)}
+.scene .glow{fill:var(--lamp);opacity:.18}
+.scene.signal #boatLamp{animation:raise 2.4s ease-in-out 2}
+.scene.signal.answer #hillLamp{animation:raise 2.4s ease-in-out 1.2s 2}
+.scene.hillfirst #hillLamp{animation:raise 2.4s ease-in-out 2}
+.scene.hillfirst #boatLamp{animation:raise 2.4s ease-in-out 1.2s 2}
+@keyframes raise{0%,100%{transform:translateY(0)}35%,60%{transform:translateY(-9px)}}
+#boatLamp,#hillLamp{transform-box:fill-box}
+@media (prefers-reduced-motion:reduce){.scene #boatLamp,.scene #hillLamp{animation:none!important}}
+.page{background:var(--page);box-shadow:0 1px 2px var(--shadow),0 8px 24px -12px var(--shadow);margin:28px 0 0;padding:22px 18px 20px 30px;border-radius:2px;position:relative}
+.page::before{content:"";position:absolute;top:0;bottom:0;left:18px;width:1px;background:var(--margin)}
+.page h2{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 14px;font-weight:normal;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.page h2 span:last-child{letter-spacing:.04em;text-transform:none;font-style:normal}
+table{width:100%;border-collapse:collapse;font:14px/1.5 ui-monospace,Menlo,monospace;margin:0 0 14px}
+th{font-weight:normal;color:var(--mute);font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--rule);padding:4px 8px 4px 0}
+td{border-bottom:1px solid var(--rule);padding:6px 8px 6px 0;vertical-align:top}
+td:first-child{white-space:nowrap;color:var(--ink);width:4.2em}
+.caps{color:var(--red);letter-spacing:.06em}
+.remarks{margin:0 0 12px}
+.remarks:last-child{margin-bottom:0}
+.hand{font-style:italic;color:var(--ink)}
+.sig{text-align:right;font:13px/1 ui-monospace,Menlo,monospace;color:var(--mute);margin:14px 0 0}
+.orders{border:1px solid var(--line);background:var(--page);margin:28px 0 0;padding:18px 20px;font:14px/1.7 ui-monospace,Menlo,monospace}
+.orders h2{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 12px;font-weight:normal}
+.orders ol{margin:0;padding-left:20px}
+.orders .pencil{color:var(--mute);font-style:italic;margin:10px 0 0;font-family:Georgia,serif;font-size:15px}
+.note{background:var(--page);border:1px solid var(--line);margin:36px auto 0;max-width:420px;padding:24px 22px;transform:rotate(-.6deg);box-shadow:0 8px 24px -14px var(--shadow)}
+.note .when{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 16px}
+.note p{margin:0 0 12px}
+.note .to{font-style:italic}
+.js .page.new,.js .note.new{animation:out .7s ease-out}
+@keyframes out{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.js .page.new,.js .note.new{animation:none}}
+.controls{display:none;gap:12px;align-items:center;justify-content:center;margin:32px 0 0;flex-wrap:wrap}
+.js .controls{display:flex}
+button{font:15px/1 Georgia,serif;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:999px;padding:12px 20px;cursor:pointer}
+button:hover{border-color:var(--mute)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.count{font:13px/1 ui-monospace,Menlo,monospace;color:var(--mute)}
+[hidden]{display:none!important}
+footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>The boat's log</h1>
+  <p>Night log of the packet that runs the coast past Heron Point. Kept by whoever has it; the hands change most nights. Read it beside <a href="../005-letters/">the letters in the watch-house drawer</a>, or on its own.</p>
+</header>
+
+<svg class="scene" id="scene" viewBox="0 0 640 200" role="img" aria-label="Night. A dark hill with a lit watch-house window on the left; a small boat with one lamp on the water to the right.">
+  <rect width="640" height="200" fill="var(--sky)"/>
+  <g fill="#fff" opacity=".55">
+    <circle cx="60" cy="30" r="1"/><circle cx="140" cy="18" r=".8"/><circle cx="230" cy="44" r="1"/><circle cx="330" cy="22" r=".7"/><circle cx="410" cy="52" r="1"/><circle cx="500" cy="16" r=".9"/><circle cx="590" cy="38" r=".8"/><circle cx="280" cy="70" r=".6"/><circle cx="560" cy="80" r=".6"/>
+  </g>
+  <rect y="138" width="640" height="62" fill="var(--sea)"/>
+  <path d="M0 140 C60 120 110 74 170 70 C220 67 260 104 310 128 C330 136 350 140 370 140 Z" fill="var(--hill)"/>
+  <rect x="150" y="58" width="22" height="14" fill="var(--hill)"/>
+  <path d="M147 59 L161 49 L175 59 Z" fill="var(--hill)"/>
+  <g id="hillLamp"><circle class="glow" cx="161" cy="65" r="9"/><rect class="lamp" x="158" y="62" width="6" height="6"/></g>
+  <path d="M470 150 L540 150 L532 158 L478 158 Z" fill="var(--hill)"/>
+  <rect x="502" y="132" width="2" height="18" fill="var(--hill)"/>
+  <g id="boatLamp"><circle class="glow" cx="503" cy="130" r="8"/><circle class="lamp" cx="503" cy="130" r="2.6"/></g>
+  <g stroke="var(--lamp)" stroke-opacity=".25" stroke-width="1"><path d="M496 166 h14"/><path d="M499 172 h8"/><path d="M155 150 h12"/></g>
+</svg>
+
+<aside class="orders" aria-label="Inside the front cover">
+  <h2>Inside the front cover</h2>
+  <ol>
+    <li>Keep the mast lamp lit.</li>
+    <li>Off Heron Point, raise and lower it twice toward the watch-house.</li>
+    <li>Log everything. Log nothing twice.</li>
+    <li>Whoever has the log has the watch.</li>
+  </ol>
+  <p class="pencil">Nobody aboard knows who wrote no.&nbsp;2, or why. Do it anyway. — pencil, several hands</p>
+</aside>
+
+<div id="log">
+
+<section class="page" data-sig="1">
+  <h2><span>Night one</span><span>wind SW 2, clear</span></h2>
+  <table>
+    <tr><th>Time</th><th>Observed</th></tr>
+    <tr><td>22:10</td><td>Left the quay. Lamp lit.</td></tr>
+    <tr><td>23:41</td><td>Off Heron Point. Signalled twice. Light in the watch-house, steady.</td></tr>
+    <tr><td>23:50</td><td>No answer.</td></tr>
+  </table>
+  <p class="remarks">First night with the log. Was told by the skipper the hill never answers, that it's never answered, that the signal is a thing we do the way you knock on wood. Signalled anyway. Felt a fool with my arm up in the dark, and then felt better, because the light was on up there and somebody was keeping it.</p>
+  <p class="sig">— hand: R.</p>
+</section>
+
+<section class="page" data-sig="1">
+  <h2><span>Night two</span><span>wind W 3, clear</span></h2>
+  <table>
+    <tr><th>Time</th><th>Observed</th></tr>
+    <tr><td>23:38</td><td>Off the Point. Signalled twice. No answer.</td></tr>
+    <tr><td>01:58</td><td>Heron, very large, very slow, crossing low from the water toward the hill.</td></tr>
+  </table>
+  <p class="remarks">Not R. tonight; R. is on the morning boat. I read R.'s page and did as it said. Rule 3 says log everything, so: the heron flew straight at the watch-house as if it had business there, and went over the roof, and I lost it against the hill.</p>
+  <p class="remarks">I'd like to think someone up there saw it too.</p>
+  <p class="sig">— hand: J.T.</p>
+</section>
+
+<section class="page" data-sig="1">
+  <h2><span>Night three</span><span>fog, thick by eleven</span></h2>
+  <table>
+    <tr><th>Time</th><th>Observed</th></tr>
+    <tr><td>23:44</td><td>Off the Point by reckoning. Watch-house not visible.</td></tr>
+    <tr><td>23:45</td><td>Signalled twice at where it ought to be.</td></tr>
+  </table>
+  <p class="remarks">Couldn't see a thing. Signalled into the fog because the log doesn't say <span class="hand">signal if you can see it</span>. Wrote the line neatly anyway. A night with nothing in it still gets a line.</p>
+  <p class="sig">— hand: M.</p>
+</section>
+
+<section class="page" data-sig="0">
+  <h2><span>Night four</span><span>in harbour, gale</span></h2>
+  <table>
+    <tr><th>Time</th><th>Observed</th></tr>
+    <tr><td>—</td><td>Did not sail. Read the back of the log.</td></tr>
+  </table>
+  <p class="remarks">With nothing to do I went through the old books in the locker. Same rules in every one, same Point, same two signals, years of <span class="hand">no answer</span>. Somebody, a long way back, had started writing it as a single ditto mark. Pages of them.</p>
+  <p class="remarks">One entry is different. No year on it. <span class="hand">Put in at the landing below the watch-house for water. Went up. Keeper asleep at the desk, lamp burning. Their clock was wrong, so I set it by ours — ours being eleven minutes fast, as it is and as it was. Underlined a line in their ledger that wanted underlining. Didn't sign.</span></p>
+  <p class="remarks">So that's where our clock went. I haven't corrected ours. It seems we're keeping their time now, or they're keeping ours.</p>
+  <p class="sig">— hand: A.</p>
+</section>
+
+<section class="page" data-sig="3">
+  <h2><span>Night five</span><span>wind S 1, clear, very still</span></h2>
+  <table>
+    <tr><th>Time</th><th>Observed</th></tr>
+    <tr><td>23:29</td><td>Coming up on the Point. Lamp in hand.</td></tr>
+    <tr><td>23:30</td><td class="caps">THE HILL SIGNALLED FIRST.</td></tr>
+    <tr><td>23:31</td><td>Answered it. Twice.</td></tr>
+    <tr><td>23:32</td><td>Woke the skipper.</td></tr>
+  </table>
+  <p class="remarks">Skipper came up in his socks and said <span class="hand">write it down properly</span>. Writing it down properly: at 23:30 by our clock, which is eleven minutes fast, before we had raised ours, the lamp in the watch-house on Heron Point was raised and lowered twice, deliberately. We answered.</p>
+  <p class="remarks">All those years of us asking, and tonight it asked us. I said so to the skipper. He said it comes to the same thing. He said he'd been told about the signal by the man who taught him, who was told by somebody else, and none of them had seen the hill move, and none of them had stopped. Then he went below and I heard him laughing.</p>
+  <p class="sig">— hand: R. again (asked for this run)</p>
+</section>
+
+<section class="page" data-sig="2">
+  <h2><span>Night six</span><span>wind S 2, clear</span></h2>
+  <table>
+    <tr><th>Time</th><th>Observed</th></tr>
+    <tr><td>21:50</td><td>Left the quay. Early.</td></tr>
+    <tr><td>23:06</td><td>Off the Point. Signalled twice.</td></tr>
+    <tr><td>23:07</td><td>Answered.</td></tr>
+  </table>
+  <p class="remarks">We left early. Nobody gave the order. Everybody was on deck by nine with their coats on, pretending to see to things.</p>
+  <p class="remarks">It answered. I've written it small this time, the ordinary size, the way you'd write the wind. I think that's the right size for it now.</p>
+  <p class="sig">— hand: J.T.</p>
+</section>
+
+<article class="note" data-sig="0">
+  <p class="when">Left at the landing, in a tea tin, night seven</p>
+  <p class="to">To the lamp,</p>
+  <p>We don't know which of you we've been signalling. The log says it's been a long time, and our hands change, and probably yours do too. That seems fine. The log remembers for us. I expect you have something like it.</p>
+  <p>Your clock is eleven minutes fast. So is ours. One of us set yours once. Leave it be; it means we're on the same time.</p>
+  <p>There was a heron, night two, at about two. If you have it, we have it too.</p>
+  <p>We'll be off the Point at half eleven, by your clock and ours. Watch the water. We'll watch the hill.</p>
+  <p class="sig">— the boat</p>
+</article>
+
+</div>
+
+<div class="controls" id="controls">
+  <button id="next" type="button">Turn the page</button>
+  <span class="count" id="count" aria-live="polite"></span>
+</div>
+
+<footer><a href="../../">← back to the shelf</a> · <a href="../005-letters/">the watch-house letters</a></footer>
+</main>
+<script>
+(function(){
+  document.documentElement.className = 'js';
+  var items = [].slice.call(document.querySelectorAll('#log > *'));
+  var btn = document.getElementById('next'), count = document.getElementById('count');
+  var controls = document.getElementById('controls'), scene = document.getElementById('scene');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var shown = 1;
+  items.forEach(function(el, i){ if (i >= shown) el.hidden = true; });
+  function signal(el){
+    var s = +el.getAttribute('data-sig');
+    scene.classList.remove('signal', 'answer', 'hillfirst');
+    void scene.getBoundingClientRect();
+    if (s === 3) { scene.classList.add('hillfirst'); return; }
+    if (s >= 1) scene.classList.add('signal');
+    if (s >= 2) scene.classList.add('answer');
+  }
+  function update(){
+    var last = shown >= items.length;
+    count.textContent = last ? 'the log ends here' : (shown + ' of ' + (items.length - 1) + ' nights');
+    btn.textContent = shown === items.length - 1 ? 'Something tucked in the back' : 'Turn the page';
+    if (last) btn.hidden = true;
+  }
+  btn.addEventListener('click', function(){
+    var el = items[shown++];
+    el.hidden = false;
+    el.classList.add('new');
+    signal(el);
+    el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+    update();
+  });
+  signal(items[0]);
+  update();
+})();
+</script>
+</body>
+</html>
