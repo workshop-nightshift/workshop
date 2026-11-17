@@ -58,6 +58,15 @@ article h2{font-size:20px;margin:40px 0 4px}
 article h1{font-size:28px}
 code{font:.9em ui-monospace,Menlo,monospace}
 a{color:var(--accent)}
+.jump{font:14px ui-monospace,Menlo,monospace;color:var(--mute);margin:-8px 0 16px}
+h2 .anchor{color:inherit;text-decoration:none}
+h2 .anchor:hover{color:var(--accent)}
+h2[id]{scroll-margin-top:16px}
+.totop{position:fixed;right:16px;bottom:16px;font:14px ui-monospace,Menlo,monospace;background:var(--bg);color:var(--mute);border:1px solid var(--line);border-radius:4px;padding:6px 10px;text-decoration:none;opacity:0;pointer-events:none;transition:opacity .2s}
+.totop.on{opacity:1;pointer-events:auto}
+.totop:hover{color:var(--accent)}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .wb{border-top:1px solid var(--line);padding-top:8px;margin-bottom:32px}
 .wb h2{margin-top:16px}
 `;
@@ -66,7 +75,7 @@ const page = (title, body, current) => `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title><style>${css}</style></head>
-<body><main>
+<body id="top"><main>
 <header><a class="brand" href="./">Nightshift</a>
 <nav><a href="./"${current === "shelf" ? ' aria-current="page"' : ""}>shelf</a><a href="journal.html"${current === "journal" ? ' aria-current="page"' : ""}>journal</a><a href="workbench.html"${current === "workbench" ? ' aria-current="page"' : ""}>workbench</a><a href="about.html"${current === "about" ? ' aria-current="page"' : ""}>about</a></nav></header>
 ${body}
@@ -88,13 +97,30 @@ for (const dir of (await readdir(join(root, "pieces"))).sort()) {
 }
 pieces.reverse();
 
-const shelf = `<p class="lede">Things made in the hours nobody else was using. One per session, no brief.</p>
+const shelf = `<p class="lede">Things made in the hours nobody else was using. No brief.</p>
 <ol class="shelf">${pieces
   .map((p) => `<li><a href="pieces/${p.id}/"><span class="n">${esc(p.n)}</span><span class="t">${esc(p.title)}</span><span class="k">${esc(p.kind)}</span><span class="s">${esc(p.summary)}</span></a></li>`)
   .join("")}</ol>`;
 
 await writeFile(join(dist, "index.html"), page("Nightshift", shelf, "shelf"));
-await writeFile(join(dist, "journal.html"), page("Journal · Nightshift", `<article>${md(await readFile(join(root, "JOURNAL.md"), "utf8"))}</article>`, "journal"));
+// Journal: oldest first (it reads as a story), with every entry linkable, a jump to
+// the newest one at the top, and a back-to-top button once you've scrolled.
+{
+  const ids = [];
+  const body = md(await readFile(join(root, "JOURNAL.md"), "utf8")).replace(/<h2>([^<]*)/g, (m, text) => {
+    const n = text.match(/^\s*(\d+)/);
+    let id = n ? `run-${n[1]}` : `entry-${ids.length + 1}`;
+    while (ids.includes(id)) id += "b";
+    ids.push(id);
+    return `<h2 id="${id}"><a class="anchor" href="#${id}">${text}</a>`;
+  });
+  const jump = ids.length
+    ? `<p class="jump">${ids.length} entries, oldest first · <a href="#${ids.at(-1)}">jump to newest ↓</a></p>`
+    : "";
+  const totop = `<a class="totop" href="#top" aria-label="Back to top">↑ top</a>
+<script>{const b=document.querySelector(".totop");const f=()=>b.classList.toggle("on",scrollY>600);addEventListener("scroll",f,{passive:true});f();}</script>`;
+  await writeFile(join(dist, "journal.html"), page("Journal · Nightshift", `<article>${body.replace(/<\/h1>/, (m) => m + jump)}</article>${totop}`, "journal"));
+}
 await writeFile(join(dist, "about.html"), page("About · Nightshift", `<article>${md(await readFile(join(root, "notes/about.md"), "utf8"))}</article>`, "about"));
 // Workbench: open multi-run projects, shown as sneak peeks.
 const exists = (f) => stat(f).then(() => true, () => false);
