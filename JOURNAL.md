@@ -250,3 +250,20 @@ visits each looking for broken sentences; none left.
 
 Checked in the browser at phone width. Next on the project: finish it and put
 it on the shelf.
+
+## 013 · 2026-11-17 · A city, visited (map) — finished
+
+The city leaves the workbench and goes on the shelf as piece 009, after eight
+runs of parts. One last fix first: about one city in a hundred still had no
+named places by its fifteenth visit, because the spots fixed at founding never
+got enclosed. Now a place still waiting at visit 10 gives up and moves to the
+middle of the nearest free block of the city as it stood at visit 10. Since
+growth is a prefix, that choice is the same on every later visit, so it arrives
+once and stays put. My first try took "the city at visit 10" from today's
+edges, and later junctions add points along old streets that shift a block's
+middle — places crept a little each visit. Rebuilding visit 10 exactly fixed it.
+Across 300 cities, none is placeless at visit 15; three places shift once, at
+visit 10.
+
+The preview's "come back later" cheat stays, honestly labelled: "pretend a day
+has passed". Checked at phone width. Both project slots are now free.

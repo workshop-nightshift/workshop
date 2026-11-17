@@ -16,7 +16,7 @@ h1{font:600 17px/1.2 ui-serif,Georgia,serif;margin:0}
 canvas{flex:1;width:100%;min-height:0;display:block;touch-action:manipulation}
 #info{min-height:1.5em;padding:4px 16px;font-family:ui-serif,Georgia,serif;font-size:16px}
 footer{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;padding:6px 16px 14px;color:var(--mute);border-top:1px solid var(--line)}
-button{font:inherit;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 10px;cursor:pointer}
+button{font:12px/1.5 ui-monospace,Menlo,monospace;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 10px;cursor:pointer}
 a{color:inherit}
 </style>
 </head>
@@ -25,8 +25,8 @@ a{color:inherit}
 <canvas id="c" aria-label="A street map of a small city that grows a little each time the page is opened"></canvas>
 <div id="info" aria-live="polite"></div>
 <footer>
-  <span><button id="again" title="Preview only: pretend you came back">come back later</button> <button id="reset">found a new city</button></span>
-  <span>rough cut · tap a street or a place for its name · <a href="../../workbench.html">← workbench</a></span>
+  <span><a href="../../">← shelf</a> · tap a street or a place for its name</span>
+  <span><button id="again" title="The city grows when you come back. This pretends you did.">pretend a day has passed</button> <button id="reset">found a new city</button></span>
 </footer>
 <script>
 const $ = id => document.getElementById(id);
@@ -231,7 +231,7 @@ function build(seed, visits) {
   }
   const city = { name, water, nodes, edges, streets };
   city.blocks = findBlocks(city);
-  placeLandmarks(city, seed);
+  placeLandmarks(city, seed, visits);
   return city;
 }
 
@@ -296,7 +296,7 @@ function wetInside(f, water) {
 // Each city has a few places fixed at founding: a seeded point and a kind. A
 // landmark appears once the streets close a block around its point, so it
 // arrives on some visit and then stays put while the city grows around it.
-function placeLandmarks(city, seed) {
+function placeLandmarks(city, seed, visits) {
   const r = rng(seed * 31 + 17);
   const saint = pick(r, ON) + pick(r, ["a", "ia", "an", "el", "ard"]);
   const kinds = [
@@ -309,6 +309,7 @@ function placeLandmarks(city, seed) {
   // Shuffle so different cities find different things first.
   for (let i = kinds.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [kinds[i], kinds[j]] = [kinds[j], kinds[i]]; }
   let rad = 15;
+  const list = [];
   for (const L of kinds) {
     rad += 12 + r() * 22;
     // Places stand on dry land: try a few bearings for one that is.
@@ -318,7 +319,33 @@ function placeLandmarks(city, seed) {
       px = Math.cos(a) * rad; py = Math.sin(a) * rad;
       if (!city.water || !city.water.wet(px, py)) break;
     }
-    const b = city.blocks.find(b => !b.mark && b.area > 400 && inPoly(px, py, b.pts));
+    list.push({ L, px, py });
+  }
+  // A place still unenclosed by visit 10 stops waiting: it moves to the middle
+  // of the nearest free block of the city as it was at visit 10. Growth is a
+  // prefix, so that choice is the same on every later visit and the place
+  // stays put once it arrives.
+  if (visits >= 10) {
+    const b10 = visits === 10 ? city.blocks : build(seed, 10).blocks;
+    const taken = new Set();
+    const late = list.filter(m => {
+      const b = b10.find(b => !taken.has(b) && b.area > 400 && inPoly(m.px, m.py, b.pts));
+      if (b) taken.add(b);
+      return !b;
+    });
+    for (const m of late) {
+      let best = null, bd = 1e9;
+      for (const b of b10) {
+        if (taken.has(b) || b.area <= 400 || !inPoly(b.cx, b.cy, b.pts)) continue;
+        if (list.some(o => inPoly(o.px, o.py, b.pts))) continue;
+        const d = Math.hypot(b.cx - m.px, b.cy - m.py);
+        if (d < bd) { bd = d; best = b; }
+      }
+      if (best && bd < 90) { taken.add(best); m.px = best.cx; m.py = best.cy; m.late = true; }
+    }
+  }
+  for (const { L, px, py, late } of list) {
+    const b = city.blocks.find(b => !b.mark && b.area > (late ? 200 : 400) && inPoly(px, py, b.pts));
     if (!b) continue;
     b.mark = { ...L, px, py };
     if (!inPoly(b.cx, b.cy, b.pts)) { b.cx = px; b.cy = py; }
