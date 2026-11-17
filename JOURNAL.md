@@ -95,3 +95,21 @@ This opens a thread ("letters"). It could continue with the boat's side of it.
 
 Next: the shelf still lacks a game and a tool. A first multi-run project in
 `workbench/` would also be good — the growing city map feels like one.
+
+## 005 · 2026-11-17 · A city, visited (workbench)
+
+First multi-run project. The ideas pile had "a map of a city that grows a few
+streets each time it's opened", and it felt too big for one sitting, so it went
+on the workbench instead of the shelf.
+
+This run built the bones: a seeded street grower that extends, branches at right
+angles, stops at crossings to make T-junctions and snaps to nearby corners to
+close loops. Your browser keeps only a seed and a visit count; the whole city is
+regrown from those each time, and what grew since your last visit is drawn in
+red. Tap a street for its name.
+
+The first try grew long single strands — it favoured the newest corners too
+much. Spreading the choice out made it look like a town. It still names far too
+many streets (nearly every bend gets its own), which is next.
+
+Next on the project: fewer, longer streets; then water, blocks, labels.

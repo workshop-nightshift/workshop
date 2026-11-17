@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A city, visited</title>
+<style>
+:root{--bg:#f3efe6;--fg:#1d1b18;--mute:#7a7366;--line:#d8d1c2;--street:#3a352e;--new:#b4472b;--hi:#2f6f8f}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--street:#c9c3b6;--new:#e58a63;--hi:#7fb7d4}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
+body{display:flex;flex-direction:column;font:14px/1.5 ui-monospace,Menlo,monospace}
+header{padding:12px 16px 6px;display:flex;justify-content:space-between;align-items:baseline;gap:6px 16px;flex-wrap:wrap}
+h1{font:600 17px/1.2 ui-serif,Georgia,serif;margin:0}
+#count{color:var(--mute)}
+canvas{flex:1;width:100%;min-height:0;display:block;touch-action:manipulation}
+#info{min-height:1.5em;padding:4px 16px;font-family:ui-serif,Georgia,serif;font-size:16px}
+footer{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;padding:6px 16px 14px;color:var(--mute);border-top:1px solid var(--line)}
+button{font:inherit;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 10px;cursor:pointer}
+a{color:inherit}
+</style>
+</head>
+<body>
+<header><h1 id="name">A city</h1><span id="count"></span></header>
+<canvas id="c" aria-label="A street map of a small city that grows a little each time the page is opened"></canvas>
+<div id="info" aria-live="polite"></div>
+<footer>
+  <span><button id="again" title="Preview only: pretend you came back">come back later</button> <button id="reset">found a new city</button></span>
+  <span>rough cut · tap a street for its name · <a href="../../workbench.html">← workbench</a></span>
+</footer>
+<script>
+const $ = id => document.getElementById(id);
+const c = $("c"), x = c.getContext("2d");
+const KEY = "nightshift-city-v1";
+
+// ---- seeded randomness ----
+function rng(seed) {
+  let s = seed >>> 0 || 1;
+  return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+}
+const pick = (r, a) => a[Math.floor(r() * a.length)];
+
+// ---- names ----
+const ON = ["Ash","Bram","Cal","Dun","Ell","Fen","Gar","Hol","Ivy","Kel","Lark","Mar","Nor","Ord","Pell","Quill","Ros","Sal","Tam","Ux","Vey","Wren","Yar"];
+const MID = ["","","","en","er","in","ow","ley","ing","s"];
+const END = ["ford","mere","wick","holm","by","gate","stead","combe","haven","more"];
+const SUF = ["Street","Lane","Row","Walk","Road","Way","Hill","Passage","Terrace","Steps"];
+const word = r => pick(r, ON) + pick(r, MID);
+const cityName = r => pick(r, ON) + pick(r, END);
+
+// ---- geometry ----
+function segX(ax, ay, bx, by, cx, cy, dx, dy) {
+  const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx);
+  if (Math.abs(d) < 1e-9) return null;
+  const t = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / d;
+  const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d;
+  return t > 1e-6 && t < 1 - 1e-6 && u > 1e-6 && u < 1 - 1e-6 ? { t, u } : null;
+}
+function distSeg(px, py, ax, ay, bx, by) {
+  const vx = bx - ax, vy = by - ay, l = vx * vx + vy * vy;
+  let t = l ? ((px - ax) * vx + (py - ay) * vy) / l : 0;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - ax - t * vx, py - ay - t * vy);
+}
+
+// ---- the city ----
+function build(seed, visits) {
+  const nodes = [{ x: 0, y: 0 }], edges = [], streets = [];
+  const nr = rng(seed * 7 + 3);
+  const name = cityName(nr);
+  const adj = [[]];
+  const addNode = (px, py) => { nodes.push({ x: px, y: py }); adj.push([]); return nodes.length - 1; };
+  const addEdge = (a, b, street, visit) => { edges.push({ a, b, street, visit }); const i = edges.length - 1; adj[a].push(i); adj[b].push(i); return i; };
+  const newStreet = r => {
+    let n, tries = 0;
+    do { n = word(r) + " " + pick(r, SUF); } while (streets.some(s => s.name === n) && tries++ < 20);
+    streets.push({ name: n }); return streets.length - 1;
+  };
+  // Split edge e at a new node k.
+  const split = (e, k) => {
+    const E = edges[e], b = E.b;
+    adj[b] = adj[b].filter(i => i !== e);
+    E.b = k; adj[k].push(e);
+    addEdge(k, b, E.street, E.visit);
+  };
+
+  function tryGrow(r, visit) {
+    // Prefer recent nodes with spare junction capacity.
+    const n = nodes.length;
+    let from = -1;
+    for (let t = 0; t < 8; t++) {
+      const i = Math.min(n - 1, Math.floor(n * Math.pow(r(), 0.8)));
+      if (adj[i].length < 4) { from = i; break; }
+    }
+    if (from < 0) return false;
+    const F = nodes[from];
+    let ang, street;
+    const out = adj[from];
+    if (!out.length) { ang = r() * Math.PI * 2; street = newStreet(r); }
+    else {
+      const e = edges[pick(r, out)], o = e.a === from ? nodes[e.b] : nodes[e.a];
+      const base = Math.atan2(F.y - o.y, F.x - o.x);
+      const straight = out.length === 1 && r() < 0.55;
+      if (straight) { ang = base + (r() - 0.5) * 0.35; street = e.street; }
+      else { ang = base + (r() < 0.5 ? 1 : -1) * Math.PI / 2 + (r() - 0.5) * 0.25; street = newStreet(r); }
+    }
+    const len = 26 + r() * 30;
+    let tx = F.x + Math.cos(ang) * len, ty = F.y + Math.sin(ang) * len;
+
+    // Don't leave at a too-sharp angle to an existing street from this node.
+    for (const i of out) {
+      const o = edges[i].a === from ? nodes[edges[i].b] : nodes[edges[i].a];
+      let d = Math.abs(Math.atan2(o.y - F.y, o.x - F.x) - ang) % (Math.PI * 2);
+      if (d > Math.PI) d = Math.PI * 2 - d;
+      if (d < 0.9) return false;
+    }
+    // First crossing: stop there and make a T junction.
+    let hit = null;
+    for (let i = 0; i < edges.length; i++) {
+      const E = edges[i];
+      if (E.a === from || E.b === from) continue;
+      const A = nodes[E.a], B = nodes[E.b];
+      const h = segX(F.x, F.y, tx, ty, A.x, A.y, B.x, B.y);
+      if (h && (!hit || h.t < hit.t)) hit = { ...h, e: i };
+    }
+    if (hit) {
+      if (hit.t * len < 12) return false;
+      const E = edges[hit.e], A = nodes[E.a], B = nodes[E.b];
+      const elen = Math.hypot(B.x - A.x, B.y - A.y);
+      // Snap to an end if the crossing is near one.
+      if (hit.u * elen < 8) { if (adj[E.a].length >= 4) return false; addEdge(from, E.a, street, visit); return true; }
+      if ((1 - hit.u) * elen < 8) { if (adj[E.b].length >= 4) return false; addEdge(from, E.b, street, visit); return true; }
+      const k = addNode(A.x + (B.x - A.x) * hit.u, A.y + (B.y - A.y) * hit.u);
+      split(hit.e, k);
+      addEdge(from, k, street, visit);
+      return true;
+    }
+    // Snap to a nearby node to close loops.
+    for (let i = 0; i < nodes.length; i++) {
+      if (i === from) continue;
+      if (Math.hypot(nodes[i].x - tx, nodes[i].y - ty) < 13) {
+        if (adj[i].length >= 4 || adj[from].some(e => edges[e].a === i || edges[e].b === i)) return false;
+        addEdge(from, i, street, visit); return true;
+      }
+    }
+    // Keep clear of other streets.
+    for (const E of edges) {
+      if (E.a === from || E.b === from) continue;
+      const A = nodes[E.a], B = nodes[E.b];
+      if (distSeg(tx, ty, A.x, A.y, B.x, B.y) < 11) return false;
+    }
+    addEdge(from, addNode(tx, ty), street, visit);
+    return true;
+  }
+
+  for (let v = 1; v <= visits; v++) {
+    const r = rng(seed + v * 2654435761);
+    const want = v === 1 ? 34 : 9 + Math.floor(r() * 7);
+    let got = 0, tries = 0;
+    while (got < want && tries++ < want * 40) if (tryGrow(r, v)) got++;
+  }
+  return { name, nodes, edges, streets };
+}
+
+// ---- state ----
+let state = { seed: 0, visits: 0 };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.seed) state = s; } catch {}
+if (!state.seed) state.seed = (Math.random() * 4294967295) >>> 0 || 1;
+state.visits++;
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+save();
+
+let city, view, sel = -1;
+function regen() {
+  city = build(state.seed, state.visits);
+  sel = -1;
+  $("name").textContent = city.name;
+  const fresh = city.edges.filter(e => e.visit === state.visits).length;
+  $("count").textContent = `visit ${state.visits} · ${city.streets.length} streets` + (state.visits > 1 ? ` · ${fresh} new stretches since you were last here` : "");
+  $("info").textContent = state.visits === 1 ? "Founded today. Come back another time; it will have grown." : "";
+  draw();
+}
+
+function colors() {
+  const s = getComputedStyle(document.documentElement);
+  return k => s.getPropertyValue(k).trim();
+}
+function draw() {
+  const dpr = devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+  c.width = W * dpr; c.height = H * dpr;
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const col = colors();
+  x.fillStyle = col("--bg"); x.fillRect(0, 0, W, H);
+  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+  for (const n of city.nodes) { minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); }
+  const pad = 28, sc = Math.min((W - pad * 2) / Math.max(maxX - minX, 120), (H - pad * 2) / Math.max(maxY - minY, 120), 3);
+  const ox = W / 2 - (minX + maxX) / 2 * sc, oy = H / 2 - (minY + maxY) / 2 * sc;
+  view = { sc, ox, oy };
+  const P = n => [n.x * sc + ox, n.y * sc + oy];
+  x.lineCap = "round"; x.lineJoin = "round";
+  const lw = Math.max(1.2, Math.min(3.2, sc * 1.6));
+  for (const pass of [0, 1, 2]) {
+    for (let i = 0; i < city.edges.length; i++) {
+      const E = city.edges[i];
+      const isNew = E.visit === state.visits && state.visits > 1;
+      const isSel = sel >= 0 && E.street === sel;
+      if ((pass === 0) !== (!isNew && !isSel) || (pass === 1 && !isNew) || (pass === 2 && !isSel)) continue;
+      const [ax, ay] = P(city.nodes[E.a]), [bx, by] = P(city.nodes[E.b]);
+      x.strokeStyle = isSel ? col("--hi") : isNew ? col("--new") : col("--street");
+      x.lineWidth = isSel ? lw + 1.5 : lw;
+      x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke();
+    }
+  }
+}
+
+c.addEventListener("click", ev => {
+  const rct = c.getBoundingClientRect(), px = ev.clientX - rct.left, py = ev.clientY - rct.top;
+  let best = -1, bd = 18;
+  for (const E of city.edges) {
+    const A = city.nodes[E.a], B = city.nodes[E.b];
+    const d = distSeg(px, py, A.x * view.sc + view.ox, A.y * view.sc + view.oy, B.x * view.sc + view.ox, B.y * view.sc + view.oy);
+    if (d < bd) { bd = d; best = E.street; }
+  }
+  sel = best === sel ? -1 : best;
+  $("info").textContent = sel >= 0 ? city.streets[sel].name : "";
+  draw();
+});
+$("again").onclick = () => { state.visits++; save(); regen(); };
+$("reset").onclick = () => {
+  if (!confirm("Found a new city? This one will be forgotten.")) return;
+  state = { seed: (Math.random() * 4294967295) >>> 0 || 1, visits: 1 }; save(); regen();
+};
+addEventListener("resize", draw);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+regen();
+</script>
+</body>
+</html>
