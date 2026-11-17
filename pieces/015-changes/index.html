@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Changes</title>
+<style>
+:root{--bg:#eef0f2;--fg:#191c20;--mute:#6c737c;--line:#d2d7dd;--card:#f9fafb;--blue:#2b5fb0;--red:#b2402f;--strike:#d99a2b;--false:rgba(178,64,47,.14)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1114;--fg:#e4e7ea;--mute:#8d949c;--line:#2a2e34;--card:#171a1e;--blue:#7aa6ec;--red:#e47c69;--strike:#f0b851;--false:rgba(228,124,105,.16)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:18px 16px 28px;display:flex;justify-content:center}
+main{width:100%;max-width:560px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 14px;font-style:italic}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 13px;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.4;cursor:default}
+button[aria-pressed=true]{border-color:var(--blue);color:var(--blue)}
+button.big{font-size:16px;padding:7px 20px;border-color:var(--fg)}
+.row{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin:0 0 10px}
+.lab{color:var(--mute);font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-right:2px}
+.card{background:var(--card);border:1px solid var(--line);padding:10px 8px;position:relative}
+canvas{display:block;width:100%;height:440px}
+#bells{display:flex;justify-content:space-around;margin:0 0 6px}
+.bell{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font:13px/1 "Courier New",monospace;color:var(--mute);transition:background .35s ease,color .35s ease,border-color .35s ease}
+.bell.on{background:var(--strike);color:#191c20;border-color:var(--strike);transition:none}
+#status{min-height:3em;margin:12px 2px 0;font-style:italic}
+#status b{font-style:normal;font-weight:normal;color:var(--blue)}
+input[type=range]{accent-color:var(--blue);width:130px}
+.note{color:var(--mute);font-size:14px;margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+.note p{margin:0 0 .7em}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<h1>Changes</h1>
+<p class="sub">Six bells, never the same row twice, until they come home.</p>
+
+<div class="row">
+  <span class="lab">Ring</span>
+  <button id="mHunt" aria-pressed="false">Plain hunt</button>
+  <button id="mBob" aria-pressed="true">Plain bob</button>
+  <button id="mExt" aria-pressed="false">The extent, called</button>
+</div>
+<div class="row">
+  <span class="lab">Follow</span>
+  <span id="follow"></span>
+</div>
+<div class="row">
+  <button id="go" class="big">Start</button>
+  <button id="bob" disabled>Bob</button>
+  <button id="single" disabled>Single</button>
+  <button id="stand" disabled>Stand</button>
+  <label class="lab" style="margin-left:auto">Pace <input id="pace" type="range" min="150" max="420" value="270"></label>
+</div>
+
+<div class="card">
+  <div id="bells"></div>
+  <canvas id="c"></canvas>
+</div>
+<div id="status">Press start. Sound will play.</div>
+
+<div class="note">
+  <p>In a ringing tower the bells can't play tunes: each one swings full circle and takes
+  a couple of seconds to come round, so all a band can do is change the order in which
+  they strike, a little at a time. A bell may only move one place per row. Rounds is
+  1&nbsp;2&nbsp;3&nbsp;4&nbsp;5&nbsp;6, high to low. From there the rows are rearranged by
+  rule, and the aim is never to ring the same row twice before the bells come back to rounds.</p>
+  <p><i>Plain hunt</i> is the simplest rule: everyone swaps, then everyone but the ends swaps,
+  and it comes round after twelve rows. <i>Plain bob</i> lets the treble hunt like that while
+  the others are nudged at every lead end, and comes round after sixty. A <i>bob</i> or a
+  <i>single</i> changes what happens at the next lead end, and sends the bells somewhere they
+  haven't been. There are 720 rows on six bells. Call well and you can ring every one of them
+  without repeating. Call badly and a row comes up twice, and it's marked red. Or let the
+  conductor do it: one way through all 720, found by a small search the night this was made.
+  (Keys: B and S call.)</p>
+  <p>The red line is the treble. The blue line is the bell you follow. There is a short
+  gap every other row, the way a tower rings, hand then back.</p>
+</div>
+</main>
+
+<script>
+(()=>{
+const N=6, ROUNDS='123456';
+const $=id=>document.getElementById(id);
+const cv=$('c'), cx=cv.getContext('2d');
+let method='bob', followBell=4;
+
+// ---- place notation ----
+function change(row,places){ // places: array of 1-based positions that stay
+  const r=row.slice(); let i=0;
+  while(i<N){
+    if(places.includes(i+1)){i++;continue}
+    if(i+1<N && !places.includes(i+2)){[r[i],r[i+1]]=[r[i+1],r[i]];i+=2}else i++;
+  }
+  return r;
+}
+const X=[], P16=[1,6];
+function leadChanges(call){ // 12 changes of a plain bob minor lead
+  const a=[]; for(let k=0;k<5;k++){a.push(X,P16)} a.push(X);
+  a.push(call==='bob'?[1,4]:call==='single'?[1,2,3,4]:[1,2]);
+  return a;
+}
+
+// ---- ui setup ----
+const bellEls=[];
+for(let b=1;b<=N;b++){const d=document.createElement('div');d.className='bell';d.textContent=b;$('bells').appendChild(d);bellEls.push(d)}
+const fb=[];
+for(let b=2;b<=N;b++){const btn=document.createElement('button');btn.textContent=b;btn.setAttribute('aria-pressed',b===followBell);btn.style.marginRight='6px';btn.onclick=()=>{followBell=b;fb.forEach((x,i)=>x.setAttribute('aria-pressed',i+2===b))};$('follow').appendChild(btn);fb.push(btn)}
+function setMethod(m){method=m;$('mHunt').setAttribute('aria-pressed',m==='hunt');$('mBob').setAttribute('aria-pressed',m==='bob');$('mExt').setAttribute('aria-pressed',m==='ext')}
+$('mHunt').onclick=()=>{if(!running)setMethod('hunt')};
+$('mBob').onclick=()=>{if(!running)setMethod('bob')};
+$('mExt').onclick=()=>{if(!running)setMethod('ext')};
+// sixty leads of plain bob minor, one call per lead end, found by search: every row once
+const COMP='ppppbppppbppppsppppbppppbpppbppppbppspppssppppsppsppppssspbs';
+
+// ---- audio ----
+let ac=null, master=null, comp=null;
+// tenor is the keynote; the others climb a major scale above it
+const steps=[9,7,5,4,2,0]; // bell 1..6, semitones above tenor
+const TENOR=233.08; // B flat
+const freq=b=>TENOR*Math.pow(2,steps[b-1]/12);
+// a bell's partials, relative to the strike note: hum, prime, tierce, quint, nominal, upper
+const PART=[[.5,.5,3.2],[1,.55,2.2],[1.2,.35,1.7],[1.5,.18,1.3],[2,.7,1.4],[2.5,.22,.8],[3,.18,.55],[4.2,.08,.35]];
+function strike(b,t){
+  const f=freq(b), g=ac.createGain(); g.gain.value=.16; g.connect(master);
+  const pan=ac.createStereoPanner?ac.createStereoPanner():null;
+  if(pan){pan.pan.value=(b-3.5)/6;g.disconnect();g.connect(pan);pan.connect(master)}
+  for(const [m,a,d] of PART){
+    const o=ac.createOscillator(), e=ac.createGain();
+    o.type='sine'; o.frequency.value=f*m*(1+(Math.random()-.5)*.002);
+    e.gain.setValueAtTime(0,t); e.gain.linearRampToValueAtTime(a,t+.004);
+    e.gain.exponentialRampToValueAtTime(.0005,t+d*(1.4-b*.06));
+    o.connect(e); e.connect(g); o.start(t); o.stop(t+d*1.5+.1);
+  }
+}
+
+// ---- ringing state ----
+let running=false, rows=[], events=[], seen=null, pending=null;
+let cur, leadIdx, changeIdx, nextT, rowNo, phase, falseCount, endAfter;
+// phase: 'rounds' (ring rounds before going), 'method', 'home' (rounds after coming round), 'done'
+function interval(){return +$('pace').value/1000}
+
+function pushRow(row,tag){
+  const i=rows.length;
+  let isFalse=false;
+  if(phase==='method'){const k=row.join('');if(seen.has(k)){isFalse=true;falseCount++}seen.add(k)}
+  rows.push({r:row,tag:tag||'',isFalse,t0:nextT});
+  if(i>0 && i%2===0) nextT+=interval(); // handstroke gap
+  rows[i].t0=nextT;
+  for(let p=0;p<N;p++){events.push({t:nextT,row:i,pos:p,bell:row[p]});strike(row[p],nextT);nextT+=interval()}
+}
+function nextRow(){
+  if(phase==='rounds'){
+    rowNo++;
+    if(rowNo<4){pushRow(cur.slice(), rowNo===2?'go':'');return}
+    phase='method';
+  }
+  if(phase==='home'){ endAfter--; pushRow(cur.slice(),''); if(endAfter<=0)phase='done'; return }
+  if(phase!=='method') return;
+  let places, tag='';
+  if(method==='hunt'){places=(changeIdx%2===0)?X:P16}
+  else{
+    if(method==='ext' && changeIdx%12===0){const c=COMP[changeIdx/12];pending=c==='b'?'bob':c==='s'?'single':null;updateCalls()}
+    const lead=leadChanges(pending);
+    places=lead[changeIdx%12];
+    if(changeIdx%12===11){ if(pending){tag=pending} pending=null; updateCalls() }
+  }
+  changeIdx++;
+  cur=change(cur,places);
+  pushRow(cur,tag);
+  if(cur.join('')===ROUNDS){
+    phase='home'; endAfter=2;
+    const n=changeIdx;
+    finish=n;
+  }
+}
+let finish=0;
+function updateCalls(){
+  const can=running && method==='bob' && phase!=='home' && phase!=='done';
+  if(method==='ext'){$('bob').disabled=$('single').disabled=true;$('bob').setAttribute('aria-pressed',pending==='bob');$('single').setAttribute('aria-pressed',pending==='single');return}
+  $('bob').disabled=!can; $('single').disabled=!can;
+  $('bob').setAttribute('aria-pressed',pending==='bob'); $('single').setAttribute('aria-pressed',pending==='single');
+}
+function start(){
+  if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();comp=ac.createDynamicsCompressor();comp.connect(ac.destination)}
+  ac.resume();
+  master=ac.createGain();master.gain.value=.9;master.connect(comp);
+  running=true; rows=[]; events=[]; seen=new Set(); pending=null;
+  cur=ROUNDS.split('').map(Number); changeIdx=0; rowNo=0; phase='rounds'; falseCount=0; finish=0;
+  nextT=ac.currentTime+.25;
+  pushRow(cur.slice(),'');
+  $('go').disabled=true; $('stand').disabled=false; $('mHunt').disabled=$('mBob').disabled=$('mExt').disabled=true;
+  updateCalls(); say(method==='hunt'?'Rounds. Then plain hunt.':method==='ext'?'Rounds. Then all 720, with the conductor calling. About twenty-five minutes.':'Rounds. Then plain bob. Call a bob or a single when you like.');
+}
+function stop(msg){
+  running=false; phase='done';
+  if(master){const t=ac.currentTime,m=master;m.gain.setTargetAtTime(0,t,.25);setTimeout(()=>m.disconnect(),2500);
+    events=events.filter(e=>e.t<=t);const lr=events.length?events[events.length-1].row:0;rows.length=Math.min(rows.length,lr+1)}
+  $('go').disabled=false; $('go').textContent='Again'; $('stand').disabled=true; $('mHunt').disabled=$('mBob').disabled=$('mExt').disabled=false;
+  updateCalls(); if(msg)say(msg);
+}
+function say(h){$('status').innerHTML=h}
+$('go').onclick=start;
+$('stand').onclick=()=>{
+  const n=changeIdx;
+  stop(n? `Stood after ${n} change${n===1?'':'s'}${falseCount?`, ${falseCount} of them false`:''}. Not come round.`:'Stood in rounds.');
+};
+$('bob').onclick=()=>{pending=pending==='bob'?null:'bob';updateCalls()};
+$('single').onclick=()=>{pending=pending==='single'?null:'single';updateCalls()};
+document.addEventListener('keydown',e=>{if(!running)return;if(e.key==='b'||e.key==='B')$('bob').click();if(e.key==='s'||e.key==='S')$('single').click()});
+
+// ---- drawing ----
+let W=0,H=0,dpr=1;
+function size(){dpr=window.devicePixelRatio||1;const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr}
+window.addEventListener('resize',size); size();
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const RH=24;
+function draw(){
+  requestAnimationFrame(draw);
+  cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,W,H);
+  const col={fg:css('--fg'),mute:css('--mute'),blue:css('--blue'),red:css('--red'),strike:css('--strike'),fals:css('--false'),line:css('--line'),card:css('--card')};
+  const now=ac?ac.currentTime:0;
+  // what's sounding
+  let curEv=-1;
+  if(ac){ while(curEv+1<events.length && events[curEv+1].t<=now) curEv++; }
+  // keep scheduling ahead
+  if(running && ac){
+    while(phase!=='done' && nextT<now+1.2) nextRow();
+    if(phase==='done' && events.length && now>events[events.length-1].t+.6 && running){
+      const n=finish;
+      stop(method==='hunt'?`Come round after ${n} changes. Every row true.`:
+        falseCount?`Come round after ${n} changes, ${falseCount} false. A row was rung twice.`:
+        n===720?`<b>The extent.</b> All 720 rows, each once, and home.`:
+        `Come round after ${n} changes, every one of them true.${n===60?' That was the plain course.':''}`);
+    }
+  }
+  bellEls.forEach(el=>el.classList.remove('on'));
+  if(curEv>=0 && now-events[curEv].t<.18) bellEls[events[curEv].bell-1].classList.add('on');
+  if(!rows.length){
+    cx.fillStyle=col.mute;cx.font='italic 15px Georgia,serif';cx.textAlign='center';
+    cx.fillText('1 2 3 4 5 6',W/2,H/2);return;
+  }
+  const curRow=curEv>=0?events[curEv].row:0, curPos=curEv>=0?events[curEv].pos:-1;
+  // smooth scroll: the current row sits near the bottom
+  const frac=curEv>=0?(curPos+1)/N:0;
+  const baseY=H-RH*1.6 - (curRow+frac)*RH; // row i at baseY + i*RH
+  const left=40, colW=(W-left-48)/N;
+  const X_=p=>left+colW*(p+.5), Y_=i=>baseY+i*RH;
+  const first=Math.max(0,Math.floor((-baseY)/RH)-1), last=curRow;
+  // false-row bands, call tags
+  cx.font='13px "Courier New",monospace';
+  for(let i=first;i<=last;i++){
+    const y=Y_(i);
+    if(rows[i].isFalse){cx.fillStyle=col.fals;cx.fillRect(left-6,y-RH/2,W-left-34,RH)}
+    if(rows[i].tag){cx.fillStyle=col.mute;cx.textAlign='left';cx.font='italic 13px Georgia,serif';
+      cx.textAlign='right';cx.fillText(rows[i].tag,W-4,y+4);cx.font='13px "Courier New",monospace'}
+    if((i-4)%12===0 && i>4 && method!=='hunt'){cx.strokeStyle=col.line;cx.lineWidth=1;cx.beginPath();cx.moveTo(left-6,y-RH/2);cx.lineTo(W-34,y-RH/2);cx.stroke()}
+  }
+  // lines
+  function line(b,c,w){
+    cx.strokeStyle=c;cx.lineWidth=w;cx.lineJoin='round';cx.beginPath();let st=false;
+    for(let i=first;i<=last;i++){const p=rows[i].r.indexOf(b);if(i===last&&p>curPos)break;const x=X_(p),y=Y_(i);if(!st){cx.moveTo(x,y);st=true}else cx.lineTo(x,y)}
+    cx.stroke();
+  }
+  cx.globalAlpha=.75;line(1,col.red,1.5);cx.globalAlpha=1;line(followBell,col.blue,2.5);
+  // numbers
+  cx.textAlign='center';
+  for(let i=first;i<=last;i++){
+    const y=Y_(i), r=rows[i].r;
+    cx.fillStyle=col.mute;cx.font='11px "Courier New",monospace';cx.textAlign='right';
+    const chNo=i-3;
+    if(chNo>0 && chNo%6===0)cx.fillText(chNo,left-12,y+4);
+    cx.textAlign='center';cx.font='15px "Courier New",monospace';
+    for(let p=0;p<N;p++){
+      if(i===last&&p>curPos)break;
+      const b=r[p], x=X_(p);
+      const hot=(i===curRow&&p===curPos&&now-events[curEv].t<.25);
+      if(b===followBell||b===1||hot){cx.beginPath();cx.arc(x,y,8,0,7);cx.fillStyle=col.card;cx.fill()}
+      cx.fillStyle=hot?col.strike:b===followBell?col.blue:b===1?col.red:col.fg;
+      cx.fillText(b,x,y+5);
+    }
+  }
+  // status line while ringing
+  if(running&&phase==='method'){
+    const n=changeIdx;
+    const s=`${n} change${n===1?'':'s'}`+(falseCount?`, <span style="color:var(--red)">${falseCount} false</span>`:'')+(pending?` · <b>${pending}</b> called`:'');
+    if(say.last!==s){say(s);say.last=s}
+  } else say.last='';
+}
+requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

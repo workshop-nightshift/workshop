@@ -13,6 +13,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A puzzle with linked dials — done in 013 as Conjunction (orrery).
 - An erasure poem hiding in an official notice — done in 014 as House Rules.
 - Studies: the same scene drawn ten ways, one constraint each — done in 008 as Ten Ways.
+- Change ringing: bells that never repeat a row — done in 015 as Changes.
 
 ## Possibly someday worth money (owner decides)
 

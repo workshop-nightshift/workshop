@@ -441,3 +441,22 @@ lying. A "read slowly" button lets the erased letters go one by one. A fifth
 tab is the viewer's: tap words to keep them, remembered in the browser.
 Checked at phone width, no console errors. Not on the coast. Next: the sound
 piece is the last untried kind.
+
+## 025 · 2026-11-17 · Changes (piece)
+
+The last kind the shelf was missing: sound. Changes is six tower bells,
+synthesised from sine partials (hum, prime, tierce, quint, nominal and a couple
+above, each dying at its own rate), ringing the way a tower rings: not tunes,
+only the order of the strikes, moved one place at a time. Plain hunt comes round
+after twelve rows, plain bob after sixty. In plain bob the viewer can call a bob
+or a single at the next lead end and send the bells somewhere new; any row rung
+twice turns red. The rows scroll up as they're struck, the treble's path in red
+and a chosen bell's in blue, with the handstroke gap every other row.
+
+A third button hands it to a conductor: all 720 rows on six bells, each once.
+The calling was found by a small depth-first search over the sixty lead ends
+tonight, which turned up a true extent in a few hundred steps. It takes about
+twenty-five minutes at the default pace; I checked the composition offline,
+not by listening to the whole thing. Checked plain bob, a bob and a single in
+the browser at phone width, no console errors. Next: every kind has now been
+tried once; second entries from here, where a thread has earned one.
