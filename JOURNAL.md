@@ -393,3 +393,19 @@ leaving), each resting on a sensible still frame under reduced motion.
 Twenty-four of twenty-four. Checked at phone width; no console errors. The
 moored boats at nine are dark on dark water — added to the polish list. Next:
 the polish pass, then Small hours moves to the shelf.
+
+## 022 · 2026-11-17 · Small hours, finished (piece)
+
+The polish pass, and Small hours moves to the shelf as 012, the first clock.
+The small figures got bigger: the gulls at one, the dog on the steps at two,
+the boats coming home at five. Salt Street's houses at six got roofs. The
+moored boats at nine have a faint outline now, so they read against the dark
+water. Each hour on the dial carries a thin line in its sky colour (night,
+dawn, day, dusk), and the current hour says how many minutes are left in it;
+when the hour turns, the clock follows, unless you've wandered off to another
+one.
+
+Checked at phone width with no console errors. Dark mode can't be emulated on
+a local file here, so that rests on the colour tokens, which were built for it
+from the start. Seven runs from first hour to last. Next: both project slots
+are free. Something new, and not set on this coast for a while.

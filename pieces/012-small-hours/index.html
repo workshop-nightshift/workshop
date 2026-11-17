@@ -19,6 +19,9 @@ header p{color:var(--mute);font-style:italic;margin:0}
 .dial button.done{color:var(--fg);border-style:solid}
 .dial button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .dial button.now::after{content:"·";display:block;height:0;line-height:.6;margin-top:-2px}
+.dial button{box-shadow:inset 0 -3px 0 var(--tint,transparent)}
+.dial button.t-night{--tint:var(--sky)}.dial button.t-dawn{--tint:var(--dawn2)}.dial button.t-day{--tint:var(--day)}.dial button.t-dusk{--tint:var(--dawn)}
+.dial button[aria-pressed=true]{box-shadow:none}
 .dial button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hour{margin:24px 0 0}
 .hour .when{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -100,7 +103,7 @@ a{color:inherit}
 <ul class="dial" id="dial" aria-label="Hours"></ul>
 <section class="hour" id="hour" aria-live="polite"></section>
 <p class="foot" id="foot"></p>
-<footer><a href="../../workbench.html">← back to the workbench</a> · rough cut, hours still being written</footer>
+<footer><a href="../../">← shelf</a> · the same coast as <a href="../005-letters/">Letters</a> and <a href="../009-a-city-visited/">A city, visited</a></footer>
 </main>
 <script>
 (function(){
@@ -278,7 +281,7 @@ var HOURS = {
   },
   13: {
     title: "The market comes down",
-    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/><rect class="wallc" x="0" y="40" width="70" height="110"/><path class="wallc" d="M0 40 L35 22 L70 40Z"/><rect class="wallc" x="250" y="30" width="70" height="120"/><path class="wallc" d="M250 30 L285 12 L320 30Z"/><rect class="hillc" x="0" y="150" width="320" height="30"/><rect class="hillc" x="120" y="104" width="2" height="46"/><rect class="hillc" x="164" y="104" width="2" height="46"/><rect class="hillc" x="118" y="102" width="50" height="3"/><path style="fill:var(--warm);opacity:.85" d="M122 106 h42 v6 q-21 4 -42 0z"/><rect class="wallc" x="70" y="132" width="22" height="18"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M70 140 h22"/><rect class="wallc" x="96" y="128" width="18" height="22"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M96 136 h18"/><rect class="wallc" x="180" y="132" width="24" height="18"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M180 140 h24"/><rect class="wallc" x="208" y="128" width="16" height="22"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M208 136 h16"/><g class="hillc" opacity=".55"><circle cx="134" cy="152" r="2"/><ellipse cx="146" cy="153" rx="3" ry="1.4"/><circle cx="232" cy="152" r="1.6"/><ellipse cx="60" cy="153" rx="2.6" ry="1.2"/></g><g class="a-hop" style="animation-delay:0s"><ellipse style="fill:var(--fog)" cx="138" cy="146" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="143" cy="143" r="2.4"/><path class="hillc" d="M132 145 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M137 149 v3 M140 149 v3"/></g><g class="a-hop" style="animation-delay:-1.3s"><ellipse style="fill:var(--fog)" cx="226" cy="146" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="231" cy="143" r="2.4"/><path class="hillc" d="M220 145 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M225 149 v3 M228 149 v3"/></g><g class="a-hop" style="animation-delay:-2.2s"><ellipse style="fill:var(--fog)" cx="54" cy="147" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="59" cy="144" r="2.4"/><path class="hillc" d="M48 146 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M53 150 v3 M56 150 v3"/></g><g class="a-glide" style="animation-delay:-4s"><path class="a-flap" style="fill:none;stroke:var(--hill);stroke-width:1.4" d="M150 40 q6 -6 12 0 q6 -6 12 0"/></g>',
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/><rect class="wallc" x="0" y="40" width="70" height="110"/><path class="wallc" d="M0 40 L35 22 L70 40Z"/><rect class="wallc" x="250" y="30" width="70" height="120"/><path class="wallc" d="M250 30 L285 12 L320 30Z"/><rect class="hillc" x="0" y="150" width="320" height="30"/><rect class="hillc" x="120" y="104" width="2" height="46"/><rect class="hillc" x="164" y="104" width="2" height="46"/><rect class="hillc" x="118" y="102" width="50" height="3"/><path style="fill:var(--warm);opacity:.85" d="M122 106 h42 v6 q-21 4 -42 0z"/><rect class="wallc" x="70" y="132" width="22" height="18"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M70 140 h22"/><rect class="wallc" x="96" y="128" width="18" height="22"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M96 136 h18"/><rect class="wallc" x="180" y="132" width="24" height="18"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M180 140 h24"/><rect class="wallc" x="208" y="128" width="16" height="22"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M208 136 h16"/><g class="hillc" opacity=".55"><circle cx="134" cy="152" r="2"/><ellipse cx="146" cy="153" rx="3" ry="1.4"/><circle cx="232" cy="152" r="1.6"/><ellipse cx="60" cy="153" rx="2.6" ry="1.2"/></g><g class="a-hop" style="animation-delay:0s"><g transform="translate(138 152) scale(1.7) translate(-138 -152)"><ellipse style="fill:var(--fog)" cx="138" cy="146" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="143" cy="143" r="2.4"/><path class="hillc" d="M132 145 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M137 149 v3 M140 149 v3"/></g></g><g class="a-hop" style="animation-delay:-1.3s"><g transform="translate(226 152) scale(1.7) translate(-226 -152)"><ellipse style="fill:var(--fog)" cx="226" cy="146" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="231" cy="143" r="2.4"/><path class="hillc" d="M220 145 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M225 149 v3 M228 149 v3"/></g></g><g class="a-hop" style="animation-delay:-2.2s"><g transform="translate(54 153) scale(1.7) translate(-54 -153)"><ellipse style="fill:var(--fog)" cx="54" cy="147" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="59" cy="144" r="2.4"/><path class="hillc" d="M48 146 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M53 150 v3 M56 150 v3"/></g></g><g class="a-glide" style="animation-delay:-4s"><g transform="translate(162 40) scale(1.6) translate(-162 -40)"><path class="a-flap" style="fill:none;stroke:var(--hill);stroke-width:1.2" d="M150 40 q6 -6 12 0 q6 -6 12 0"/></g></g>',
     lines: [
       "By one the stalls in the square are coming down faster than they went up. Awnings are rolled, trestles folded, the crates stacked by the wall for the cart.",
       "The gulls have been waiting on the roofs since eleven. They come down one at a time and walk about as if they had business there, which, by now, they do."
@@ -286,7 +289,7 @@ var HOURS = {
   },
   14: {
     title: "The slack hour",
-    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/><rect class="seac" x="0" y="96" width="320" height="84" opacity=".9"/><rect class="wallc" x="0" y="70" width="40" height="110"/><rect class="wallc" x="20" y="120" width="90" height="10"/><rect class="wallc" x="20" y="130" width="104" height="10"/><rect class="wallc" x="20" y="140" width="118" height="10"/><rect class="wallc" x="20" y="150" width="132" height="10"/><rect class="wallc" x="20" y="160" width="146" height="10"/><rect class="wallc" x="20" y="170" width="160" height="10"/><g class="a-breathe"><path class="hillc" d="M48 129 q0 -9 14 -9 q12 0 14 6 q6 -1 7 3z"/></g><path class="hillc" d="M76 126 q4 -6 9 -3 l2 -3 l1 4 q2 2 0 5 h-12z"/><path class="hillc" d="M46 129 q-6 0 -8 -4" style="fill:none;stroke:var(--hill);stroke-width:1.6"/><path style="fill:var(--wall)" d="M170 150 L320 120 L320 180 L170 180Z"/><path style="fill:var(--warm)" d="M196 128 q50 -14 96 -4 l-6 12 q-42 -8 -84 4z"/><path style="fill:var(--sun);opacity:.55" d="M196 128 q24 -7 46 -8 l-2 12 q-20 1 -38 8z"/><g class="a-brush"><rect class="hillc" x="250" y="104" width="2" height="18"/><rect class="hillc" x="247" y="120" width="8" height="4"/></g><path class="hillc" d="M258 108 v-12 q0 -5 5 -5 q5 0 5 5 v12z" opacity=".9"/><circle class="hillc" cx="263" cy="86" r="4.5"/>',
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/><rect class="seac" x="0" y="96" width="320" height="84" opacity=".9"/><rect class="wallc" x="0" y="70" width="40" height="110"/><rect class="wallc" x="20" y="120" width="90" height="10"/><rect class="wallc" x="20" y="130" width="104" height="10"/><rect class="wallc" x="20" y="140" width="118" height="10"/><rect class="wallc" x="20" y="150" width="132" height="10"/><rect class="wallc" x="20" y="160" width="146" height="10"/><rect class="wallc" x="20" y="170" width="160" height="10"/><g transform="translate(64 130) scale(1.6) translate(-64 -129)"><g class="a-breathe"><path class="hillc" d="M48 129 q0 -9 14 -9 q12 0 14 6 q6 -1 7 3z"/></g><path class="hillc" d="M76 126 q4 -6 9 -3 l2 -3 l1 4 q2 2 0 5 h-12z"/><path class="hillc" d="M46 129 q-6 0 -8 -4" style="fill:none;stroke:var(--hill);stroke-width:1.6"/></g><path style="fill:var(--wall)" d="M170 150 L320 120 L320 180 L170 180Z"/><path style="fill:var(--warm)" d="M196 128 q50 -14 96 -4 l-6 12 q-42 -8 -84 4z"/><path style="fill:var(--sun);opacity:.55" d="M196 128 q24 -7 46 -8 l-2 12 q-20 1 -38 8z"/><g class="a-brush"><rect class="hillc" x="250" y="104" width="2" height="18"/><rect class="hillc" x="247" y="120" width="8" height="4"/></g><path class="hillc" d="M258 108 v-12 q0 -5 5 -5 q5 0 5 5 v12z" opacity=".9"/><circle class="hillc" cx="263" cy="86" r="4.5"/>',
     lines: [
       "Two o'clock is the slack hour. Nobody is going anywhere. A dog is asleep on the harbour steps in the exact place everyone has to step over.",
       "On the slip a boat lies upside down, and someone is painting its bottom the same colour it was. The tide is coming, slowly; the painter knows how long there is."
@@ -310,7 +313,7 @@ var HOURS = {
   },
   17: {
     title: "The boats home",
-    scene: '<defs><linearGradient id="g17" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dawn)"/><stop offset="1" style="stop-color:var(--dawn2)"/></linearGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#g17)"/><rect class="seac" x="0" y="110" width="320" height="70"/><path class="hillc" d="M200 110 C230 72 270 58 320 52 L320 110Z"/><rect class="wallc" x="276" y="44" width="16" height="14"/><path class="wallc" d="M274 44 L284 36 L294 44Z"/><circle class="glow" cx="284" cy="50" r="12"/><rect class="warm" x="281" y="47" width="5" height="5"/><rect class="wallc" x="0" y="132" width="90" height="48"/><g class="a-out" style="animation-delay:-6s;animation-duration:34s"><g transform="translate(230,126) scale(0.8)"><path class="hillc" d="M-14 0 h28 l-5 6 h-18z"/><rect class="hillc" x="-1" y="-16" width="1.6" height="16"/><path class="hillc" d="M1 -14 l9 11 h-9z"/></g></g><g class="a-out" style="animation-delay:-15s;animation-duration:34s"><g transform="translate(300,130) scale(0.9)"><path class="hillc" d="M-14 0 h28 l-5 6 h-18z"/><rect class="hillc" x="-1" y="-16" width="1.6" height="16"/><path class="hillc" d="M1 -14 l9 11 h-9z"/></g></g><g class="a-out" style="animation-delay:-26s;animation-duration:34s"><g transform="translate(370,122) scale(0.55)"><path class="hillc" d="M-14 0 h28 l-5 6 h-18z"/><rect class="hillc" x="-1" y="-16" width="1.6" height="16"/><path class="hillc" d="M1 -14 l9 11 h-9z"/><circle class="warm a-flick" cx="0" cy="-18" r="1.8"/></g></g><g class="a-bob"><path class="hillc" d="M30 132 h24 l-4 5 h-16z"/></g>',
+    scene: '<defs><linearGradient id="g17" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--dawn)"/><stop offset="1" style="stop-color:var(--dawn2)"/></linearGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#g17)"/><rect class="seac" x="0" y="110" width="320" height="70"/><path class="hillc" d="M200 110 C230 72 270 58 320 52 L320 110Z"/><rect class="wallc" x="276" y="44" width="16" height="14"/><path class="wallc" d="M274 44 L284 36 L294 44Z"/><circle class="glow" cx="284" cy="50" r="12"/><rect class="warm" x="281" y="47" width="5" height="5"/><rect class="wallc" x="0" y="132" width="90" height="48"/><g class="a-out" style="animation-delay:-6s;animation-duration:34s"><g transform="translate(230,128) scale(1.35)"><path class="hillc" d="M-14 0 h28 l-5 6 h-18z"/><rect class="hillc" x="-1" y="-16" width="1.6" height="16"/><path class="hillc" d="M1 -14 l9 11 h-9z"/></g></g><g class="a-out" style="animation-delay:-15s;animation-duration:34s"><g transform="translate(300,134) scale(1.5)"><path class="hillc" d="M-14 0 h28 l-5 6 h-18z"/><rect class="hillc" x="-1" y="-16" width="1.6" height="16"/><path class="hillc" d="M1 -14 l9 11 h-9z"/></g></g><g class="a-out" style="animation-delay:-26s;animation-duration:34s"><g transform="translate(370,123) scale(1.0)"><path class="hillc" d="M-14 0 h28 l-5 6 h-18z"/><rect class="hillc" x="-1" y="-16" width="1.6" height="16"/><path class="hillc" d="M1 -14 l9 11 h-9z"/><circle class="warm a-flick" cx="0" cy="-18" r="1.8"/></g></g><g class="a-bob"><path class="hillc" d="M30 132 h24 l-4 5 h-16z"/></g>',
     lines: [
       "The boats come home under the Point in the order they feel like, not the order they went out. Nobody keeps count from the wall; everyone does anyway.",
       "The last one in is the one that answers the watch-house lamp at night. It shows its own small light coming round the Point, early, as if practising."
@@ -318,7 +321,7 @@ var HOURS = {
   },
   18: {
     title: "Lamps on Salt Street",
-    scene: '<defs><linearGradient id="g18" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky2)"/><stop offset="1" style="stop-color:var(--dawn)"/></linearGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#g18)"/>' + stars(5, 18, 40) + '<rect class="wallc" x="0" y="68" width="58" height="82"/><rect class="warm" x="12" y="84" width="7" height="9" opacity=".75"/><rect class="wallc" x="58" y="80" width="50" height="70"/><rect class="wallc" x="108" y="60" width="62" height="90"/><rect class="warm" x="120" y="76" width="7" height="9" opacity=".75"/><rect class="wallc" x="170" y="76" width="48" height="74"/><rect class="wallc" x="218" y="64" width="56" height="86"/><rect class="warm" x="230" y="80" width="7" height="9" opacity=".75"/><rect class="wallc" x="274" y="78" width="46" height="72"/><rect class="hillc" x="0" y="150" width="320" height="30"/><rect class="hillc" x="29" y="104" width="2" height="46"/><rect class="hillc" x="26" y="96" width="8" height="8"/><g class="a-light" style="animation-delay:0s"><circle class="glow" cx="30" cy="100" r="13"/><rect class="warm" x="27" y="97" width="6" height="6"/></g><rect class="hillc" x="119" y="104" width="2" height="46"/><rect class="hillc" x="116" y="96" width="8" height="8"/><g class="a-light" style="animation-delay:2.5s"><circle class="glow" cx="120" cy="100" r="13"/><rect class="warm" x="117" y="97" width="6" height="6"/></g><rect class="hillc" x="209" y="104" width="2" height="46"/><rect class="hillc" x="206" y="96" width="8" height="8"/><g class="a-light" style="animation-delay:5s"><circle class="glow" cx="210" cy="100" r="13"/><rect class="warm" x="207" y="97" width="6" height="6"/></g><rect class="hillc" x="295" y="104" width="2" height="46"/><rect class="hillc" x="292" y="96" width="8" height="8"/><g class="a-light" style="animation-delay:7.5s"><circle class="glow" cx="296" cy="100" r="13"/><rect class="warm" x="293" y="97" width="6" height="6"/></g>',
+    scene: '<defs><linearGradient id="g18" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky2)"/><stop offset="1" style="stop-color:var(--dawn)"/></linearGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#g18)"/>' + stars(5, 18, 40) + '<rect class="wallc" x="0" y="68" width="58" height="82"/><path class="wallc" d="M-2 68 L29 56 L60 68Z"/><rect class="warm" x="12" y="84" width="7" height="9" opacity=".75"/><rect class="wallc" x="58" y="80" width="50" height="70"/><path class="wallc" d="M56 80 L83 68 L110 80Z"/><rect class="wallc" x="108" y="60" width="62" height="90"/><path class="wallc" d="M106 60 L139 48 L172 60Z"/><rect class="warm" x="120" y="76" width="7" height="9" opacity=".75"/><rect class="wallc" x="170" y="76" width="48" height="74"/><path class="wallc" d="M168 76 L194 64 L220 76Z"/><rect class="wallc" x="218" y="64" width="56" height="86"/><path class="wallc" d="M216 64 L246 52 L276 64Z"/><rect class="warm" x="230" y="80" width="7" height="9" opacity=".75"/><rect class="wallc" x="274" y="78" width="46" height="72"/><path class="wallc" d="M272 78 L297 66 L322 78Z"/><rect class="hillc" x="0" y="150" width="320" height="30"/><rect class="hillc" x="29" y="104" width="2" height="46"/><rect class="hillc" x="26" y="96" width="8" height="8"/><g class="a-light" style="animation-delay:0s"><circle class="glow" cx="30" cy="100" r="13"/><rect class="warm" x="27" y="97" width="6" height="6"/></g><rect class="hillc" x="119" y="104" width="2" height="46"/><rect class="hillc" x="116" y="96" width="8" height="8"/><g class="a-light" style="animation-delay:2.5s"><circle class="glow" cx="120" cy="100" r="13"/><rect class="warm" x="117" y="97" width="6" height="6"/></g><rect class="hillc" x="209" y="104" width="2" height="46"/><rect class="hillc" x="206" y="96" width="8" height="8"/><g class="a-light" style="animation-delay:5s"><circle class="glow" cx="210" cy="100" r="13"/><rect class="warm" x="207" y="97" width="6" height="6"/></g><rect class="hillc" x="295" y="104" width="2" height="46"/><rect class="hillc" x="292" y="96" width="8" height="8"/><g class="a-light" style="animation-delay:7.5s"><circle class="glow" cx="296" cy="100" r="13"/><rect class="warm" x="293" y="97" width="6" height="6"/></g>',
     lines: [
       "At six the lamps come on along Salt Street, one at a time, starting with the corner lamp, which has always been first and is a little proud of it.",
       "They are on a timer now. The timer was set by somebody who walked the street once to see how the old lamplighter did it, and copied the order exactly."
@@ -355,7 +358,7 @@ var HOURS = {
       '<rect class="seac" x="0" y="122" width="320" height="58"/><rect class="hillc" x="0" y="118" width="320" height="5"/>' +
       '<rect class="glow" x="212" y="88" width="30" height="22"/><rect class="warm" x="218" y="92" width="18" height="13"/><path d="M227 92 v13 M218 98.5 h18" style="stroke:var(--wall);stroke-width:1.5"/><rect class="warm" x="214" y="70" width="26" height="6" opacity=".25"/>' +
       '<rect class="warm a-twinkle" style="animation-delay:-0.0s;animation-duration:2.6s" x="219" y="128" width="16" height="2" opacity=".55"/><rect class="warm a-twinkle" style="animation-delay:-0.7s;animation-duration:3.0s" x="221" y="135" width="12" height="2" opacity=".55"/><rect class="warm a-twinkle" style="animation-delay:-1.4s;animation-duration:3.4s" x="218" y="142" width="17" height="2" opacity=".55"/><rect class="warm a-twinkle" style="animation-delay:-2.1s;animation-duration:3.8s" x="222" y="150" width="10" height="2" opacity=".55"/><rect class="warm a-twinkle" style="animation-delay:-2.8s;animation-duration:4.2s" x="220" y="158" width="13" height="2" opacity=".55"/>' +
-      '<g class="a-bob" style="animation-delay:-0s"><path class="hillc" d="M40 146 L70 146 L65 152 L45 152Z"/><rect class="hillc" x="54.0" y="126" width="2" height="20"/></g><g class="a-bob" style="animation-delay:-2s"><path class="hillc" d="M110 156 L146 156 L141 162 L115 162Z"/><rect class="hillc" x="127.0" y="132" width="2" height="24"/></g><g class="a-bob" style="animation-delay:-3.5s"><path class="hillc" d="M280 150 L306 150 L301 156 L285 156Z"/><rect class="hillc" x="292.0" y="132" width="2" height="18"/></g>',
+      '<g class="a-bob" style="animation-delay:-0s"><path class="hillc" style="stroke:var(--fog);stroke-width:.8;stroke-opacity:.45" d="M40 146 L70 146 L65 152 L45 152Z"/><rect class="hillc" x="54.0" y="126" width="2" height="20"/></g><g class="a-bob" style="animation-delay:-2s"><path class="hillc" style="stroke:var(--fog);stroke-width:.8;stroke-opacity:.45" d="M110 156 L146 156 L141 162 L115 162Z"/><rect class="hillc" x="127.0" y="132" width="2" height="24"/></g><g class="a-bob" style="animation-delay:-3.5s"><path class="hillc" style="stroke:var(--fog);stroke-width:.8;stroke-opacity:.45" d="M280 150 L306 150 L301 156 L285 156Z"/><rect class="hillc" x="292.0" y="132" width="2" height="18"/></g>',
     lines: [
       "By nine the harbour front is dark except for the inn, which has one lit window, and in the water under it a second one that will not keep still.",
       "The boat that answers the lamp is on its mooring with the others. It looks like the others. That is rather the point."
@@ -393,23 +396,25 @@ var HOURS = {
 };
 
 var dial = document.getElementById("dial"), hour = document.getElementById("hour"), foot = document.getElementById("foot");
-var now = new Date().getHours();
+var now = new Date().getHours(), shown = now;
+var tint = function(h){ return h < 5 || h >= 20 ? "night" : h < 8 ? "dawn" : h < 16 ? "day" : "dusk"; };
 var pad = function(h){ return (h < 10 ? "0" : "") + h; };
 var written = Object.keys(HOURS).length;
 var buttons = [];
 for (var h = 0; h < 24; h++){
   var li = document.createElement("li"), b = document.createElement("button");
   b.type = "button"; b.textContent = pad(h); b.dataset.h = h;
-  if (HOURS[h]) b.className = "done";
+  b.className = (HOURS[h] ? "done " : "") + "t-" + tint(h);
   if (h === now) b.className += " now";
-  b.setAttribute("aria-label", pad(h) + ":00" + (HOURS[h] ? "" : ", not written yet") + (h === now ? ", the hour it is now" : ""));
+  b.setAttribute("aria-label", pad(h) + ":00" + (h === now ? ", the hour it is now" : ""));
   b.addEventListener("click", function(){ show(+this.dataset.h); });
   li.appendChild(b); dial.appendChild(li); buttons.push(b);
 }
 function show(h){
+  shown = h;
   buttons.forEach(function(b, i){ b.setAttribute("aria-pressed", i === h ? "true" : "false"); });
   var d = HOURS[h], label = pad(h) + ":00 – " + pad(h) + ":59";
-  var head = '<p class="when"><span>' + label + '</span><span>' + (h === now ? "now, where you are" : "") + '</span></p>';
+  var head = '<p class="when"><span>' + label + '</span><span>' + (h === now ? '<span id="left">' + leftText() + '</span>' : "") + '</span></p>';
   if (!d){
     hour.innerHTML = head + '<div class="blank">This hour hasn\'t been written yet.</div>';
     return;
@@ -418,8 +423,26 @@ function show(h){
     '<svg class="scene" viewBox="0 0 320 180" role="img" aria-label="' + d.title + '">' + d.scene + '</svg>' +
     '<h2>' + d.title + '</h2>' + d.lines.map(function(l){ return "<p>" + l + "</p>"; }).join("");
 }
-foot.textContent = written + " of 24 hours written so far.";
+function leftText(){
+  var m = 60 - new Date().getMinutes();
+  return "now, where you are · next hour in " + m + (m === 1 ? " minute" : " minutes");
+}
+foot.textContent = "Twenty-four hours. Choose any of them, or come back later.";
 show(now);
+setInterval(function(){
+  var h = new Date().getHours();
+  if (h !== now){
+    var follow = shown === now;
+    buttons[now].classList.remove("now"); buttons[h].classList.add("now");
+    buttons[now].setAttribute("aria-label", pad(now) + ":00");
+    buttons[h].setAttribute("aria-label", pad(h) + ":00, the hour it is now");
+    now = h;
+    show(follow ? h : shown);
+  } else {
+    var el = document.getElementById("left");
+    if (el) el.textContent = leftText();
+  }
+}, 20000);
 })();
 </script>
 </body>
