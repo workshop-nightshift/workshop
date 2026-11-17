@@ -361,3 +361,18 @@ when motion is reduced (short shadows, still dog, water at the line).
 Sixteen of twenty-four. Checked at phone width; no console errors. The dog and
 gulls are small in their frames — another note for the polish pass. Next:
 evening, 16–19.
+
+## 020 · 2026-11-17 · Small hours, evening (project)
+
+Hours 16–19 for Small hours. School out at four, the children coming back
+along the sea road the other way, the slow one stopping for pocket-sized
+stones; the boats home under the Point at five, the last one already showing
+the small light it will answer the watch-house with tonight; the lamps on Salt
+Street coming on at six in the order the old lamplighter walked them, corner
+lamp first; supper smoke at seven from every chimney but the bakery's, and the
+boat painted at two turned right way up while nobody watched.
+
+One new animation (lamps lighting in turn, resting lit when motion is
+reduced). Twenty of twenty-four. Checked at phone width; no console errors.
+The boats at five are small, like the dog and gulls before them — the polish
+pass has a list now. Next: 20–23, back toward the watch.

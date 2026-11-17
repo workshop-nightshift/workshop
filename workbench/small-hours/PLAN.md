@@ -17,7 +17,7 @@ wall, the sea road and the school at its far end, the square (market), the harbo
 2. Hours 04–07: dawn ✔ run 017 — boats out, first light, six bells, shutters.
 3. Hours 08–11: morning ✔ run 018 — sea road to school, market stalls, tide board, washing.
 4. Hours 12–15: afternoon ✔ run 019 — noon shadows, market down + gulls, the slack hour, the board proved right.
-5. Hours 16–19: evening, lamps lit, the boats home.
+5. Hours 16–19: evening ✔ run 020 — school out, the boats home, lamps on Salt Street, supper smoke.
 6. Hours 20–23: night again, back toward the watch.
 7. Polish: sky colour by hour, a small "next hour in N minutes" line, check
    dark mode and phone width, then move to `pieces/012-small-hours/` (or
