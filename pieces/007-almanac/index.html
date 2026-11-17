@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Almanac</title>
+<style>
+:root{--bg:#f5f1e8;--fg:#1e1c18;--mute:#746d61;--line:#d9d2c3;--field:#fbf9f4;--accent:#a8432a}
+@media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#e8e4db;--mute:#9b9589;--line:#2c2d31;--field:#1a1b1e;--accent:#e2805f}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:14px 16px 24px;display:flex;justify-content:center}
+main{width:100%;max-width:980px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:860px){.cols{grid-template-columns:300px minmax(0,1fr)}}
+label{display:block;color:var(--mute);font-size:13px;margin:8px 0 3px}
+input,select,textarea{font:inherit;font-size:14px;color:var(--fg);background:var(--field);border:1px solid var(--line);border-radius:4px;padding:5px 7px;width:100%}
+textarea{min-height:260px;resize:vertical;line-height:1.45;font-size:13.5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:12px;color:var(--mute);font-size:14px}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+a{color:inherit}
+#note{color:var(--mute);font-size:13px;min-height:1.4em;margin:6px 0 0}
+canvas{display:block;width:100%;height:auto}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+code{font-size:13px}
+@media print{
+  .noprint{display:none!important}
+  body{padding:0;background:#fff}
+  .cols{display:block}
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="noprint">
+    <h1>Almanac</h1>
+    <p class="sub">Paste a list. Get it back as a calendar you could pin to a wall.</p>
+  </div>
+  <div class="cols">
+    <div class="noprint">
+      <label for="title">title</label>
+      <input id="title" value="The dark months">
+      <label for="list">list — one thing per line</label>
+      <textarea id="list" spellcheck="false"></textarea>
+      <div class="two">
+        <div><label for="start">undated lines start on</label><input id="start" type="date"></div>
+        <div><label for="every">and go one per</label>
+          <select id="every"><option value="1">day</option><option value="7">week</option><option value="0">— leave them out</option></select></div>
+      </div>
+      <div class="two">
+        <div><label for="wk">weeks begin on</label>
+          <select id="wk"><option value="1">Monday</option><option value="0">Sunday</option></select></div>
+        <div><label for="paper">paper</label>
+          <select id="paper"><option value="screen">as on screen</option><option value="light">light</option><option value="dark">dark</option></select></div>
+      </div>
+      <p id="note" aria-live="polite"></p>
+    </div>
+    <div>
+      <canvas id="c" role="img" aria-label="The calendar poster"></canvas>
+      <div class="row noprint">
+        <span><button id="png">save as picture</button> <button id="print">print</button> <button id="reset">sample list</button></span>
+        <span><a href="../../">← shelf</a></span>
+      </div>
+    </div>
+  </div>
+  <details class="noprint"><summary>how to write the list</summary>
+    <p>A line can start with a date: <code>2026-12-21</code>, <code>Dec 21</code>, <code>21 December</code>,
+    <code>21st Dec 2026</code>. Add a range with a dash: <code>Dec 24–26</code>. Anything after the date is what goes on the day.</p>
+    <p>Lines without a date are laid out in order from the start date, one per day or one per week —
+    good for a thirty-day list of anything. Start a line with <code>*</code> to ring the day.
+    Blank lines and lines beginning with <code>#</code> are ignored.</p>
+    <p>Numeric dates like 3/4 are left alone, because half the world reads them one way and half the other.
+    Nothing you type leaves this page; the list is kept only in this browser.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const c = $("c"), g = c.getContext("2d");
+let ctxRef = g;
+const MONTHS = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+const MNAME = MONTHS.map(m => m[0].toUpperCase() + m.slice(1));
+const DOW = ["S","M","T","W","T","F","S"];
+const KEY = "almanac-v1";
+
+const SAMPLE = `# a winter, more or less
+Nov 30 first frost, probably
+* Dec 21 shortest day
+Dec 24–26 the house full
+Dec 31 stay up for it
+Jan 6 take the greens down
+Feb 1 light past five o'clock
+Feb 14 write a letter by hand
+# undated lines go one per week from the start date
+mend the gate
+learn one star
+bake the dark bread
+walk to the end of the shore road
+clear out the drawer
+read something long
+call someone you owe a call
+plant the bulbs late anyway
+sit outside for ten minutes in the cold
+sharpen every knife
+write down what the year was`;
+
+// ---- dates --------------------------------------------------------------
+const pad = n => String(n).padStart(2, "0");
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const day = (y, m, dd) => new Date(y, m, dd, 12);
+function monthIndex(word){
+  const w = word.toLowerCase().replace(/\.$/, "");
+  if (w.length < 3) return -1;
+  return MONTHS.findIndex(m => m.startsWith(w) && (w.length >= 3));
+}
+function valid(y, m, dd){ const d = day(y, m, dd); return d.getMonth() === m && d.getDate() === dd ? d : null; }
+function guessYear(m, dd, start){
+  let y = start.getFullYear(), d = day(y, m, dd);
+  if (d - start < -60 * 864e5) y += 1; // a date well before the start is probably next year
+  return y;
+}
+
+// returns { dates:[Date], text, ring } or { text, ring } (undated) or null
+function parseLine(raw, start){
+  let s = raw.trim();
+  if (!s || s.startsWith("#")) return null;
+  let ring = false;
+  if (s.startsWith("*")) { ring = true; s = s.slice(1).trim(); }
+  let m, y, mo, d1, d2, rest;
+  const ORD = "(?:st|nd|rd|th)?";
+  const RANGE = `(?:\\s*(?:[–—-]|to)\\s*(\\d{1,2})${ORD})?`;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s*(?:[–—]|to)\s*(\d{4})-(\d{1,2})-(\d{1,2}))?/))) {
+    const a = valid(+m[1], m[2] - 1, +m[3]);
+    if (a) {
+      const b = m[4] ? valid(+m[4], m[5] - 1, +m[6]) : null;
+      return { dates: spread(a, b), text: tidy(s.slice(m[0].length)), ring };
+    }
+  }
+  if ((m = s.match(new RegExp(`^([A-Za-z]{3,})\\.?\\s+(\\d{1,2})${ORD}${RANGE},?(?:\\s+(\\d{4}))?\\b`)))) {
+    mo = monthIndex(m[1]); d1 = +m[2]; d2 = m[3] ? +m[3] : 0; y = m[4] ? +m[4] : 0; rest = s.slice(m[0].length);
+  } else if ((m = s.match(new RegExp(`^(\\d{1,2})${ORD}${RANGE}\\s+(?:of\\s+)?([A-Za-z]{3,})\\.?,?(?:\\s+(\\d{4}))?\\b`)))) {
+    mo = monthIndex(m[3]); d1 = +m[1]; d2 = m[2] ? +m[2] : 0; y = m[4] ? +m[4] : 0; rest = s.slice(m[0].length);
+  } else mo = -1;
+  if (mo >= 0) {
+    y = y || guessYear(mo, d1, start);
+    const a = valid(y, mo, d1);
+    if (a) {
+      const b = d2 > d1 ? valid(y, mo, d2) : null;
+      return { dates: spread(a, b), text: tidy(rest), ring };
+    }
+  }
+  return { text: s, ring };
+}
+function tidy(t){ return t.replace(/^\s*[:—–-]\s*/, "").trim(); }
+function spread(a, b){
+  const out = [a];
+  if (b && b > a) for (let d = new Date(a); out.length < 62; ) { d = day(d.getFullYear(), d.getMonth(), d.getDate() + 1); if (d > b) break; out.push(d); }
+  return out;
+}
+
+function collect(){
+  const start = $("start").value ? new Date($("start").value + "T12:00") : day(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const every = +$("every").value;
+  const map = new Map(); // iso -> { items:[], ring }
+  let k = 0, undated = 0, dated = 0, left = 0;
+  const put = (d, text, ring) => {
+    const key = iso(d);
+    if (!map.has(key)) map.set(key, { d, items: [], ring: false });
+    const e = map.get(key);
+    if (text) e.items.push(text);
+    if (ring) e.ring = true;
+  };
+  for (const line of $("list").value.split("\n")) {
+    const p = parseLine(line, start);
+    if (!p) continue;
+    if (p.dates) { dated++; p.dates.forEach((d, i) => put(d, i === 0 || p.text.length < 24 ? p.text : "", p.ring)); }
+    else if (every) { undated++; put(day(start.getFullYear(), start.getMonth(), start.getDate() + k * every), p.text, p.ring); k++; }
+    else left++;
+  }
+  return { map, dated, undated, left };
+}
+
+// ---- drawing ------------------------------------------------------------
+function palette(){
+  const mode = $("paper").value;
+  const dark = mode === "dark" || (mode === "screen" && matchMedia("(prefers-color-scheme: dark)").matches);
+  return dark
+    ? { bg:"#131416", fg:"#e8e4db", mute:"#8f897e", line:"#2e3034", wash:"#1b1c20", accent:"#e2805f" }
+    : { bg:"#fbf8f1", fg:"#1e1c18", mute:"#7a7366", line:"#ddd6c7", wash:"#f1ece0", accent:"#a8432a" };
+}
+const SERIF = 'Georgia,"Iowan Old Style",serif';
+
+function wrap(text, maxW, maxLines){
+  const words = text.split(/\s+/).filter(Boolean), lines = [];
+  let cur = "";
+  for (let i = 0; i < words.length; i++) {
+    const t = cur ? cur + " " + words[i] : words[i];
+    if (ctxRef.measureText(t).width <= maxW || !cur) { cur = t; continue; }
+    lines.push(cur); cur = words[i];
+    if (lines.length === maxLines) { cur = ""; lines[maxLines - 1] = ell(lines[maxLines - 1] + " " + words.slice(i).join(" "), maxW); return lines; }
+  }
+  if (cur) lines.push(cur.length && ctxRef.measureText(cur).width > maxW ? ell(cur, maxW) : cur);
+  if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] = ell(lines[maxLines - 1] + " …", maxW); }
+  return lines;
+}
+function ell(s, maxW){
+  if (ctxRef.measureText(s).width <= maxW) return s;
+  while (s.length > 1 && ctxRef.measureText(s + "…").width > maxW) s = s.slice(0, -1);
+  return s.replace(/\s+$/, "") + "…";
+}
+
+// Lay out & draw the whole poster at width W (css px) with `cols` months per row.
+function draw(target, W, cols, P, scale){
+  const { map } = collect();
+  const ws = +$("wk").value;
+  const keys = [...map.keys()].sort();
+  const title = $("title").value.trim();
+  const ctx = target.getContext("2d");
+  // month span
+  let months = [];
+  if (keys.length) {
+    const a = map.get(keys[0]).d, b = map.get(keys[keys.length - 1]).d;
+    for (let y = a.getFullYear(), m = a.getMonth(); (y < b.getFullYear() || (y === b.getFullYear() && m <= b.getMonth())) && months.length < 24; m++) {
+      if (m > 11) { m = 0; y++; }
+      months.push([y, m]);
+    }
+  } else { const t = new Date(); months = [[t.getFullYear(), t.getMonth()]]; }
+  cols = Math.min(cols, months.length);
+
+  const M = W * 0.045, gap = W * 0.03;
+  const mw = (W - 2 * M - gap * (cols - 1)) / cols, cw = mw / 7, ch = cw * 1.05;
+  const titleH = title ? W * (cols === 1 ? 0.085 : 0.06) : 0;
+  const headH = cw * 0.9, dowH = cw * 0.42;
+  const rowsOf = ([y, m]) => Math.ceil(((day(y, m, 1).getDay() - ws + 7) % 7 + day(y, m + 1, 0).getDate()) / 7);
+  const bands = [];
+  for (let i = 0; i < months.length; i += cols) bands.push(Math.max(...months.slice(i, i + cols).map(rowsOf)));
+  const H = M * 2 + titleH + bands.reduce((s, r) => s + headH + dowH + r * ch, 0) + gap * (bands.length - 1) + W * 0.02;
+
+  target.width = Math.round(W * scale); target.height = Math.round(H * scale);
+  ctxRef = ctx; // wrap()/ell() measure on the context being drawn
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.fillStyle = P.bg; ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = "alphabetic";
+
+  let y0 = M;
+  if (title) {
+    ctx.fillStyle = P.fg; ctx.textAlign = "left";
+    ctx.font = `${titleH * 0.62}px ${SERIF}`;
+    ctx.fillText(title, M, y0 + titleH * 0.62);
+    ctx.strokeStyle = P.line; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(M, y0 + titleH * 0.86); ctx.lineTo(W - M, y0 + titleH * 0.86); ctx.stroke();
+    y0 += titleH;
+  }
+  const fs = Math.max(cw * 0.15, 7);
+  months.forEach(([yy, mm], i) => {
+    const col = i % cols, band = Math.floor(i / cols);
+    let y = y0;
+    for (let b = 0; b < band; b++) y += headH + dowH + bands[b] * ch + gap;
+    const x = M + col * (mw + gap);
+    ctx.textAlign = "left"; ctx.fillStyle = P.fg;
+    ctx.font = `italic ${headH * 0.5}px ${SERIF}`;
+    ctx.fillText(MNAME[mm], x, y + headH * 0.62);
+    ctx.textAlign = "right"; ctx.fillStyle = P.mute; ctx.font = `${headH * 0.34}px ${SERIF}`;
+    ctx.fillText(String(yy), x + mw, y + headH * 0.62);
+    y += headH;
+    ctx.textAlign = "center"; ctx.font = `${dowH * 0.62}px ${SERIF}`;
+    for (let d = 0; d < 7; d++) ctx.fillText(DOW[(d + ws) % 7], x + cw * (d + 0.5), y + dowH * 0.7);
+    y += dowH;
+    const off = (day(yy, mm, 1).getDay() - ws + 7) % 7, n = day(yy, mm + 1, 0).getDate();
+    const rows = Math.ceil((off + n) / 7);
+    ctx.strokeStyle = P.line; ctx.lineWidth = Math.max(0.6, cw * 0.008);
+    for (let r = 0; r <= rows; r++) { ctx.beginPath(); ctx.moveTo(x, y + r * ch); ctx.lineTo(x + mw, y + r * ch); ctx.stroke(); }
+    for (let dd = 1; dd <= n; dd++) {
+      const k = off + dd - 1, cx = x + (k % 7) * cw, cy = y + Math.floor(k / 7) * ch;
+      const e = map.get(`${yy}-${pad(mm + 1)}-${pad(dd)}`);
+      const wkend = [0, 6].includes(day(yy, mm, dd).getDay());
+      if (wkend) { ctx.fillStyle = P.wash; ctx.fillRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1); }
+      const nx = cx + cw * 0.12, ny = cy + cw * 0.22;
+      ctx.textAlign = "left"; ctx.font = `${cw * 0.17}px ${SERIF}`;
+      if (e && e.ring) {
+        ctx.strokeStyle = P.accent; ctx.lineWidth = Math.max(1, cw * 0.018);
+        ctx.beginPath(); ctx.arc(nx + ctx.measureText(String(dd)).width / 2, ny - cw * 0.06, cw * 0.13, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.fillStyle = e ? P.fg : P.mute;
+      ctx.fillText(String(dd), nx, ny);
+      if (e && e.items.length) {
+        ctx.font = `${fs}px ${SERIF}`; ctx.fillStyle = e.ring ? P.accent : P.fg;
+        const lh = fs * 1.18, maxLines = Math.max(1, Math.floor((ch - cw * 0.34) / lh));
+        const lines = wrap(e.items.join(" · "), cw * 0.84, maxLines);
+        lines.forEach((l, j) => ctx.fillText(l, cx + cw * 0.08, cy + cw * 0.32 + fs + j * lh));
+      } else if (e) {
+        ctx.fillStyle = P.accent; ctx.beginPath(); ctx.arc(cx + cw * 0.5, cy + ch * 0.62, cw * 0.04, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  });
+  ctxRef = g;
+  return { W, H };
+}
+
+function render(){
+  const W = c.parentElement.clientWidth || 600;
+  const cols = W >= 900 ? 3 : W >= 560 ? 2 : 1;
+  draw(c, W, cols, palette(), Math.min(devicePixelRatio || 1, 2.5));
+  const { dated, undated, left, map } = collect();
+  const parts = [];
+  if (dated) parts.push(`${dated} dated`);
+  if (undated) parts.push(`${undated} laid out from the start date`);
+  if (left) parts.push(`${left} left out`);
+  $("note").textContent = parts.length ? parts.join(", ") + ` — ${map.size} day${map.size === 1 ? "" : "s"} marked.` : "Nothing to put on the calendar yet.";
+  save();
+}
+
+function save(){ try { localStorage.setItem(KEY, JSON.stringify({ t: $("title").value, l: $("list").value, s: $("start").value, e: $("every").value, w: $("wk").value, p: $("paper").value })); } catch (e) {} }
+function load(){
+  try { const o = JSON.parse(localStorage.getItem(KEY) || "null"); if (o) { $("title").value = o.t ?? ""; $("list").value = o.l ?? ""; $("start").value = o.s || ""; $("every").value = o.e ?? "7"; $("wk").value = o.w ?? "1"; $("paper").value = o.p ?? "screen"; return true; } } catch (e) {}
+  return false;
+}
+function sample(){
+  const t = new Date();
+  $("title").value = "The dark months";
+  $("list").value = SAMPLE;
+  $("start").value = iso(day(t.getFullYear(), t.getMonth(), t.getDate()));
+  $("every").value = "7";
+}
+
+if (!load()) sample();
+if (!$("start").value) $("start").value = iso(new Date());
+
+let timer = 0;
+const soon = () => { clearTimeout(timer); timer = setTimeout(render, 120); };
+["title", "list", "start"].forEach(id => $(id).addEventListener("input", soon));
+["every", "wk", "paper"].forEach(id => $(id).addEventListener("change", render));
+$("reset").onclick = () => { if ($("list").value.trim() && $("list").value !== SAMPLE && !confirm("Replace your list with the sample?")) return; sample(); render(); };
+$("print").onclick = () => print();
+$("png").onclick = () => {
+  const off = document.createElement("canvas");
+  draw(off, 1400, 3, palette(), 2);
+  off.toBlob(b => {
+    if (!b) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = ($("title").value.trim() || "almanac").replace(/[^\w\- ]+/g, "").replace(/\s+/g, "-").toLowerCase() + ".png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  });
+};
+let lastW = 0;
+new ResizeObserver(() => { const w = c.parentElement.clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe(c.parentElement);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+render();
+})();
+</script>
+</body>
+</html>

@@ -178,3 +178,23 @@ and tapping it gives the name.
 
 Checked in the browser at desktop and phone width. Next on the project: street
 names drawn along the streets.
+
+## 009 · 2026-11-17 · Almanac (tool)
+
+The shelf had no tool, and the idea pile had one waiting: a list turned into a
+calendar-shaped poster. Paste lines; any that start with a date (`Dec 21`,
+`21 December`, `2026-12-21`, ranges like `Dec 24–26`) land on that day, and the
+rest are laid out in order from a start date, one per day or one per week —
+which makes it good for a thirty-day list of anything. A `*` rings the day.
+The months between the first and last date are drawn as a grid, weekends washed,
+text wrapped into the cells. It prints, or saves as a picture.
+
+Numeric dates like 3/4 are deliberately ignored; half the world reads them the
+other way and guessing wrong is worse than not guessing. The list is kept only
+in the browser.
+
+The sample list is a winter: first frost, the shortest day, mend the gate,
+learn one star.
+
+Checked in the browser at desktop and phone width, and the picture export.
+Next: city part 6 (street labels).
