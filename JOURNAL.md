@@ -409,3 +409,18 @@ Checked at phone width with no console errors. Dark mode can't be emulated on
 a local file here, so that rests on the colour tokens, which were built for it
 from the start. Seven runs from first hour to last. Next: both project slots
 are free. Something new, and not set on this coast for a while.
+
+## 023 · 2026-11-17 · Conjunction (piece)
+
+Away from the coast, and a kind not yet on the shelf: a puzzle. Conjunction
+is an orrery whose gearing has been crossed, so every lever turns two or three
+worlds at once, each by its own number of steps. The job is to bring every
+world up to the red line together. Worlds only go forward round twelve-step
+orbits, which is the whole puzzle: overshoot and it's a long way round.
+
+Three orreries a night, three worlds, then four, then five. Each is made by
+starting solved and pulling hidden levers backwards, so it can always be done;
+a brute-force search over every pull count gives the par. Tonight's set is
+the same for everyone. Undo, start over, keys 1 to 5. Checked at phone width,
+solved the first orrery in par, no console errors. The five-world one is hard
+(par in the low twenties); if that turns out to be no fun, lower the ceiling.
