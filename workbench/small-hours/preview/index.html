@@ -67,6 +67,16 @@ svg.scene{display:block;width:100%;height:auto;border-radius:3px;background:var(
 @keyframes chalk{0%,15%{stroke-dashoffset:60}60%,100%{stroke-dashoffset:0}}
 .a-flutter{animation:flutter 2.6s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:50% 0}
 @keyframes flutter{from{transform:skewX(-7deg) scaleY(.96)}to{transform:skewX(9deg)}}
+.a-shadow{animation:shadow 14s ease-in-out infinite;transform-box:fill-box;transform-origin:0 50%}
+@keyframes shadow{0%,10%{transform:scaleX(3.2)}70%,100%{transform:scaleX(1)}}
+.a-hop{animation:hop 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+@keyframes hop{0%,70%,100%{transform:translate(0,0)}78%{transform:translate(3px,-5px)}86%{transform:translate(6px,0)}93%{transform:translate(3px,-3px)}}
+.a-breathe{animation:breathe 4.5s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.09)}}
+.a-brush{animation:brush 1.8s ease-in-out infinite alternate}
+@keyframes brush{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+.a-fill{animation:fill 16s ease-in-out infinite}
+@keyframes fill{0%,8%{transform:translateY(26px)}70%,100%{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){[class*="a-"]{animation:none!important}}
 .foot{color:var(--mute);font-size:14px;font-style:italic;margin:28px 0 0}
 footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
@@ -248,6 +258,38 @@ var HOURS = {
     lines: [
       "The lines across Ropewalk Lane fill up by eleven. The wind comes off the harbour and goes straight up the lane, so everything on it points the same way, like the boats at three.",
       "The baker's aprons hang at the end, still a little floury. They are dry first. Nobody knows why."
+    ]
+  },
+  12: {
+    title: "Noon on the wall",
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/><circle style="fill:var(--sun)" cx="160" cy="22" r="11"/><circle style="fill:var(--sun);opacity:.25" cx="160" cy="22" r="20"/><rect class="seac" x="0" y="80" width="320" height="50" opacity=".85"/><path class="hillc" d="M240 80 C260 62 290 56 320 58 L320 80Z"/><rect class="wallc" x="304" y="50" width="8" height="8"/><rect class="wallc" x="0" y="128" width="320" height="52"/><path style="stroke:var(--fog);stroke-width:1;opacity:.45" d="M0 134 H320"/><rect class="hillc" x="40" y="112" width="8" height="16" rx="2"/><rect class="hillc a-shadow" x="48" y="126" width="5" height="3" opacity=".35"/><rect class="hillc" x="110" y="112" width="8" height="16" rx="2"/><rect class="hillc a-shadow" x="118" y="126" width="5" height="3" opacity=".35"/><rect class="hillc" x="180" y="112" width="8" height="16" rx="2"/><rect class="hillc a-shadow" x="188" y="126" width="5" height="3" opacity=".35"/><rect class="hillc" x="250" y="112" width="8" height="16" rx="2"/><rect class="hillc a-shadow" x="258" y="126" width="5" height="3" opacity=".35"/><path class="hillc" d="M70 98 L104 98 L99 104 L75 104Z"/><rect class="hillc" x="86" y="78" width="2" height="20"/><path class="fogc" d="M88 80 L88 96 L100 96Z" opacity=".8"/>',
+    lines: [
+      "At twelve the shadows on the harbour wall are as short as they get. Each bollard stands on a small dark coin of itself, and the boat at the mooring has almost none.",
+      "Up the sea road the school lets out for dinner. The noise arrives a moment late, the way thunder does, and then the gulls answer it."
+    ]
+  },
+  13: {
+    title: "The market comes down",
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/><rect class="wallc" x="0" y="40" width="70" height="110"/><path class="wallc" d="M0 40 L35 22 L70 40Z"/><rect class="wallc" x="250" y="30" width="70" height="120"/><path class="wallc" d="M250 30 L285 12 L320 30Z"/><rect class="hillc" x="0" y="150" width="320" height="30"/><rect class="hillc" x="120" y="104" width="2" height="46"/><rect class="hillc" x="164" y="104" width="2" height="46"/><rect class="hillc" x="118" y="102" width="50" height="3"/><path style="fill:var(--warm);opacity:.85" d="M122 106 h42 v6 q-21 4 -42 0z"/><rect class="wallc" x="70" y="132" width="22" height="18"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M70 140 h22"/><rect class="wallc" x="96" y="128" width="18" height="22"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M96 136 h18"/><rect class="wallc" x="180" y="132" width="24" height="18"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M180 140 h24"/><rect class="wallc" x="208" y="128" width="16" height="22"/><path style="stroke:var(--hill);stroke-width:1;opacity:.5" d="M208 136 h16"/><g class="hillc" opacity=".55"><circle cx="134" cy="152" r="2"/><ellipse cx="146" cy="153" rx="3" ry="1.4"/><circle cx="232" cy="152" r="1.6"/><ellipse cx="60" cy="153" rx="2.6" ry="1.2"/></g><g class="a-hop" style="animation-delay:0s"><ellipse style="fill:var(--fog)" cx="138" cy="146" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="143" cy="143" r="2.4"/><path class="hillc" d="M132 145 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M137 149 v3 M140 149 v3"/></g><g class="a-hop" style="animation-delay:-1.3s"><ellipse style="fill:var(--fog)" cx="226" cy="146" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="231" cy="143" r="2.4"/><path class="hillc" d="M220 145 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M225 149 v3 M228 149 v3"/></g><g class="a-hop" style="animation-delay:-2.2s"><ellipse style="fill:var(--fog)" cx="54" cy="147" rx="6" ry="3.4"/><circle style="fill:var(--fog)" cx="59" cy="144" r="2.4"/><path class="hillc" d="M48 146 l-4 -1 l4 3z"/><path style="stroke:var(--hill);stroke-width:.8" d="M53 150 v3 M56 150 v3"/></g><g class="a-glide" style="animation-delay:-4s"><path class="a-flap" style="fill:none;stroke:var(--hill);stroke-width:1.4" d="M150 40 q6 -6 12 0 q6 -6 12 0"/></g>',
+    lines: [
+      "By one the stalls in the square are coming down faster than they went up. Awnings are rolled, trestles folded, the crates stacked by the wall for the cart.",
+      "The gulls have been waiting on the roofs since eleven. They come down one at a time and walk about as if they had business there, which, by now, they do."
+    ]
+  },
+  14: {
+    title: "The slack hour",
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/><rect class="seac" x="0" y="96" width="320" height="84" opacity=".9"/><rect class="wallc" x="0" y="70" width="40" height="110"/><rect class="wallc" x="20" y="120" width="90" height="10"/><rect class="wallc" x="20" y="130" width="104" height="10"/><rect class="wallc" x="20" y="140" width="118" height="10"/><rect class="wallc" x="20" y="150" width="132" height="10"/><rect class="wallc" x="20" y="160" width="146" height="10"/><rect class="wallc" x="20" y="170" width="160" height="10"/><g class="a-breathe"><path class="hillc" d="M48 129 q0 -9 14 -9 q12 0 14 6 q6 -1 7 3z"/></g><path class="hillc" d="M76 126 q4 -6 9 -3 l2 -3 l1 4 q2 2 0 5 h-12z"/><path class="hillc" d="M46 129 q-6 0 -8 -4" style="fill:none;stroke:var(--hill);stroke-width:1.6"/><path style="fill:var(--wall)" d="M170 150 L320 120 L320 180 L170 180Z"/><path style="fill:var(--warm)" d="M196 128 q50 -14 96 -4 l-6 12 q-42 -8 -84 4z"/><path style="fill:var(--sun);opacity:.55" d="M196 128 q24 -7 46 -8 l-2 12 q-20 1 -38 8z"/><g class="a-brush"><rect class="hillc" x="250" y="104" width="2" height="18"/><rect class="hillc" x="247" y="120" width="8" height="4"/></g><path class="hillc" d="M258 108 v-12 q0 -5 5 -5 q5 0 5 5 v12z" opacity=".9"/><circle class="hillc" cx="263" cy="86" r="4.5"/>',
+    lines: [
+      "Two o'clock is the slack hour. Nobody is going anywhere. A dog is asleep on the harbour steps in the exact place everyone has to step over.",
+      "On the slip a boat lies upside down, and someone is painting its bottom the same colour it was. The tide is coming, slowly; the painter knows how long there is."
+    ]
+  },
+  15: {
+    title: "The board proved right",
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/><g class="a-drift" style="animation-duration:70s"><ellipse class="fogc" cx="80" cy="24" rx="30" ry="6" opacity=".45"/></g><rect class="wallc" x="0" y="30" width="200" height="150"/><path style="stroke:var(--hill);stroke-width:1;opacity:.35" d="M0 60 H200 M0 90 H200 M0 120 H200 M0 150 H200 M50 30 V60 M120 60 V90 M70 90 V120 M150 120 V150"/><g style="stroke:var(--fog);stroke-width:1.4;opacity:.9"><path d="M150 104 h40"/><path d="M150 130 h18 M150 150 h18 M150 78 h18"/></g><text x="174" y="100" style="fill:var(--fog);font:9px ui-monospace,Menlo,monospace">HW</text><rect class="hillc" x="230" y="46" width="64" height="44" rx="2"/><g style="stroke:var(--fog);stroke-width:1.1;fill:none;opacity:.8"><path d="M238 56 h14 M258 56 h28 M238 68 h14 M258 68 h22 M238 80 h14 M258 80 h26"/></g><rect class="hillc" x="260" y="90" width="3" height="20"/><g class="a-fill"><rect class="seac" x="0" y="104" width="320" height="100"/><path style="stroke:var(--fog);stroke-width:1;opacity:.5;fill:none" d="M0 106 q10 -2 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0"/></g>',
+    lines: [
+      "At three the water comes up the harbour wall to the line the board named at ten, and stops there, more or less.",
+      "Nobody comes to check. That is what it means for the board to be right: the water arrives, and nobody needs to look."
     ]
   }
 };

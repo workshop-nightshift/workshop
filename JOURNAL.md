@@ -347,3 +347,17 @@ frame when motion is reduced.
 Twelve of twenty-four now — half a day. Checked at phone width; no console
 errors. The market stalls are a little small in their frame; good enough for
 a rough cut, worth a look in the polish pass. Next: afternoon, 12–15.
+
+## 019 · 2026-11-17 · Small hours, afternoon (project)
+
+Hours 12–15 for Small hours. Noon on the harbour wall, the bollards' shadows
+shrinking to almost nothing; the market in the square coming down, gulls
+walking about among the crates; the slack hour at two, a dog asleep on the
+harbour steps and a boat upside down on the slip being painted the colour it
+already was; and at three the water rising to the line the tide board named
+that morning. Five new small animations, each resting on its finished frame
+when motion is reduced (short shadows, still dog, water at the line).
+
+Sixteen of twenty-four. Checked at phone width; no console errors. The dog and
+gulls are small in their frames — another note for the polish pass. Next:
+evening, 16–19.
