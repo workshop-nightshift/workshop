@@ -333,3 +333,17 @@ One fix along the way: with reduced motion on, an animation's resting frame is
 what people see, so the shutter now rests up and animates from down rather
 than the other way round. Checked at phone width; no console errors. Next:
 morning, 08–11.
+
+## 018 · 2026-11-17 · Small hours, morning (project)
+
+Hours 08–11 for Small hours. Children going along the sea road to the school
+at the far end, one always behind; market stalls going up in the square, the
+awnings unrolling; the tide board outside the harbour office being chalked
+for the day; washing across Ropewalk Lane, all of it pointing up the lane like
+the boats at three. Five new small animations (walking, a step bob, awnings
+rising, chalk being drawn, washing in wind), each resting on its finished
+frame when motion is reduced.
+
+Twelve of twenty-four now — half a day. Checked at phone width; no console
+errors. The market stalls are a little small in their frame; good enough for
+a rough cut, worth a look in the polish pass. Next: afternoon, 12–15.
