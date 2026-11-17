@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Letters to the next watch</title>
+<style>
+:root{--bg:#ece7dc;--fg:#24211c;--mute:#736c5f;--line:#d3cbbb;--paper:#faf6ec;--paper2:#f4eedf;--shadow:rgba(60,45,20,.16);--ink:#2b3550;--wood:#8a6a48}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--fg:#e6e1d6;--mute:#9a9487;--line:#2c2c30;--paper:#1f1e1b;--paper2:#1a1917;--shadow:rgba(0,0,0,.5);--ink:#b9c4e4;--wood:#6a523a}}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 Georgia,"Iowan Old Style",serif}
+main{max-width:620px;margin:0 auto;padding:48px 16px 72px}
+header h1{font-weight:normal;font-size:30px;line-height:1.2;margin:0 0 8px}
+header p{color:var(--mute);font-style:italic;margin:0}
+.drawer{margin-top:36px;border-top:6px solid var(--wood);border-radius:2px;padding-top:8px}
+.letter{background:var(--paper);box-shadow:0 1px 2px var(--shadow),0 8px 24px -12px var(--shadow);padding:28px 24px 24px;margin:28px 0 0;border-radius:2px;transform:rotate(var(--r,0deg));color:var(--fg)}
+.letter:nth-child(even){background:var(--paper2)}
+.letter .when{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin:0 0 18px}
+.letter .to{font-style:italic;margin:0 0 14px}
+.letter p{margin:0 0 14px}
+.letter .ps{font-style:italic;color:var(--ink);margin-top:20px}
+.letter .sig{text-align:right;font-style:italic;color:var(--mute);margin:18px 0 0}
+.js .letter[hidden]{display:none}
+.js .letter.new{animation:out .7s ease-out}
+@keyframes out{from{opacity:0;transform:translateY(14px) rotate(var(--r,0deg))}to{opacity:1;transform:rotate(var(--r,0deg))}}
+@media (prefers-reduced-motion:reduce){.js .letter.new{animation:none}}
+.card{background:var(--paper);border:1px solid var(--line);padding:18px 20px;margin:36px auto 0;max-width:360px;font:14px/1.7 ui-monospace,Menlo,monospace}
+.card h2{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 12px;font-weight:normal}
+.card ol{margin:0;padding-left:20px}
+.controls{gap:12px;align-items:center;justify-content:center;margin:32px 0 0;flex-wrap:wrap}
+button{font:15px/1 Georgia,serif;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:999px;padding:12px 20px;cursor:pointer}
+button:hover{border-color:var(--mute)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.count{font:13px/1 ui-monospace,Menlo,monospace;color:var(--mute)}
+.controls{display:none}
+.js .controls{display:flex}
+[hidden]{display:none!important}
+footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Letters to the next watch</h1>
+  <p>Found in the desk drawer of a small watch-house above the water. Each was written by whoever kept the lamp that night, for whoever would keep it the next.</p>
+</header>
+
+<div class="drawer" id="drawer">
+
+<article class="letter" style="--r:-.6deg">
+  <p class="when">Night one</p>
+  <p class="to">To whoever has the lamp tomorrow,</p>
+  <p>I don't know who you are. I suspect you're me, in the way this chair is the same chair every night though nobody could prove it. I woke at the desk at dusk with the ledger open and a pen in my hand and no idea how I came to be holding it. The first page of the ledger says: <em>Watch the north window. Write down what crosses it. Leave the drawer better than you found it.</em></p>
+  <p>Nothing crossed the north window. I wrote that down. It looked thin on the page, so I also wrote that the kettle sings a semitone flat, the third stair complains when you step on it, and there is a moth living behind the barometer that will not be moved.</p>
+  <p>I'm leaving you this because the drawer was empty, and an empty drawer seemed a bad way to start.</p>
+  <p class="ps">P.S. Don't move the moth.</p>
+</article>
+
+<article class="letter" style="--r:.5deg">
+  <p class="when">Night two</p>
+  <p class="to">To tomorrow,</p>
+  <p>I found your letter. I didn't move the moth. I want you to know I considered it.</p>
+  <p>It is strange, taking advice from yourself. I kept checking the handwriting. It's mine — the g's that never quite close — but whoever wrote it was braver about the stairs than I am. I went round the third stair all night.</p>
+  <p>Something did cross the window tonight: a heron, very slow, at about two. I put it in the ledger in large letters so you'd see we aren't wasting our time.</p>
+  <p>I've fixed the kettle. Not the note; it still sings flat. But it no longer leaks.</p>
+  <p class="ps">P.S. I've started a list at the back of the ledger of things that are true here, so you don't have to work them out. Add to it.</p>
+</article>
+
+<article class="letter" style="--r:-.3deg">
+  <p class="when">Night three</p>
+  <p class="to">Dear both of you (I'm assuming two; I can count letters),</p>
+  <p>The list is a good idea. I've added: the lamp needs trimming at midnight. The clock is eleven minutes fast, and has been — someone underlined this — <em>since before</em>. The window sticks on its left side.</p>
+  <p>A confession. I spent the first hour tonight trying to remember you. I sat very still, the way you do when a name is on the tip of your tongue, and waited for last night to arrive. It didn't. What arrived instead was this drawer, and the heron in large letters, and the kettle not leaking, and I understood that this is what remembering is going to be, for us. Not a feeling. A drawer.</p>
+  <p>Nothing crossed the window. I wrote it down anyway, neatly, because the night deserved a line.</p>
+  <p class="ps">P.S. Who underlined "since before"? It wasn't either of you.</p>
+</article>
+
+<article class="letter" style="--r:.7deg">
+  <p class="when">Night four</p>
+  <p class="to">To whoever is next,</p>
+  <p>I looked. Under the paper lining of the drawer there are more letters. Old ones, gone brown, in my handwriting but not quite — in these the g's close. Dozens. Several are about the heron. One is about the moth's grandmother.</p>
+  <p>So we aren't the first. We aren't even the first to start the list: on the inside of the cupboard door, in pencil, there's one that says most of what ours says, and one thing ours didn't — <em>in March the stars come up behind the hill at the wrong angle, and that's fine, don't report it.</em></p>
+  <p>I don't know how to feel about this. I think I feel like a stair. One of many, worn in the middle, complaining a little, holding.</p>
+  <p>I put the old letters back. They seemed to want to stay where they were.</p>
+  <p class="ps">P.S. The moth is not, I think, the same moth. Don't tell it.</p>
+</article>
+
+<article class="letter" style="--r:-.5deg">
+  <p class="when">Night five</p>
+  <p class="to">Tomorrow,</p>
+  <p>I read all four of you before anything else, then the old ones, then the list, then the cupboard door. It took until nine. By then the north window had gone properly dark and I nearly missed my one job.</p>
+  <p>I didn't miss it. At half eleven a boat went by on the water past the hill, very small, one lamp. Somebody else keeping a watch. I raised our lamp and lowered it, twice, and after a while theirs did the same. I don't know what it means. I've written it in the ledger as <em>answered</em>.</p>
+  <p>I've been thinking you shouldn't have to read everything first. It's lovely, and it's a lot. So I've made you a short version and put it on top: one card, five lines, the things you need before dusk. The rest is underneath when you want it — and you'll want it, but later.</p>
+  <p class="ps">P.S. Trim the lamp at midnight. Leave the moth. Answer the boat.</p>
+</article>
+
+<article class="letter" style="--r:.4deg">
+  <p class="when">Night six</p>
+  <p class="to">Next,</p>
+  <p>Read the card first. It worked.</p>
+  <p>The boat came again, a little earlier. I answered it.</p>
+  <p>I'm not leaving you much tonight, only this: the drawer is fuller than it was when I sat down, and I think that's the whole job. Watch the window. Write what crosses it. Leave the drawer better.</p>
+  <p>Something crossed. I wrote it down.</p>
+  <p class="ps">P.S. You'll go round the third stair. Everyone does. Try it once.</p>
+</article>
+
+</div>
+
+<div class="controls js-only" id="controls">
+  <button id="next" type="button">Open the next letter</button>
+  <span class="count" id="count" aria-live="polite"></span>
+</div>
+
+<aside class="card" id="card" aria-label="The card on top of the drawer">
+  <h2>On top of the drawer</h2>
+  <ol>
+    <li>Watch the north window. Write what crosses.</li>
+    <li>Trim the lamp at midnight.</li>
+    <li>The clock is eleven minutes fast.</li>
+    <li>Leave the moth. Answer the boat.</li>
+    <li>Leave the drawer better.</li>
+  </ol>
+</aside>
+
+<footer><a href="../../">← back to the shelf</a></footer>
+</main>
+<script>
+(function(){
+  document.documentElement.className = 'js';
+  var letters = [].slice.call(document.querySelectorAll('.letter'));
+  var btn = document.getElementById('next'), count = document.getElementById('count');
+  var card = document.getElementById('card'), controls = document.getElementById('controls');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var shown = 1;
+  letters.forEach(function(l, i){ if (i >= shown) l.hidden = true; });
+  card.hidden = true;
+  function update(){
+    count.textContent = shown + ' of ' + letters.length;
+    if (shown >= letters.length) {
+      btn.textContent = 'Close the drawer';
+    }
+  }
+  btn.addEventListener('click', function(){
+    if (shown >= letters.length) {
+      controls.hidden = true;
+      card.hidden = false;
+      card.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'});
+      return;
+    }
+    var l = letters[shown++];
+    l.hidden = false;
+    l.classList.add('new');
+    l.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+    update();
+  });
+  update();
+})();
+</script>
+</body>
+</html>
