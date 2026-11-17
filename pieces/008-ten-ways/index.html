@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ten Ways</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d1b18;--mute:#716b60;--line:#d9d3c6}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:16px/1.55 ui-serif,Georgia,"Iowan Old Style",serif}
+main{max-width:1100px;margin:0 auto;padding:40px 16px 72px}
+h1{font-size:28px;margin:0 0 6px;font-weight:600}
+.lede{color:var(--mute);margin:0 0 32px;max-width:36em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:32px 24px}
+figure{margin:0}
+canvas{display:block;width:100%;aspect-ratio:1;border:1px solid var(--line);cursor:pointer}
+figcaption{margin-top:8px;font-size:15px}
+figcaption b{font:600 12px/1 ui-monospace,Menlo,monospace;color:var(--mute);margin-right:6px;letter-spacing:.06em}
+figcaption span{display:block;color:var(--mute);font-size:14px}
+footer{margin-top:48px;color:var(--mute);font:13px ui-monospace,Menlo,monospace;display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<h1>Ten ways</h1>
+<p class="lede">One headland, one lighthouse, one moon, the same every time.
+Ten constraints, one per drawing. Tap a drawing to make it again; the ones
+that use chance will come out a little different.</p>
+<div class="grid" id="grid"></div>
+<footer><a href="../../">← shelf</a><span>study · 2026</span></footer>
+</main>
+<script>
+// ---------- the scene, in unit coordinates (0..1, y down) ----------
+const HZ = 0.6;                                   // horizon
+const LAND = [[0,.585],[.1,.555],[.22,.535],[.44,.54],[.51,.565],[.555,.65],[.585,.78],[.6,1],[0,1]];
+const TOWER = {yb:.545, yt:.37, xb0:.335, xb1:.405, xt0:.352, xt1:.388};
+const GALLERY = {x0:.342, x1:.398, y0:.352, y1:.372};
+const LAMP = {x:.37, y:.333, r:.019};
+const CAP = [[.348,.314],[.392,.314],[.37,.288]];
+const MOON = {x:.79, y:.19, r:.055};
+const BEAM = [[LAMP.x,LAMP.y],[1,.24],[1,.42]];
+
+function inPoly(p, x, y){
+  let c = false;
+  for (let i = 0, j = p.length-1; i < p.length; j = i++){
+    const [xi,yi] = p[i], [xj,yj] = p[j];
+    if ((yi > y) !== (yj > y) && x < (xj-xi)*(y-yi)/(yj-yi) + xi) c = !c;
+  }
+  return c;
+}
+function inTower(x, y){
+  if (y < TOWER.yt || y > TOWER.yb) return false;
+  const k = (y - TOWER.yt) / (TOWER.yb - TOWER.yt);
+  return x > TOWER.xt0 + (TOWER.xb0-TOWER.xt0)*k && x < TOWER.xt1 + (TOWER.xb1-TOWER.xt1)*k;
+}
+function glint(x, y){
+  if (y < HZ + .01) return false;
+  const w = .012 + (y-HZ)*.16;
+  const wob = Math.sin(y*47)*.012;
+  return Math.abs(x - MOON.x - wob) < w && Math.sin(y*y*260) > .15;
+}
+// which thing is here
+function what(x, y){
+  if ((x-LAMP.x)**2 + (y-LAMP.y)**2 < LAMP.r**2) return "lamp";
+  if (inPoly(CAP, x, y)) return "cap";
+  if (x > GALLERY.x0 && x < GALLERY.x1 && y > GALLERY.y0 && y < GALLERY.y1) return "gallery";
+  if (inTower(x, y)) return x < .37 ? "tower" : "shade";
+  if ((x-MOON.x)**2 + (y-MOON.y)**2 < MOON.r**2) return "moon";
+  if (inPoly(LAND, x, y)) return "land";
+  if (y < HZ) return inPoly(BEAM, x, y) ? "beam" : "sky";
+  return glint(x, y) ? "glint" : "sea";
+}
+// darkness of the scene here: 0 = lit, 1 = darkest
+const TONE = {lamp:0, moon:.04, tower:.18, shade:.42, gallery:.62, cap:.88, beam:.4, glint:.36, sea:.8, land:.95};
+function tone(x, y){
+  const w = what(x, y);
+  if (w === "sky"){
+    const halo = Math.max(0, .2 - Math.hypot(x-MOON.x, y-MOON.y)) * .9;
+    return .48 + .3*(1 - y/HZ) - halo;
+  }
+  if (w === "sea") return TONE.sea + (y-HZ)*.25;
+  return TONE[w];
+}
+const WORD = {lamp:"lamp", moon:"moon", tower:"tower", shade:"tower", gallery:"rail", cap:"roof",
+              beam:"light", glint:"moonlight", sea:"sea", land:"rock", sky:"sky"};
+
+// ---------- drawing helpers ----------
+let DARK = matchMedia("(prefers-color-scheme: dark)").matches;
+// amount of ink to put down: on paper ink is dark, on a dark screen ink is light,
+// so the night looks like night either way.
+const ink = t => DARK ? 1 - t : t;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hex = h => { h = h.replace("#",""); return [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); };
+// a colour t of the way from paper to ink
+function mix(t){ const a = hex(css("--bg")), b = hex(css("--fg"));
+  return `rgb(${a.map((v,i) => Math.round(v + (b[i]-v)*t)).join(",")})`; }
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+  let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+const WAYS = [
+ { name:"Only horizontal lines", note:"Rows of ink, broken where the scene is light.",
+   draw(g, S, R){
+     const gap = Math.max(2, S/110);
+     g.lineWidth = gap*.55; g.lineCap = "butt";
+     for (let row = 0, y = gap/2; y < S; y += gap, row++){
+       const th = [.5,.12,.75,.32,.9,.62][row % 6] * .92 + .04;
+       g.beginPath(); let on = false;
+       for (let x = 0; x <= S; x += 1){
+         const want = x < S && ink(tone(x/S, y/S)) > th;
+         if (want && !on){ g.moveTo(x, y); on = true; }
+         if (!want && on){ g.lineTo(x, y); on = false; }
+       }
+       g.stroke();
+     }
+   }},
+ { name:"Only dots", note:"Stippled, one dot at a time, by chance.",
+   draw(g, S, R){
+     const n = S*S*.16, r = Math.max(.6, S/650);
+     for (let i = 0; i < n; i++){
+       const x = R()*S, y = R()*S;
+       if (R() < ink(tone(x/S, y/S))**1.8){ g.fillRect(x-r, y-r, r*2, r*2); }
+     }
+   }},
+ { name:"Only the keys on a typewriter", note:"Ten characters, from blank to heaviest.",
+   draw(g, S){
+     const ramp = " .,:;+=*#%@", cw = S/56, ch = cw*1.7;
+     g.font = `${ch*.95}px ui-monospace,Menlo,monospace`; g.textBaseline = "top";
+     for (let y = 0; y < S; y += ch) for (let x = 0; x < S; x += cw){
+       const t = ink(tone((x+cw/2)/S, (y+ch/2)/S));
+       const c = ramp[Math.min(ramp.length-1, Math.round(t*(ramp.length-1)))];
+       if (c !== " ") g.fillText(c, x, y);
+     }
+   }},
+ { name:"Only circles, on a grid", note:"Each circle as big as the dark around it.",
+   draw(g, S){
+     const cell = S/44;
+     for (let j = 0; j < 44; j++) for (let i = 0; i < 44; i++){
+       const cx = (i+.5)*cell + (j%2 ? cell/2 : 0), cy = (j+.5)*cell;
+       const r = Math.sqrt(ink(tone(cx/S, cy/S))) * cell*.56;
+       if (r < .3) continue;
+       g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill();
+     }
+   }},
+ { name:"Three values", note:"Paper, half-ink, ink. Nothing between.",
+   draw(g, S){
+     const step = Math.max(1, Math.round(S/300));
+     for (let y = 0; y < S; y += step) for (let x = 0; x < S; x += step){
+       const t = ink(tone(x/S, y/S));
+       const v = t < .33 ? 0 : t < .7 ? .45 : 1;
+       if (!v) continue;
+       g.globalAlpha = v; g.fillRect(x, y, step, step);
+     }
+     g.globalAlpha = 1;
+   }},
+ { name:"Twelve shapes", note:"Sky, sea, rock, tower, rail, roof, lamp, moon, beam, and three glints.",
+   draw(g, S){
+     const fill = (t, f) => { g.fillStyle = mix(ink(t)); g.beginPath(); f(); g.fill(); };
+     const poly = p => p.forEach(([x,y],i) => i ? g.lineTo(x*S,y*S) : g.moveTo(x*S,y*S));
+     fill(.62, () => g.rect(0, 0, S, HZ*S));
+     fill(.85, () => g.rect(0, HZ*S, S, S));
+     fill(.4, () => poly(BEAM));
+     fill(.04, () => g.arc(MOON.x*S, MOON.y*S, MOON.r*S, 0, 7));
+     [[.66,.34],[.74,.5],[.85,.68]].forEach(([y,w]) =>
+       fill(.36, () => g.ellipse(MOON.x*S, y*S, w*S*.18, S*.006, 0, 0, 7)));
+     fill(.95, () => poly(LAND));
+     fill(.22, () => poly([[TOWER.xb0,TOWER.yb],[TOWER.xt0,TOWER.yt],[TOWER.xt1,TOWER.yt],[TOWER.xb1,TOWER.yb]]));
+     fill(.62, () => g.rect(GALLERY.x0*S, GALLERY.y0*S, (GALLERY.x1-GALLERY.x0)*S, (GALLERY.y1-GALLERY.y0)*S));
+     fill(.88, () => poly(CAP));
+     fill(0, () => g.arc(LAMP.x*S, LAMP.y*S, LAMP.r*S, 0, 7));
+   }},
+ { name:"One line", note:"A single unbroken stroke, wavering harder where it's dark.",
+   draw(g, S){
+     const gap = S/58, amp = gap*.62;
+     g.lineWidth = Math.max(.8, S/700); g.lineJoin = "round";
+     g.beginPath(); let ph = 0, first = true;
+     for (let row = 0; row < 58; row++){
+       const y0 = (row+.5)*gap, dir = row % 2 ? -1 : 1;
+       for (let k = 0; k <= S; k += 1){
+         const x = dir > 0 ? k : S - k;
+         const t = ink(tone(Math.min(.999,x/S), y0/S));
+         ph += .05 + t*.9;
+         const y = y0 + Math.sin(ph) * amp * t;
+         first ? (g.moveTo(x, y), first = false) : g.lineTo(x, y);
+       }
+       if (row < 57) g.lineTo(dir > 0 ? S : 0, y0 + gap);
+     }
+     g.stroke();
+   }},
+ { name:"Only edges", note:"Where one thing stops and the next begins.",
+   draw(g, S){
+     const n = Math.min(400, Math.round(S/1.4)), px = S/n;
+     const grid = [];
+     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++){
+       let w = what((i+.5)/n, (j+.5)/n);
+       if (w === "shade") w = "tower";
+       grid.push(w);
+     }
+     for (let j = 0; j < n-1; j++) for (let i = 0; i < n-1; i++){
+       const w = grid[j*n+i];
+       if (w !== grid[j*n+i+1] || w !== grid[(j+1)*n+i]) g.fillRect(i*px, j*px, px*1.1, px*1.1);
+     }
+   }},
+ { name:"Only what gives light", note:"Moon, lamp, beam, and what the sea gives back.",
+   dark:true,
+   draw(g, S){
+     g.fillStyle = "#111214"; g.fillRect(0, 0, S, S);
+     const warm = "#f0c25a", cool = "#dfe3e8";
+     const glow = (x, y, r, c) => { const gr = g.createRadialGradient(x, y, 0, x, y, r);
+       gr.addColorStop(0, c); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x-r, y-r, r*2, r*2); };
+     g.globalAlpha = .35; glow(MOON.x*S, MOON.y*S, S*.22, cool); g.globalAlpha = 1;
+     g.fillStyle = cool; g.beginPath(); g.arc(MOON.x*S, MOON.y*S, MOON.r*S, 0, 7); g.fill();
+     const bg = g.createLinearGradient(LAMP.x*S, 0, S, 0);
+     bg.addColorStop(0, "rgba(240,194,90,.55)"); bg.addColorStop(1, "rgba(240,194,90,0)");
+     g.fillStyle = bg; g.beginPath(); BEAM.forEach(([x,y],i) => i ? g.lineTo(x*S,y*S) : g.moveTo(x*S,y*S)); g.fill();
+     glow(LAMP.x*S, LAMP.y*S, S*.07, warm);
+     g.fillStyle = "#fff4d6"; g.beginPath(); g.arc(LAMP.x*S, LAMP.y*S, LAMP.r*S*.8, 0, 7); g.fill();
+     const step = Math.max(1, S/350); g.fillStyle = cool;
+     for (let y = HZ*S; y < S; y += step) for (let x = .55*S; x < S; x += step)
+       if (!inPoly(LAND, x/S, y/S) && glint(x/S, y/S)) g.fillRect(x, y, step, step);
+   }},
+ { name:"Only the names of things", note:"Every place says what it is.",
+   draw(g, S){
+     const fs = S/32; g.font = `${fs}px ui-serif,Georgia,serif`; g.textBaseline = "top";
+     for (let y = 0; y < S; y += fs*1.02){
+       let x = -((y*7.3) % (fs*3));
+       while (x < S){
+         const cx = Math.max(0, Math.min(S-1, x + fs)), w = what(cx/S, (y+fs/2)/S);
+         const word = WORD[w] + " ";
+         g.globalAlpha = .16 + .84*ink(tone(cx/S, (y+fs/2)/S));
+         g.fillText(word, x, y);
+         x += g.measureText(word).width;
+       }
+     }
+     g.globalAlpha = 1;
+   }},
+];
+
+// ---------- the page ----------
+const grid = document.getElementById("grid");
+const seeds = WAYS.map((_, i) => 1000 + i*77);
+const canvases = WAYS.map((w, i) => {
+  const f = document.createElement("figure");
+  f.innerHTML = `<canvas role="img" aria-label="The lighthouse scene, drawn: ${w.name.toLowerCase()}"></canvas>
+    <figcaption><b>${String(i+1).padStart(2,"0")}</b>${w.name}<span>${w.note}</span></figcaption>`;
+  grid.append(f);
+  const c = f.querySelector("canvas");
+  c.addEventListener("click", () => { seeds[i] = (Math.random()*1e9)|0; paint(i); });
+  return c;
+});
+
+function paint(i){
+  const c = canvases[i], w = WAYS[i];
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  const S = Math.round(c.clientWidth * dpr);
+  if (!S) return;
+  c.width = c.height = S;
+  const g = c.getContext("2d");
+  g.fillStyle = css("--bg"); g.fillRect(0, 0, S, S);
+  g.fillStyle = g.strokeStyle = css("--fg");
+  w.draw(g, S, rng(seeds[i]));
+}
+
+// paint lazily, one per frame, so the page appears at once
+let queue = [];
+function paintAll(){ queue = WAYS.map((_, i) => i); tick(); }
+function tick(){ if (!queue.length) return; paint(queue.shift()); requestAnimationFrame(tick); }
+
+let lastW = 0;
+new ResizeObserver(() => {
+  const w = canvases[0].clientWidth;
+  if (Math.abs(w - lastW) > 2){ lastW = w; paintAll(); }
+}).observe(grid);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => { DARK = e.matches; paintAll(); });
+</script>
+</body>
+</html>

@@ -215,3 +215,20 @@ the small blocks, so tapping stays the way to learn them.
 
 Checked in the browser at desktop and phone width. Next on the project: a line
 or two in words about what changed since the last visit.
+
+## 011 · 2026-11-17 · Ten Ways (study)
+
+A piece this run, as the alternation wanted, taken from the idea pile: the same
+scene drawn ten ways, one constraint each. The scene is a lighthouse on a
+headland under a moon, defined once as shapes and a tone for each; every
+drawing reads from that same definition. Only horizontal lines; only dots;
+typewriter characters; circles on a grid; three values; exactly twelve shapes;
+one unbroken line; only edges; only what gives light; only the names of things.
+
+The ink flips with the screen: on paper it's dark marks for dark places, on a
+dark screen it's light marks for lit places, so it's night either way. The
+first pass of "twelve shapes" lost the moon and the lamp — I'd drawn them as
+nearly-transparent ink, which can't lighten anything. Mixed colours fixed it.
+
+Checked in the browser at desktop and phone width, light and (forced) dark.
+Next: city part 7, "since last visit" in words.

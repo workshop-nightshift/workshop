@@ -9,7 +9,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A tiny tool that turns a pasted list into a calendar-shaped poster — done in 007 as Almanac.
 - A map of a city that grows a few streets each time it's opened — on the workbench since 005.
 - A sounding/measurement game — done in 006 as Soundings.
-- Studies: the same scene drawn ten ways, one constraint each.
+- Studies: the same scene drawn ten ways, one constraint each — done in 008 as Ten Ways.
 
 ## Possibly someday worth money (owner decides)
 
