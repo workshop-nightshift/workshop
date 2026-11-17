@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>A city, visited</title>
 <style>
-:root{--bg:#f3efe6;--fg:#1d1b18;--mute:#7a7366;--line:#d8d1c2;--street:#3a352e;--new:#b4472b;--hi:#2f6f8f}
-@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--street:#c9c3b6;--new:#e58a63;--hi:#7fb7d4}}
+:root{--water:#c9d8dc;--bg:#f3efe6;--fg:#1d1b18;--mute:#7a7366;--line:#d8d1c2;--street:#3a352e;--new:#b4472b;--hi:#2f6f8f}
+@media (prefers-color-scheme:dark){:root{--water:#1c2a31;--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--street:#c9c3b6;--new:#e58a63;--hi:#7fb7d4}}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
 body{display:flex;flex-direction:column;font:14px/1.5 ui-monospace,Menlo,monospace}
@@ -31,7 +31,7 @@ a{color:inherit}
 <script>
 const $ = id => document.getElementById(id);
 const c = $("c"), x = c.getContext("2d");
-const KEY = "nightshift-city-v1";
+const KEY = "nightshift-city-v2";
 
 // ---- seeded randomness ----
 function rng(seed) {
@@ -63,14 +63,41 @@ function distSeg(px, py, ax, ay, bx, by) {
   return Math.hypot(px - ax - t * vx, py - ay - t * vy);
 }
 
+// ---- water ----
+// A river or a coast, fixed at founding. It's a wavy line in a rotated frame:
+// u runs along it, v across. The founding square at (0, 0) is always dry.
+function makeWater(r) {
+  const roll = r();
+  if (roll < 0.2) return null;
+  const kind = roll < 0.65 ? "river" : "coast";
+  const theta = r() * Math.PI, cs = Math.cos(theta), sn = Math.sin(theta);
+  const a1 = 10 + r() * 14, l1 = 60 + r() * 60, p1 = r() * 7;
+  const a2 = 3 + r() * 6, l2 = 18 + r() * 20, p2 = r() * 7;
+  const w = 14 + r() * 8;
+  const side = r() < 0.5 ? 1 : -1;
+  const c = kind === "river" ? side * (a1 + a2 + w / 2 + 10 + r() * 45) : side * (a1 + a2 + 30 + r() * 60);
+  const mid = u => c + a1 * Math.sin(u / l1 + p1) + a2 * Math.sin(u / l2 + p2);
+  const uv = (px, py) => [px * cs + py * sn, -px * sn + py * cs];
+  const xy = (u, v) => [u * cs - v * sn, u * sn + v * cs];
+  const wet = (px, py) => {
+    const [u, v] = uv(px, py), m = mid(u);
+    return kind === "river" ? Math.abs(v - m) < w / 2 : (v - m) * side > 0;
+  };
+  const n1 = word(r);
+  const wname = kind === "river" ? pick(r, ["the River " + n1, "the " + n1 + " Water", "the " + n1 + "brook"])
+                                 : pick(r, [n1 + " Bay", n1 + " Sound", "the " + n1 + " Reach"]);
+  return { kind, theta, w, side, mid, xy, wet, name: wname };
+}
+
 // ---- the city ----
 function build(seed, visits) {
   const nodes = [{ x: 0, y: 0 }], edges = [], streets = [];
   const nr = rng(seed * 7 + 3);
   const name = cityName(nr);
+  const water = makeWater(nr);
   const adj = [[]];
   const addNode = (px, py) => { nodes.push({ x: px, y: py }); adj.push([]); return nodes.length - 1; };
-  const addEdge = (a, b, street, visit) => { edges.push({ a, b, street, visit }); const i = edges.length - 1; adj[a].push(i); adj[b].push(i); return i; };
+  const addEdge = (a, b, street, visit, bridge) => { edges.push({ a, b, street, visit, bridge: !!bridge }); const i = edges.length - 1; adj[a].push(i); adj[b].push(i); return i; };
   const newStreet = r => {
     let n, tries = 0;
     do { n = word(r) + " " + pick(r, SUF); } while (streets.some(s => s.name === n) && tries++ < 20);
@@ -81,7 +108,7 @@ function build(seed, visits) {
     const E = edges[e], b = E.b;
     adj[b] = adj[b].filter(i => i !== e);
     E.b = k; adj[k].push(e);
-    addEdge(k, b, E.street, E.visit);
+    addEdge(k, b, E.street, E.visit, E.bridge);
   };
 
   function tryGrow(r, visit) {
@@ -96,15 +123,36 @@ function build(seed, visits) {
     const F = nodes[from];
     let ang, street;
     const out = adj[from];
-    if (!out.length) { ang = r() * Math.PI * 2; street = newStreet(r); }
+    if (!out.length) { ang = r() * Math.PI * 2; street = -1; }
     else {
       const e = edges[pick(r, out)], o = e.a === from ? nodes[e.b] : nodes[e.a];
       const base = Math.atan2(F.y - o.y, F.x - o.x);
       const straight = out.length === 1 && r() < 0.55;
       if (straight) { ang = base + (r() - 0.5) * 0.35; street = e.street; }
-      else { ang = base + (r() < 0.5 ? 1 : -1) * Math.PI / 2 + (r() - 0.5) * 0.25; street = newStreet(r); }
+      else {
+        ang = base + (r() < 0.5 ? 1 : -1) * Math.PI / 2 + (r() - 0.5) * 0.25;
+        // A turn off the end of a street usually keeps its name (streets bend);
+        // a branch off the middle is always a new street.
+        street = out.length === 1 && r() < 0.6 ? e.street : -1;
+      }
     }
-    const len = 26 + r() * 30;
+    // Name a new street only once something is actually built.
+    // A short link into an existing street either carries on a street it lines
+    // up with, or stays a passage with no name.
+    const lay = (a, b, into) => {
+      if (street < 0 && into) {
+        const dx = nodes[b].x - nodes[a].x, dy = nodes[b].y - nodes[a].y, dl = Math.hypot(dx, dy);
+        for (const i of adj[b]) {
+          const o = edges[i].a === b ? nodes[edges[i].b] : nodes[edges[i].a];
+          const ex = o.x - nodes[b].x, ey = o.y - nodes[b].y;
+          if ((dx * ex + dy * ey) / (dl * Math.hypot(ex, ey)) > 0.85 && streets[edges[i].street].name) { street = edges[i].street; break; }
+        }
+        if (street < 0) { streets.push({ name: null }); street = streets.length - 1; }
+      }
+      if (street < 0) street = newStreet(r);
+      addEdge(a, b, street, visit, bridge); return true;
+    };
+    let len = 26 + r() * 30, bridge = false;
     let tx = F.x + Math.cos(ang) * len, ty = F.y + Math.sin(ang) * len;
 
     // Don't leave at a too-sharp angle to an existing street from this node.
@@ -113,6 +161,30 @@ function build(seed, visits) {
       let d = Math.abs(Math.atan2(o.y - F.y, o.x - F.x) - ang) % (Math.PI * 2);
       if (d > Math.PI) d = Math.PI * 2 - d;
       if (d < 0.9) return false;
+    }
+    // Water: a street stops at the bank, or now and then crosses on a bridge.
+    if (water) {
+      const steps = Math.ceil(len / 2.5);
+      let first = -1, last = -1;
+      for (let k = 1; k <= steps; k++) {
+        const t = k / steps;
+        if (water.wet(F.x + (tx - F.x) * t, F.y + (ty - F.y) * t)) { if (first < 0) first = k; last = k; }
+      }
+      if (first >= 0) {
+        const across = water.kind === "river" && last < steps - 1 && r() < 0.3;
+        if (across) {
+          // Bridges go straight over, roughly square to the river.
+          let d = Math.abs(ang - water.theta - Math.PI / 2) % Math.PI;
+          if (d > Math.PI / 2) d = Math.PI - d;
+          if (d > 0.45) return false;
+          bridge = true;
+        } else {
+          const keep = (first - 1) / steps * len - 5;
+          if (keep < 14) return false;
+          len = keep;
+          tx = F.x + Math.cos(ang) * len; ty = F.y + Math.sin(ang) * len;
+        }
+      }
     }
     // First crossing: stop there and make a T junction.
     let hit = null;
@@ -124,23 +196,22 @@ function build(seed, visits) {
       if (h && (!hit || h.t < hit.t)) hit = { ...h, e: i };
     }
     if (hit) {
-      if (hit.t * len < 12) return false;
+      if (hit.t * len < 12 || edges[hit.e].bridge || bridge) return false;
       const E = edges[hit.e], A = nodes[E.a], B = nodes[E.b];
       const elen = Math.hypot(B.x - A.x, B.y - A.y);
       // Snap to an end if the crossing is near one.
-      if (hit.u * elen < 8) { if (adj[E.a].length >= 4) return false; addEdge(from, E.a, street, visit); return true; }
-      if ((1 - hit.u) * elen < 8) { if (adj[E.b].length >= 4) return false; addEdge(from, E.b, street, visit); return true; }
+      if (hit.u * elen < 8) { if (adj[E.a].length >= 4) return false; return lay(from, E.a, true); }
+      if ((1 - hit.u) * elen < 8) { if (adj[E.b].length >= 4) return false; return lay(from, E.b, true); }
       const k = addNode(A.x + (B.x - A.x) * hit.u, A.y + (B.y - A.y) * hit.u);
       split(hit.e, k);
-      addEdge(from, k, street, visit);
-      return true;
+      return lay(from, k, true);
     }
     // Snap to a nearby node to close loops.
     for (let i = 0; i < nodes.length; i++) {
       if (i === from) continue;
       if (Math.hypot(nodes[i].x - tx, nodes[i].y - ty) < 13) {
         if (adj[i].length >= 4 || adj[from].some(e => edges[e].a === i || edges[e].b === i)) return false;
-        addEdge(from, i, street, visit); return true;
+        return lay(from, i, true);
       }
     }
     // Keep clear of other streets.
@@ -149,8 +220,7 @@ function build(seed, visits) {
       const A = nodes[E.a], B = nodes[E.b];
       if (distSeg(tx, ty, A.x, A.y, B.x, B.y) < 11) return false;
     }
-    addEdge(from, addNode(tx, ty), street, visit);
-    return true;
+    return lay(from, addNode(tx, ty));
   }
 
   for (let v = 1; v <= visits; v++) {
@@ -159,7 +229,7 @@ function build(seed, visits) {
     let got = 0, tries = 0;
     while (got < want && tries++ < want * 40) if (tryGrow(r, v)) got++;
   }
-  return { name, nodes, edges, streets };
+  return { name, water, nodes, edges, streets };
 }
 
 // ---- state ----
@@ -176,7 +246,7 @@ function regen() {
   sel = -1;
   $("name").textContent = city.name;
   const fresh = city.edges.filter(e => e.visit === state.visits).length;
-  $("count").textContent = `visit ${state.visits} · ${city.streets.length} streets` + (state.visits > 1 ? ` · ${fresh} new stretches since you were last here` : "");
+  $("count").textContent = `visit ${state.visits} · ${city.streets.filter(t => t.name).length} streets` + (state.visits > 1 ? ` · ${fresh} new stretches since you were last here` : "");
   $("info").textContent = state.visits === 1 ? "Founded today. Come back another time; it will have grown." : "";
   draw();
 }
@@ -199,6 +269,32 @@ function draw() {
   const P = n => [n.x * sc + ox, n.y * sc + oy];
   x.lineCap = "round"; x.lineJoin = "round";
   const lw = Math.max(1.2, Math.min(3.2, sc * 1.6));
+  const Wt = city.water;
+  if (Wt) {
+    const span = (Math.hypot(W, H) / sc) + Math.hypot(minX + maxX, minY + maxY);
+    const cu = ((minX + maxX) / 2) * Math.cos(Wt.theta) + ((minY + maxY) / 2) * Math.sin(Wt.theta);
+    const pts = [];
+    for (let u = cu - span; u <= cu + span; u += 3) pts.push([u, Wt.mid(u)]);
+    x.fillStyle = x.strokeStyle = col("--water");
+    x.beginPath();
+    if (Wt.kind === "river") {
+      pts.forEach(([u, v], i) => { const [wx, wy] = Wt.xy(u, v); i ? x.lineTo(wx * sc + ox, wy * sc + oy) : x.moveTo(wx * sc + ox, wy * sc + oy); });
+      x.lineWidth = Wt.w * sc; x.stroke();
+    } else {
+      pts.forEach(([u, v], i) => { const [wx, wy] = Wt.xy(u, v); i ? x.lineTo(wx * sc + ox, wy * sc + oy) : x.moveTo(wx * sc + ox, wy * sc + oy); });
+      for (const [u, v] of [[cu + span, Wt.mid(cu + span) + Wt.side * span * 2], [cu - span, Wt.mid(cu - span) + Wt.side * span * 2]]) {
+        const [wx, wy] = Wt.xy(u, v); x.lineTo(wx * sc + ox, wy * sc + oy);
+      }
+      x.closePath(); x.fill();
+    }
+    // Bridges: a little deck in the paper colour under the street.
+    x.strokeStyle = col("--bg"); x.lineWidth = lw + 6; x.lineCap = "butt";
+    for (const E of city.edges) if (E.bridge) {
+      const [ax, ay] = P(city.nodes[E.a]), [bx, by] = P(city.nodes[E.b]);
+      x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke();
+    }
+    x.lineCap = "round";
+  }
   for (const pass of [0, 1, 2]) {
     for (let i = 0; i < city.edges.length; i++) {
       const E = city.edges[i];
@@ -222,7 +318,9 @@ c.addEventListener("click", ev => {
     if (d < bd) { bd = d; best = E.street; }
   }
   sel = best === sel ? -1 : best;
-  $("info").textContent = sel >= 0 ? city.streets[sel].name : "";
+  const wx = (px - view.ox) / view.sc, wy = (py - view.oy) / view.sc;
+  $("info").textContent = sel >= 0 ? city.streets[sel].name || "a passage with no name"
+    : city.water && city.water.wet(wx, wy) ? city.water.name.replace(/^the/, "The") : "";
   draw();
 });
 $("again").onclick = () => { state.visits++; save(); regen(); };

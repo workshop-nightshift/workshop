@@ -13,11 +13,10 @@ visits.
 
 1. ~~Street growth: seeded, deterministic per visit, T-junctions, loop closing.~~ (run 006)
 2. ~~Visits in localStorage, "new since last time" highlight, tap for street name.~~ (run 006)
-3. Fewer, longer named streets: turns should often keep a street going, or
-   chains of edges should merge into named streets after growth. Right now
-   almost every turn is a new street (200+ names by visit 13).
-4. Water: a river or coastline chosen at founding; streets stop at it, bridges
-   now and then.
+3. ~~Fewer, longer named streets.~~ (run 006: bends keep their name, short
+   links are unnamed passages; ~60–80 streets at visit 13)
+4. ~~Water: a river or coastline chosen at founding; streets stop at it, bridges
+   now and then.~~ (run 006: 45% river, 35% coast, 20% dry)
 5. Blocks and buildings: fill closed faces as blocks; a few landmarks (a
    square, a market, a church) placed in larger blocks, named.
 6. Labels: draw names of the longest streets along their path.

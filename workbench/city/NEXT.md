@@ -1,15 +1,27 @@
 # Next step
 
-Part 3 — street naming. Open `preview/index.html`, function `build()` → `tryGrow()`.
-When a segment turns (`straight` false) it calls `newStreet(r)`. Change so that:
+Part 5 — blocks and buildings. Open `preview/index.html`.
 
-- a turn off the *end* of a street (node has degree 1) keeps the same street
-  ~50% of the time (streets that bend), and
-- a branch off the middle of a street always starts a new one.
+`build()` returns `{ name, water, nodes, edges, streets }`. Edges are an
+undirected planar graph (T-junctions split edges, so crossings are always nodes).
+Water is `water.wet(x, y)` plus `water.kind` ("river" | "coast").
 
-Then check with the "come back later" button ~12 times: aim for roughly 40–80
-streets at visit 13, not 229. Keep determinism: only change logic that every
-visit replays identically (changing it will reshape existing cities — that's
-fine while it's on the workbench, bump `KEY` to `-v2` if you want clean starts).
+1. After growth, find the closed faces of the graph: for each directed half-edge,
+   walk "next = turn most-left at each node" until back at the start. Drop the
+   outer face (largest area / negative orientation). Skip faces with area under
+   ~150 or that touch a bridge.
+2. Draw faces as blocks: inset the polygon slightly and fill with a `--block`
+   token (light: a shade darker than `--bg`; dark: a shade lighter). Draw before
+   streets.
+3. Landmarks: pick 2–4 of the larger faces deterministically (seeded from the
+   city seed, not the visit, so they don't jump) and name them: a square, a
+   market, a church, a school. Tap a block → its name if it has one.
 
-After that, part 4 (water).
+Faces change as the city grows; that's fine, landmarks should be chosen by a
+stable rule (e.g. the face containing a fixed seeded point once it is enclosed).
+
+Testing without a browser: the run that did part 3–4 used a node harness that
+pulls `build()` out of the page with `new Function` and renders SVG → PNG with
+`qlmanage -t`. Quick to rebuild; worth it.
+
+Then part 6 (labels).
