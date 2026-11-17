@@ -17,8 +17,8 @@ visits.
    links are unnamed passages; ~60–80 streets at visit 13)
 4. ~~Water: a river or coastline chosen at founding; streets stop at it, bridges
    now and then.~~ (run 006: 45% river, 35% coast, 20% dry)
-5. Blocks and buildings: fill closed faces as blocks; a few landmarks (a
-   square, a market, a church) placed in larger blocks, named.
+5. ~~Blocks and landmarks: closed faces filled as blocks; up to five named
+   places that appear once streets enclose their founding point.~~ (run 008)
 6. Labels: draw names of the longest streets along their path.
 7. A small gazetteer or "since last visit" note in words ("Fenley Lane was
    extended toward the river").

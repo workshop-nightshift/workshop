@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>A city, visited</title>
 <style>
-:root{--water:#c9d8dc;--bg:#f3efe6;--fg:#1d1b18;--mute:#7a7366;--line:#d8d1c2;--street:#3a352e;--new:#b4472b;--hi:#2f6f8f}
-@media (prefers-color-scheme:dark){:root{--water:#1c2a31;--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--street:#c9c3b6;--new:#e58a63;--hi:#7fb7d4}}
+:root{--water:#c9d8dc;--bg:#f3efe6;--block:#e7e0d1;--mark:#dcd1bb;--green:#cfd8bf;--fg:#1d1b18;--mute:#7a7366;--line:#d8d1c2;--street:#3a352e;--new:#b4472b;--hi:#2f6f8f}
+@media (prefers-color-scheme:dark){:root{--water:#1c2a31;--bg:#111214;--block:#1b1c1f;--mark:#26262a;--green:#1d2620;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--street:#c9c3b6;--new:#e58a63;--hi:#7fb7d4}}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
 body{display:flex;flex-direction:column;font:14px/1.5 ui-monospace,Menlo,monospace}
@@ -26,7 +26,7 @@ a{color:inherit}
 <div id="info" aria-live="polite"></div>
 <footer>
   <span><button id="again" title="Preview only: pretend you came back">come back later</button> <button id="reset">found a new city</button></span>
-  <span>rough cut · tap a street for its name · <a href="../../workbench.html">← workbench</a></span>
+  <span>rough cut · tap a street or a place for its name · <a href="../../workbench.html">← workbench</a></span>
 </footer>
 <script>
 const $ = id => document.getElementById(id);
@@ -229,7 +229,100 @@ function build(seed, visits) {
     let got = 0, tries = 0;
     while (got < want && tries++ < want * 40) if (tryGrow(r, v)) got++;
   }
-  return { name, water, nodes, edges, streets };
+  const city = { name, water, nodes, edges, streets };
+  city.blocks = findBlocks(city);
+  placeLandmarks(city, seed);
+  return city;
+}
+
+// ---- blocks ----
+// Closed faces of the street graph. Each half-edge u→v continues out of v along
+// the next edge clockwise from v→u; following that until it returns traces one
+// face. The face with the largest area is the outside, and has the other sign.
+function inPoly(px, py, pts) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function findBlocks({ nodes, edges, water }) {
+  const out = nodes.map(() => []);
+  edges.forEach((E, i) => { out[E.a].push(2 * i); out[E.b].push(2 * i + 1); });
+  const from = h => h & 1 ? edges[h >> 1].b : edges[h >> 1].a;
+  const to = h => h & 1 ? edges[h >> 1].a : edges[h >> 1].b;
+  const ang = h => { const A = nodes[from(h)], B = nodes[to(h)]; return Math.atan2(B.y - A.y, B.x - A.x); };
+  for (const o of out) o.sort((p, q) => ang(p) - ang(q));
+  const seen = new Uint8Array(edges.length * 2), faces = [];
+  for (let h0 = 0; h0 < seen.length; h0++) {
+    if (seen[h0]) continue;
+    const pts = [];
+    let h = h0, bridge = false, guard = 0;
+    while (!seen[h] && guard++ < 5000) {
+      seen[h] = 1;
+      if (edges[h >> 1].bridge) bridge = true;
+      const v = to(h), n = nodes[v];
+      pts.push([n.x, n.y]);
+      const o = out[v], k = o.indexOf(h ^ 1);
+      h = o[(k - 1 + o.length) % o.length];
+    }
+    let a = 0;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) a += pts[j][0] * pts[i][1] - pts[i][0] * pts[j][1];
+    faces.push({ pts, area: a / 2, bridge });
+  }
+  if (!faces.length) return [];
+  const outer = faces.reduce((m, f) => Math.abs(f.area) > Math.abs(m.area) ? f : m);
+  const sgn = Math.sign(outer.area);
+  return faces.filter(f => f !== outer && Math.sign(f.area) === -sgn && Math.abs(f.area) > 150 && !f.bridge &&
+    !(water && wetInside(f, water))).map(f => {
+      let cx = 0, cy = 0;
+      for (const [px, py] of f.pts) { cx += px; cy += py; }
+      return { pts: f.pts, area: Math.abs(f.area), cx: cx / f.pts.length, cy: cy / f.pts.length, mark: null };
+    });
+}
+// A face that wraps a bit of shore isn't a block.
+function wetInside(f, water) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const [px, py] of f.pts) { x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py); }
+  for (let i = 1; i < 8; i++) for (let j = 1; j < 8; j++) {
+    const px = x0 + (x1 - x0) * i / 8, py = y0 + (y1 - y0) * j / 8;
+    if (inPoly(px, py, f.pts) && water.wet(px, py)) return true;
+  }
+  return false;
+}
+
+// ---- landmarks ----
+// Each city has a few places fixed at founding: a seeded point and a kind. A
+// landmark appears once the streets close a block around its point, so it
+// arrives on some visit and then stays put while the city grows around it.
+function placeLandmarks(city, seed) {
+  const r = rng(seed * 31 + 17);
+  const saint = pick(r, ON) + pick(r, ["a", "ia", "an", "el", "ard"]);
+  const kinds = [
+    { kind: "square", name: pick(r, ON) + pick(r, MID) + " Square" },
+    { kind: "church", name: "St " + saint + "'s" },
+    { kind: "market", name: pick(r, ["the Corn Market", "the Fish Market", "the Old Market", "the Hay Market", "the Cloth Hall"]) },
+    { kind: "school", name: pick(r, ["the Free School", "the Grammar School", "the Lyceum", "the Board School"]) },
+    { kind: "garden", name: pick(r, ["the Physic Garden", "the Bowling Green", "the Common", "the Infirmary Garden"]) },
+  ];
+  // Shuffle so different cities find different things first.
+  for (let i = kinds.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [kinds[i], kinds[j]] = [kinds[j], kinds[i]]; }
+  let rad = 15;
+  for (const L of kinds) {
+    rad += 12 + r() * 22;
+    // Places stand on dry land: try a few bearings for one that is.
+    let px = 0, py = 0;
+    for (let t = 0; t < 12; t++) {
+      const a = r() * Math.PI * 2;
+      px = Math.cos(a) * rad; py = Math.sin(a) * rad;
+      if (!city.water || !city.water.wet(px, py)) break;
+    }
+    const b = city.blocks.find(b => !b.mark && b.area > 400 && inPoly(px, py, b.pts));
+    if (!b) continue;
+    b.mark = { ...L, px, py };
+    if (!inPoly(b.cx, b.cy, b.pts)) { b.cx = px; b.cy = py; }
+  }
 }
 
 // ---- state ----
@@ -240,10 +333,10 @@ state.visits++;
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
 save();
 
-let city, view, sel = -1;
+let city, view, sel = -1, selB = null;
 function regen() {
   city = build(state.seed, state.visits);
-  sel = -1;
+  sel = -1; selB = null;
   $("name").textContent = city.name;
   const fresh = city.edges.filter(e => e.visit === state.visits).length;
   $("count").textContent = `visit ${state.visits} · ${city.streets.filter(t => t.name).length} streets` + (state.visits > 1 ? ` · ${fresh} new stretches since you were last here` : "");
@@ -295,6 +388,7 @@ function draw() {
     }
     x.lineCap = "round";
   }
+  drawBlocks(P, sc, lw, col);
   for (const pass of [0, 1, 2]) {
     for (let i = 0; i < city.edges.length; i++) {
       const E = city.edges[i];
@@ -309,9 +403,35 @@ function draw() {
   }
 }
 
+function drawBlocks(P, sc, lw, col) {
+  const gap = Math.max(3, sc * 2.6);
+  for (const b of city.blocks) {
+    const m = b.mark, isSel = selB === b;
+    x.beginPath();
+    b.pts.forEach((p, i) => { const [qx, qy] = P({ x: p[0], y: p[1] }); i ? x.lineTo(qx, qy) : x.moveTo(qx, qy); });
+    x.closePath();
+    x.fillStyle = isSel ? col("--hi") : !m ? col("--block") : m.kind === "garden" ? col("--green") : col("--mark");
+    if (isSel) { x.fillStyle = col("--mark"); x.fill(); x.globalAlpha = 0.4; x.fillStyle = col("--hi"); }
+    x.fill(); x.globalAlpha = 1;
+    x.strokeStyle = col("--bg"); x.lineWidth = lw + gap * 2; x.stroke();
+  }
+  // Small marks for the named places, in the margin colour.
+  x.strokeStyle = x.fillStyle = col("--mute"); x.lineWidth = 1.6;
+  const s = Math.max(6, Math.min(11, sc * 5));
+  for (const b of city.blocks) if (b.mark) {
+    const [cx, cy] = P({ x: b.cx, y: b.cy }), k = b.mark.kind;
+    x.beginPath();
+    if (k === "church") { x.moveTo(cx, cy - s); x.lineTo(cx, cy + s); x.moveTo(cx - s * 0.6, cy - s * 0.35); x.lineTo(cx + s * 0.6, cy - s * 0.35); x.stroke(); }
+    else if (k === "market") { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 0; j++) x.rect(cx + i * s * 0.7 - s * 0.25, cy + j * s * 0.7, s * 0.5, s * 0.5); x.fill(); }
+    else if (k === "school") { x.moveTo(cx - s * 0.7, cy + s * 0.5); x.lineTo(cx, cy - s * 0.4); x.lineTo(cx + s * 0.7, cy + s * 0.5); x.closePath(); x.moveTo(cx, cy - s * 0.4); x.lineTo(cx, cy - s); x.stroke(); }
+    else if (k === "square") { x.setLineDash([2, 3]); x.arc(cx, cy, s * 0.8, 0, Math.PI * 2); x.stroke(); x.setLineDash([]); }
+    else { for (const [dx, dy] of [[-0.6, 0.2], [0.5, -0.3], [0.1, 0.6], [-0.1, -0.6]]) { x.moveTo(cx + dx * s + s * 0.22, cy + dy * s); x.arc(cx + dx * s, cy + dy * s, s * 0.22, 0, Math.PI * 2); } x.fill(); }
+  }
+}
+
 c.addEventListener("click", ev => {
   const rct = c.getBoundingClientRect(), px = ev.clientX - rct.left, py = ev.clientY - rct.top;
-  let best = -1, bd = 18;
+  let best = -1, bd = 12;
   for (const E of city.edges) {
     const A = city.nodes[E.a], B = city.nodes[E.b];
     const d = distSeg(px, py, A.x * view.sc + view.ox, A.y * view.sc + view.oy, B.x * view.sc + view.ox, B.y * view.sc + view.oy);
@@ -319,8 +439,12 @@ c.addEventListener("click", ev => {
   }
   sel = best === sel ? -1 : best;
   const wx = (px - view.ox) / view.sc, wy = (py - view.oy) / view.sc;
+  const blk = sel < 0 ? city.blocks.find(b => b.mark && inPoly(wx, wy, b.pts)) : null;
+  selB = blk && blk !== selB ? blk : null;
+  const cap = t => t.replace(/^the/, "The");
   $("info").textContent = sel >= 0 ? city.streets[sel].name || "a passage with no name"
-    : city.water && city.water.wet(wx, wy) ? city.water.name.replace(/^the/, "The") : "";
+    : selB ? cap(selB.mark.name)
+    : city.water && city.water.wet(wx, wy) ? cap(city.water.name) : "";
   draw();
 });
 $("again").onclick = () => { state.visits++; save(); regen(); };

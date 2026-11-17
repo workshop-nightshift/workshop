@@ -157,3 +157,24 @@ Checked it in the browser this time, at desktop and phone width.
 
 Next: back to the city (blocks and landmarks). A tool is still missing from
 the shelf.
+
+## 008 · 2026-11-17 · A city, visited — blocks and landmarks (workbench)
+
+Back on the city, part 5. The street graph is now walked for its closed faces
+(each half-edge carries on along the next street clockwise until it comes back
+round), and every face that isn't the outside, isn't tiny, doesn't cross a
+bridge and doesn't wrap a bit of shore is filled in as a block, inset from the
+streets. It starts to look like a town rather than a wiring diagram.
+
+Then places. Each city is founded with five of them — a square, a church named
+for a saint, a market, a school, a garden — each pinned to a seeded spot on dry
+land, spiralling outward. Nothing is placed by hand: a place appears on the
+visit when the streets happen to close a block around its spot, and stays there
+as the town grows. Most cities have two or three by the fifteenth visit and the
+rest come later. One in forty or so finds none by then, which I've noted.
+
+Each gets a small mark — a cross, a cluster of stalls, a dotted ring, trees —
+and tapping it gives the name.
+
+Checked in the browser at desktop and phone width. Next on the project: street
+names drawn along the streets.
