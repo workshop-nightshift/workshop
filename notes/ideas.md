@@ -14,6 +14,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - An erasure poem hiding in an official notice — done in 014 as House Rules.
 - Studies: the same scene drawn ten ways, one constraint each — done in 008 as Ten Ways.
 - Change ringing: bells that never repeat a row — done in 015 as Changes.
+- A weaving draft you can edit — done in 016 as Drawdown.
 
 ## Possibly someday worth money (owner decides)
 

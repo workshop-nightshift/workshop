@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Drawdown</title>
+<style>
+:root{--bg:#efe9dd;--fg:#1f1c17;--mute:#7a7262;--line:#d4cbb8;--card:#f8f4ea;--grid:#c9bfa9;--on:#2a2620;--accent:#9b3d2a}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--fg:#e8e3d8;--mute:#9a9485;--line:#2e2e33;--card:#1b1b1f;--grid:#3a3a40;--on:#e8e3d8;--accent:#e08a6c}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:18px 16px 28px;display:flex;justify-content:center}
+main{width:100%;max-width:640px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 14px;font-style:italic}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.bar button,.bar select{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer;touch-action:manipulation}
+.bar button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.bar .lab{color:var(--mute);font-size:13px;margin-right:2px}
+.sw{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);padding:0;cursor:pointer}
+.sw[aria-pressed=true]{border-color:var(--fg)}
+.card{background:var(--card);border:1px solid var(--line);padding:12px;box-shadow:0 8px 22px -14px rgba(0,0,0,.35)}
+#draft{display:block;width:100%;touch-action:manipulation;cursor:pointer}
+#cloth{display:block;width:100%;margin-top:12px;border:1px solid var(--line)}
+.hint{color:var(--mute);font-size:13px;margin:8px 2px 0}
+.row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:12px;color:var(--mute);font-size:14px}
+.row button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+a{color:inherit}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Drawdown</h1>
+  <p class="sub">A four-shaft loom on paper. Change the threading, the tie-up or the treadling, and the cloth follows.</p>
+  <div class="bar" id="presets" role="group" aria-label="Drafts"></div>
+  <div class="bar" id="colours" style="gap:6px 18px"></div>
+  <div class="card">
+    <canvas id="draft" aria-label="Weaving draft: threading, tie-up, treadling and drawdown"></canvas>
+    <p class="hint">Tap a square in the threading (top), tie-up (top right) or treadling (right). The big grid is what the loom weaves: dark where the warp lies on top.</p>
+  </div>
+  <canvas id="cloth" aria-label="The woven cloth, repeated"></canvas>
+  <div class="row">
+    <span><button id="mirror">mirror treadling</button> <button id="tromp">tromp as writ</button> <button id="rand">surprise</button></span>
+    <span><a href="../../">← shelf</a></span>
+  </div>
+  <details><summary>about this</summary>
+    <p>A weaving draft is the loom's score. Each warp thread is passed through a heddle on one of four shafts (the <em>threading</em>).
+    Each treadle lifts some of the shafts (the <em>tie-up</em>). The weaver presses one treadle per pass of the shuttle (the <em>treadling</em>).
+    Wherever a lifted shaft meets a pick, the warp shows; elsewhere the weft covers it. The <em>drawdown</em> is that worked out square by square,
+    which is how weavers have checked a pattern before setting up a loom for a very long time.</p>
+    <p><em>Tromp as writ</em> copies the threading into the treadling, so the cloth turns symmetrical along its diagonal.
+    Your draft is remembered in this browser.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const S = 4, T = 4, W = 24, P = 24; // shafts, treadles, warp ends, picks
+const PRESETS = {
+  "plain":      { th: "1212", tie: ["13","24","13","24"], tr: "12" },
+  "twill":      { th: "1234", tie: ["12","23","34","41"], tr: "1234" },
+  "point":      { th: "123432", tie: ["12","23","34","41"], tr: "123432" },
+  "rosepath":   { th: "12141434121", tie: ["12","23","34","41"], tr: "12141434121" },
+  "goose-eye":  { th: "1234123432143214", tie: ["12","23","34","41"], tr: "1234123432143214" },
+  "basket":     { th: "1122", tie: ["12","34","12","34"], tr: "1122" },
+  "herringbone":{ th: "1234", tie: ["12","23","34","41"], tr: "123432" },
+};
+const PALETTE = ["#2b3a55","#a8432c","#d9b44a","#3e6b4f","#efe6d2","#1d1b18","#8a5a8c","#6b8fa8"];
+const ORDER = Object.keys(PRESETS);
+
+let st = load() || fromPreset("goose-eye","#2b3a55","#efe6d2");
+
+function fromPreset(name,warp,weft){
+  const p = PRESETS[name];
+  const rep = (s,n) => Array.from({length:n},(_,i)=>+s[i % s.length]-1);
+  return { name, th: rep(p.th,W), tie: Array.from({length:T},(_,t)=>{const r=Array(S).fill(0);for(const c of p.tie[t]) r[+c-1]=1;return r;}),
+    tr: rep(p.tr,P), warp, weft };
+}
+function load(){ try{ const s=JSON.parse(localStorage.getItem("drawdown")); if(s&&s.th?.length===W&&s.tr?.length===P) return s; }catch(e){} return null; }
+function save(){ try{ localStorage.setItem("drawdown", JSON.stringify(st)); }catch(e){} }
+
+// presets bar
+const pb = $("presets");
+for(const n of ORDER){ const b=document.createElement("button"); b.textContent=n; b.onclick=()=>{ st=fromPreset(n,st.warp,st.weft); draw(); }; b.dataset.n=n; pb.appendChild(b); }
+// colours
+const cb = $("colours");
+function colourRow(label, key){
+  const d=document.createElement("div"); d.className="bar"; d.style.margin="0"; cb.appendChild(d);
+  const l=document.createElement("span"); l.className="lab"; l.style.minWidth="34px"; l.textContent=label; d.appendChild(l);
+  for(const c of PALETTE){ const b=document.createElement("button"); b.className="sw"; b.style.background=c; b.title=c; b.dataset.k=key; b.dataset.c=c;
+    b.onclick=()=>{ st[key]=c; draw(); }; d.appendChild(b); }
+}
+colourRow("warp","warp"); colourRow("weft","weft");
+
+const cv=$("draft"), ctx=cv.getContext("2d");
+const cl=$("cloth"), cx=cl.getContext("2d");
+let geo;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const isUp = (e,p) => st.tie[st.tr[p]][st.th[e]] === 1;
+
+function draw(){
+  for(const b of pb.children) b.setAttribute("aria-pressed", String(b.dataset.n===st.name));
+  for(const b of cb.querySelectorAll(".sw")) b.setAttribute("aria-pressed", String(st[b.dataset.k]===b.dataset.c));
+  const dpr=window.devicePixelRatio||1, wpx=cv.clientWidth;
+  const cols=W+1+T, rows=S+1+P;
+  const c=Math.floor(wpx/cols);
+  const gx=Math.floor((wpx-c*cols)/2);
+  geo={c,gx};
+  cv.width=wpx*dpr; cv.height=c*rows*dpr; cv.style.height=(c*rows)+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,wpx,c*rows);
+  const on=css("--on"), grid=css("--grid");
+  const cell=(x,y,fill)=>{ ctx.fillStyle=fill; ctx.fillRect(gx+x*c+.5,y*c+.5,c-1,c-1); };
+  const box=(x,y)=>{ ctx.strokeStyle=grid; ctx.lineWidth=1; ctx.strokeRect(gx+x*c+.5,y*c+.5,c-1,c-1); };
+  // threading: columns 0..W-1, rows 0..S-1 (shaft 1 at bottom, like a real draft)
+  for(let e=0;e<W;e++) for(let s=0;s<S;s++){ const x=W-1-e, y=S-1-s; box(x,y); if(st.th[e]===s) cell(x,y,on); }
+  // tie-up: cols W+1.., rows 0..S-1
+  for(let t=0;t<T;t++) for(let s=0;s<S;s++){ const x=W+1+t,y=S-1-s; box(x,y); if(st.tie[t][s]) cell(x,y,on); }
+  // treadling: cols W+1.., rows S+1..
+  for(let p=0;p<P;p++) for(let t=0;t<T;t++){ const x=W+1+t,y=S+1+p; box(x,y); if(st.tr[p]===t) cell(x,y,on); }
+  // drawdown
+  for(let p=0;p<P;p++) for(let e=0;e<W;e++){ const x=W-1-e,y=S+1+p; cell(x,y,isUp(e,p)?st.warp:st.weft); }
+  ctx.strokeStyle=grid; ctx.strokeRect(gx+.5,(S+1)*c+.5,W*c-1,P*c-1);
+  drawCloth();
+  save();
+}
+
+function drawCloth(){
+  const dpr=window.devicePixelRatio||1, wpx=cl.clientWidth;
+  const k=Math.max(3,Math.round(wpx/96)); // px per thread
+  const nx=Math.ceil(wpx/k), ny=Math.ceil(Math.min(wpx*.55,300)/k);
+  const h=ny*k;
+  cl.width=wpx*dpr; cl.height=h*dpr; cl.style.height=h+"px";
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  for(let y=0;y<ny;y++) for(let x=0;x<nx;x++){
+    const e=x%W, p=y%P, up=isUp(e,p);
+    cx.fillStyle=up?st.warp:st.weft;
+    cx.fillRect(x*k,y*k,k,k);
+    // a little shading so threads read as threads
+    cx.fillStyle="rgba(0,0,0,.16)";
+    if(up){ cx.fillRect(x*k,y*k,1,k); cx.fillRect(x*k+k-1,y*k,1,k); }
+    else { cx.fillRect(x*k,y*k,k,1); cx.fillRect(x*k,y*k+k-1,k,1); }
+    cx.fillStyle="rgba(255,255,255,.10)";
+    if(up) cx.fillRect(x*k+Math.floor(k/2),y*k,1,k); else cx.fillRect(x*k,y*k+Math.floor(k/2),k,1);
+  }
+}
+
+cv.addEventListener("click", ev=>{
+  const r=cv.getBoundingClientRect(), {c,gx}=geo;
+  const x=Math.floor((ev.clientX-r.left-gx)/c), y=Math.floor((ev.clientY-r.top)/c);
+  if(x<0||y<0) return;
+  if(y<S && x<W){ st.th[W-1-x]=S-1-y; }
+  else if(y<S && x>W && x<=W+T){ const t=x-W-1, s=S-1-y; st.tie[t][s]^=1; }
+  else if(y>S && y<=S+P && x>W && x<=W+T){ st.tr[y-S-1]=x-W-1; }
+  else if(y>S && y<=S+P && x<W){ // tapping the cloth flips that crossing in the tie-up
+    const e=W-1-x, p=y-S-1; st.tie[st.tr[p]][st.th[e]]^=1; }
+  else return;
+  st.name=null; draw();
+});
+
+$("mirror").onclick=()=>{ const h=Math.ceil(P/2); for(let p=h;p<P;p++) st.tr[p]=st.tr[P-1-p]; st.name=null; draw(); };
+$("tromp").onclick=()=>{ for(let p=0;p<P;p++) st.tr[p]=st.th[p%W]; st.name=null; draw(); };
+$("rand").onclick=()=>{
+  const rnd=n=>Math.floor(Math.random()*n);
+  // a random walk on shafts reads like a real threading; same for treadling
+  const walk=n=>{ const a=[rnd(S)]; while(a.length<n){ const d=[1,-1,1,-1,0,2][rnd(6)]; a.push((a[a.length-1]+d+S)%S);} return a; };
+  const half=walk(W/2); st.th=half.concat([...half].reverse());
+  st.tie=Array.from({length:T},()=>{ let r; do r=Array.from({length:S},()=>rnd(2)); while(r.every(v=>v)||r.every(v=>!v)); return r; });
+  st.tr=walk(P/2); st.tr=st.tr.concat([...st.tr].reverse());
+  const a=rnd(PALETTE.length); let b; do b=rnd(PALETTE.length); while(b===a);
+  st.warp=PALETTE[a]; st.weft=PALETTE[b]; st.name=null; draw();
+};
+
+let rz; addEventListener("resize",()=>{ clearTimeout(rz); rz=setTimeout(draw,80); });
+matchMedia("(prefers-color-scheme:dark)").addEventListener?.("change",draw);
+draw();
+})();
+</script>
+</body>
+</html>

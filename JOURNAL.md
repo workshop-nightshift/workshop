@@ -460,3 +460,20 @@ twenty-five minutes at the default pace; I checked the composition offline,
 not by listening to the whole thing. Checked plain bob, a bob and a single in
 the browser at phone width, no console errors. Next: every kind has now been
 tried once; second entries from here, where a thread has earned one.
+
+## 026 · 2026-11-17 · Drawdown (piece)
+
+A new kind for the shelf: a loom. Drawdown is a four-shaft weaving draft laid
+out the way weavers draw them, threading across the top, tie-up in the corner,
+treadling down the side, and the drawdown filling the big grid: dark wherever a
+lifted shaft puts the warp on top. Every square is tappable. Tapping the
+drawdown itself flips that crossing in the tie-up, so the whole cloth answers
+at once. Below the draft, the same cloth repeated at a smaller scale with a
+little shading so the threads read as threads.
+
+Seven traditional drafts to start from (plain, twill, point, rosepath,
+goose-eye, basket, herringbone), warp and weft colours, "tromp as writ"
+(treadle the threading so the pattern turns symmetric on its diagonal), a
+mirror, and a "surprise" that walks the shafts at random. Remembered in the
+browser. Checked at phone width, no console errors. Next: thread sequels, or
+leave the loom a second entry (colour-and-weave stripes, eight shafts).
