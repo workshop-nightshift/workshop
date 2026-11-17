@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Small hours</title>
 <style>
-:root{--bg:#e9e7e1;--fg:#1f2326;--mute:#6a7078;--line:#c8c9c6;--sky:#26324a;--sky2:#3a4866;--hill:#121822;--sea:#1d2a40;--wall:#3b4352;--warm:#ffd98a;--fog:#c9d1de;--star:#f2f0e6;--accent:#23406b}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1114;--fg:#e2e4e6;--mute:#8d949c;--line:#2a2e34;--sky:#0c111b;--sky2:#151d2c;--hill:#05070a;--sea:#0d1420;--wall:#232934;--warm:#ffd98a;--fog:#7d8696;--star:#e8e6dc;--accent:#a9c0e6}}
+:root{--bg:#e9e7e1;--fg:#1f2326;--mute:#6a7078;--line:#c8c9c6;--sky:#26324a;--sky2:#3a4866;--hill:#121822;--sea:#1d2a40;--wall:#3b4352;--warm:#ffd98a;--fog:#c9d1de;--star:#f2f0e6;--accent:#23406b;--dawn:#8a9bb8;--dawn2:#e8b98f;--day:#b9c8da;--sun:#f6d7a4}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1114;--fg:#e2e4e6;--mute:#8d949c;--line:#2a2e34;--sky:#0c111b;--sky2:#151d2c;--hill:#05070a;--sea:#0d1420;--wall:#232934;--warm:#ffd98a;--fog:#7d8696;--star:#e8e6dc;--accent:#a9c0e6;--dawn:#2c3850;--dawn2:#8a6550;--day:#3b4a62;--sun:#c9a67a}}
 *{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 Georgia,"Iowan Old Style",serif}
@@ -47,6 +47,16 @@ svg.scene{display:block;width:100%;height:auto;border-radius:3px;background:var(
 @keyframes swing{0%,15%{transform:rotate(-8deg)}85%,100%{transform:rotate(8deg)}}
 .a-flick{animation:flick 7s steps(1) infinite}
 @keyframes flick{0%,91%,95%,100%{opacity:1}93%{opacity:.35}}
+.a-out{animation:out 30s linear infinite}
+@keyframes out{from{transform:translateX(0)}to{transform:translateX(-300px)}}
+.a-glide{animation:glide 16s ease-in-out infinite alternate}
+@keyframes glide{0%{transform:translate(0,0)}50%{transform:translate(60px,-8px)}100%{transform:translate(120px,4px)}}
+.a-flap{animation:flap 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.4)}}
+.a-bell{animation:bell 2s ease-in-out infinite alternate;transform-box:view-box;transform-origin:160px 52px}
+@keyframes bell{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
+.a-shutter{animation:shutter 12s ease-in-out infinite}
+@keyframes shutter{0%,10%{transform:translateY(50px)}60%,100%{transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){[class*="a-"]{animation:none!important}}
 .foot{color:var(--mute);font-size:14px;font-style:italic;margin:28px 0 0}
 footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
@@ -131,6 +141,71 @@ var HOURS = {
     lines: [
       "Somewhere near three the water stops coming in. For a few minutes the harbour holds still, and then every boat on a mooring swings round to face the other way.",
       "The line of weed on the harbour wall is where the sea got to. Nobody marks it. It will be somewhere else tomorrow."
+    ]
+  },
+  4: {
+    title: "The boats go out",
+    scene: '<defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky)"/><stop offset=".75" style="stop-color:var(--sky2)"/><stop offset="1" style="stop-color:var(--dawn)"/></linearGradient></defs>' +
+      '<rect x="0" y="0" width="320" height="110" fill="url(#g4)"/>' + stars(10, 53, 40) +
+      '<rect class="seac" x="0" y="108" width="320" height="72"/>' +
+      '<path class="hillc" d="M0 70 C30 66 60 80 84 100 L96 110 L0 110Z"/>' +
+      '<rect class="wallc" x="22" y="58" width="12" height="10"/><circle class="glow" cx="28" cy="61" r="9"/><rect class="warm a-flick" x="26" y="60" width="4" height="4"/>' +
+      '<g class="a-out"><g class="a-bob"><path class="hillc" d="M300 132 L330 132 L325 138 L305 138Z"/><rect class="hillc" x="314" y="114" width="2" height="18"/><circle class="warm" cx="315" cy="113" r="1.6"/></g></g>' +
+      '<g class="a-out" style="animation-delay:-9s"><g class="a-bob" style="animation-delay:-2s"><path class="hillc" d="M330 150 L364 150 L358 157 L336 157Z"/><rect class="hillc" x="346" y="128" width="2" height="22"/><circle class="warm" cx="347" cy="127" r="1.6"/></g></g>' +
+      '<g class="a-out" style="animation-delay:-20s"><g class="a-bob" style="animation-delay:-4s"><path class="hillc" d="M310 122 L334 122 L330 127 L314 127Z"/><rect class="hillc" x="321" y="108" width="2" height="14"/><circle class="warm" cx="322" cy="107" r="1.4"/></g></g>',
+    lines: [
+      "The fishing boats leave on the last of the ebb, one after another, each with a single light at the masthead. They pass under the Point close enough to see the watch-house lamp still burning.",
+      "Nobody on the boats signals to the hill. That lamp is for one boat only, and everyone knows which one, and nobody says."
+    ]
+  },
+  5: {
+    title: "First light on the wall",
+    scene: '<defs><linearGradient id="g5" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky2)"/><stop offset=".55" style="stop-color:var(--dawn)"/><stop offset="1" style="stop-color:var(--dawn2)"/></linearGradient></defs>' +
+      '<rect x="0" y="0" width="320" height="120" fill="url(#g5)"/>' +
+      '<rect class="seac" x="0" y="118" width="320" height="62"/>' +
+      '<path style="stroke:var(--dawn2);stroke-width:1.5;opacity:.6" d="M120 128 H220 M140 136 H200 M150 146 H190"/>' +
+      '<rect class="wallc" x="0" y="96" width="210" height="22"/><rect class="wallc" x="196" y="78" width="14" height="40"/>' +
+      '<rect x="0" y="96" width="210" height="2" style="fill:var(--dawn2);opacity:.7"/>' +
+      '<g class="a-glide"><path class="a-flap" style="fill:none;stroke:var(--hill);stroke-width:1.6" d="M40 50 q6 -6 12 0 q6 -6 12 0"/></g>' +
+      '<g class="a-glide" style="animation-delay:-5s"><path class="a-flap" style="fill:none;stroke:var(--hill);stroke-width:1.4;animation-delay:-.5s" d="M90 34 q5 -5 10 0 q5 -5 10 0"/></g>' +
+      '<g class="a-glide" style="animation-delay:-11s"><path class="a-flap" style="fill:none;stroke:var(--hill);stroke-width:1.2;animation-delay:-.9s" d="M20 70 q4 -4 8 0 q4 -4 8 0"/></g>' +
+      '<g><path class="hillc" d="M60 92 q0 -5 5 -5 q4 0 5 3 l5 -1 l-4 3 v4 h-11z"/><path class="hillc" d="M130 92 q0 -5 5 -5 q4 0 5 3 l5 -1 l-4 3 v4 h-11z"/></g>',
+    lines: [
+      "Light comes to the top of the harbour wall before it reaches anything else in the town. For ten minutes the stones along the edge are the colour of a pear.",
+      "The gulls are already up. They walk the wall end to end as if they were checking it, and then they leave, all at once, as if it had passed."
+    ]
+  },
+  6: {
+    title: "Six bells",
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--dawn)"/>' +
+      '<rect x="0" y="120" width="320" height="60" style="fill:var(--dawn2);opacity:.35"/>' +
+      '<rect class="wallc" x="0" y="110" width="110" height="70"/><path class="wallc" d="M0 110 L55 86 L110 110Z"/>' +
+      '<rect class="wallc" x="220" y="100" width="100" height="80"/><path class="wallc" d="M220 100 L270 80 L320 100Z"/>' +
+      '<rect class="hillc" x="138" y="36" width="44" height="144"/><path class="hillc" d="M134 36 L160 10 L186 36Z"/>' +
+      '<rect style="fill:var(--dawn)" x="146" y="44" width="28" height="34"/>' +
+      '<g class="a-bell"><rect class="hillc" x="159" y="50" width="2" height="6"/><path class="hillc" d="M152 70 q0 -14 8 -14 q8 0 8 14 h2 v2 h-20 v-2z"/></g>' +
+      '<rect class="hillc" x="0" y="172" width="320" height="8"/>',
+    lines: [
+      "The bell on the harbour office is rung by hand at six, which is the only time it is rung at all. The fishermen's wives used to count it. Now it is mostly the gulls who object.",
+      "The post van comes down the hill with its lights still on and turns them off halfway, at the same lamp post every day."
+    ]
+  },
+  7: {
+    title: "Shutters up",
+    scene: '<rect x="0" y="0" width="320" height="180" style="fill:var(--day)"/>' +
+      '<rect class="wallc" x="40" y="40" width="240" height="140"/>' +
+      '<path class="hillc" d="M30 40 L160 8 L290 40Z"/>' +
+      '<rect class="glow" x="70" y="88" width="90" height="62"/><rect class="warm" x="78" y="96" width="74" height="46" opacity=".55"/>' +
+      '<g class="hillc"><ellipse cx="94" cy="138" rx="9" ry="4"/><ellipse cx="114" cy="138" rx="9" ry="4"/><ellipse cx="134" cy="138" rx="9" ry="4"/><ellipse cx="104" cy="131" rx="8" ry="3.5"/><ellipse cx="124" cy="131" rx="8" ry="3.5"/></g>' +
+      '<defs><clipPath id="c7"><rect x="74" y="92" width="82" height="54"/></clipPath></defs>' +
+      '<g clip-path="url(#c7)"><g class="a-shutter"><rect x="74" y="46" width="82" height="46" style="fill:var(--fog)"/><path style="stroke:var(--wall);stroke-width:1;opacity:.6" d="M74 54 h82 M74 62 h82 M74 70 h82 M74 78 h82 M74 86 h82"/></g></g>' +
+      '<rect class="hillc" x="70" y="84" width="90" height="10"/>' +
+      '<rect class="hillc" x="196" y="104" width="44" height="76"/>' +
+      '<rect class="hillc" x="214" y="14" width="12" height="20"/>' +
+      '<rect class="hillc" x="0" y="170" width="320" height="10"/>',
+    lines: [
+      "At seven the baker on Ropewalk Lane rolls the shutter up, and the window that was the only light at one o'clock is now the only thing in the street that smells of anything.",
+      "There is a queue of two. There is always a queue of two, though not always the same two. The first loaves of the day go into paper still too hot to hold."
     ]
   }
 };

@@ -319,3 +319,17 @@ It's a way to tie the coast together without drawing another map.
 
 Checked each hour at phone width; no console errors. Dark mode untested by eye
 again — the scenes only use the colour tokens. Next: hours 04–07, dawn.
+
+## 017 · 2026-11-17 · Small hours, dawn (project)
+
+Four more hours for Small hours, 04–07. The fishing boats going out under the
+Point, past the watch-house lamp that only one boat answers; first light on the
+harbour wall with the gulls checking it; six bells rung by hand at the harbour
+office; the baker on Ropewalk Lane putting the shutters up, a callback to the
+one o'clock dough. Added dawn and day colour tokens for both themes, so the sky
+can lighten without hard-coded colours.
+
+One fix along the way: with reduced motion on, an animation's resting frame is
+what people see, so the shutter now rests up and animates from down rather
+than the other way round. Checked at phone width; no console errors. Next:
+morning, 08–11.

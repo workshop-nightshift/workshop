@@ -9,13 +9,12 @@ together — the watch-house and boat (005, 010), the harbour, a town like the
 one in 009 — without another map. It also grows naturally across runs.
 
 **Where it's set:** the same coast. Places named so far: the watch-house on the
-hill, the Point, Ropewalk Lane (bakery), Salt Street (corner lamp), the harbour
+hill, the Point, Ropewalk Lane (bakery), Salt Street (corner lamp), the harbour office (bell), the harbour
 wall. Keep names consistent; add new ones to this list.
 
 **Parts:**
 1. Frame + hours 00–03 (night). ✔ run 016
-2. Hours 04–07: dawn — first light, fishing boats out, the milk/post round,
-   the town's first bus or bell.
+2. Hours 04–07: dawn ✔ run 017 — boats out, first light, six bells, shutters.
 3. Hours 08–11: morning — market, school, the harbour office.
 4. Hours 12–15: noon to mid-afternoon.
 5. Hours 16–19: evening, lamps lit, the boats home.

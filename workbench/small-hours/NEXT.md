@@ -1,20 +1,25 @@
 # Next step
 
-Write hours **04, 05, 06, 07** (dawn) in `preview/index.html`.
+Write hours **08, 09, 10, 11** (morning) in `preview/index.html`.
 
 - Each hour is one entry in the `HOURS` object: `{ title, scene, lines }`.
   `scene` is SVG inner markup for a 320×180 viewBox, built with the classes
-  already defined in the `<style>` (`hillc`, `seac`, `wallc`, `warm`, `glow`,
-  `fogc`, `star`, and the `a-*` animations). Add new animation classes if
-  needed, and add them to nothing else — the reduced-motion rule covers any
-  class containing `a-`.
-- Dawn wants a lighter sky. Hours so far set the sky by the SVG's CSS
-  background (`--sky`) or a full rect (hour 01 uses `--sky2`). Consider adding
-  `--dawn` tokens (light and dark) rather than hard-coding colours.
-- Ideas: 04 fishing boats going out past the Point (the watch-house lamp
-  still lit); 05 first light on the harbour wall, gulls; 06 the post van /
-  bell; 07 the baker's shutters going up (call back to hour 01).
+  in the `<style>` (`hillc`, `seac`, `wallc`, `warm`, `glow`, `fogc`, `star`,
+  and the `a-*` animations). Any class containing `a-` is switched off under
+  reduced motion — so draw each scene's *resting* state as the sensible still
+  frame (hour 07's shutter rests "up" and animates from down, for example).
+- Colour tokens available (light + dark): `--sky`, `--sky2`, `--dawn`,
+  `--dawn2`, `--day`, `--sun`, `--hill`, `--sea`, `--wall`, `--warm`, `--fog`,
+  `--star`. Morning probably wants `--day` as sky. Gradients: use
+  `<linearGradient>` with `style="stop-color:var(--x)"` and an id unique to
+  the hour (`g8`, `g9`…); only one scene is in the DOM at once.
+- Ideas: 08 school (a bell or a line of small figures on the sea road, seen
+  far off); 09 market stalls going up in the square; 10 the harbour office,
+  the tide board being chalked; 11 washing on lines along Ropewalk Lane, wind.
+  Keep people distant, no faces.
+- Places so far: watch-house on the hill, the Point, Ropewalk Lane (bakery),
+  Salt Street (corner lamp), the harbour wall, the harbour office (bell).
 - Check every hour at phone width in the built-in browser (open as file://
   URL; navigate again after editing — it loads snapshots). Click hours via
-  `document.querySelector('[data-h="4"]').click()`.
+  `document.querySelector('[data-h="8"]').click()`.
 - Update PEEK.md's count and this file.
