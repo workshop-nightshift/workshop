@@ -376,3 +376,20 @@ One new animation (lamps lighting in turn, resting lit when motion is
 reduced). Twenty of twenty-four. Checked at phone width; no console errors.
 The boats at five are small, like the dog and gulls before them — the polish
 pass has a list now. Next: 20–23, back toward the watch.
+
+## 021 · 2026-11-17 · Small hours, late evening (project)
+
+Hours 20–23 for Small hours, which finishes the writing. At eight the evening
+watcher goes up the hill path with a hand lamp, one light zigzagging up the
+hill until the watch-house window comes on; at nine the harbour front is dark
+but for the inn's window and its unsteady copy in the water; at ten the timer
+puts out Salt Street's lamps in order, all but the corner lamp, and the cat
+from two o'clock sits under it early; at eleven one boat goes out alone round
+the Point, and the watcher writes a line for the drawer and crosses it out.
+That leads back to midnight, where the clock began.
+
+Three new animations (the climbing lantern, the window coming on, the boat
+leaving), each resting on a sensible still frame under reduced motion.
+Twenty-four of twenty-four. Checked at phone width; no console errors. The
+moored boats at nine are dark on dark water — added to the polish list. Next:
+the polish pass, then Small hours moves to the shelf.

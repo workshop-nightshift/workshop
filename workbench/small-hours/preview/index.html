@@ -79,6 +79,12 @@ svg.scene{display:block;width:100%;height:auto;border-radius:3px;background:var(
 @keyframes fill{0%,8%{transform:translateY(26px)}70%,100%{transform:translateY(0)}}
 .a-light{animation:light 12s ease-in-out infinite backwards}
 @keyframes light{0%,6%{opacity:.08}14%,92%{opacity:1}100%{opacity:.08}}
+.a-climb{animation:climb 36s linear infinite}
+@keyframes climb{0%{transform:translate(-144px,98px);opacity:0}3%{opacity:1}18%{transform:translate(-44px,80px)}36%{transform:translate(-124px,62px)}54%{transform:translate(-28px,40px)}70%{transform:translate(-84px,24px)}86%{transform:translate(0,0);opacity:1}89%,100%{transform:translate(0,0);opacity:0}}
+.a-lampon{animation:lampon 36s steps(1) infinite}
+@keyframes lampon{0%,87%{opacity:.1}88%,100%{opacity:1}}
+.a-leave{animation:leave 40s ease-in-out infinite}
+@keyframes leave{0%,6%{transform:translate(0,0);opacity:1}82%{transform:translate(-150px,-16px);opacity:1}92%,100%{transform:translate(-160px,-17px);opacity:0}}
 @media (prefers-reduced-motion:reduce){[class*="a-"]{animation:none!important}}
 .foot{color:var(--mute);font-size:14px;font-style:italic;margin:28px 0 0}
 footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
@@ -324,6 +330,64 @@ var HOURS = {
     lines: [
       "Seven is supper. Smoke goes up from every chimney but one: the bakery on Ropewalk Lane is dark, because its day started at one in the morning and has already ended.",
       "On the slip the boat that was painted at two has been turned right way up. Nobody saw it done. The paint is the same colour it was, and it looks better."
+    ]
+  },
+  20: {
+    title: "Up the hill path",
+    scene: '<defs><linearGradient id="g20" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky)"/><stop offset="1" style="stop-color:var(--sky2)"/></linearGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#g20)"/>' +
+      stars(30, 20, 70) +
+      '<path class="hillc" d="M0 112 C60 92 140 60 200 52 C240 48 280 50 320 54 L320 180 L0 180Z"/>' +
+      '<polyline points="60,150 160,132 80,114 176,92 120,76 204,52" style="fill:none;stroke:var(--fog);stroke-width:1;stroke-dasharray:2 3;opacity:.35"/>' +
+      '<rect class="wallc" x="196" y="38" width="16" height="14"/><path class="wallc" d="M193 38 L204 30 L215 38Z"/>' +
+      '<g class="a-lampon"><circle class="glow" cx="204" cy="44" r="11"/><rect class="warm" x="201" y="42" width="6" height="5"/></g>' +
+      '<g class="a-climb"><circle class="glow" cx="204" cy="49" r="6"/><circle class="warm" cx="204" cy="49" r="1.7"/></g>' +
+      '<rect class="wallc" x="0" y="154" width="34" height="26"/><path class="wallc" d="M0 154 L17.0 145 L34 154Z"/><rect class="wallc" x="36" y="148" width="28" height="32"/><path class="wallc" d="M36 148 L50.0 139 L64 148Z"/><rect class="wallc" x="66" y="158" width="40" height="22"/><path class="wallc" d="M66 158 L86.0 149 L106 158Z"/><rect class="wallc" x="108" y="150" width="30" height="30"/><path class="wallc" d="M108 150 L123.0 141 L138 150Z"/><rect class="wallc" x="140" y="156" width="26" height="24"/><path class="wallc" d="M140 156 L153.0 147 L166 156Z"/><rect class="warm" x="8" y="162" width="5" height="5"/><rect class="warm" x="44" y="156" width="5" height="6"/><rect class="warm" x="104" y="166" width="5" height="5" opacity=".7"/><rect class="warm" x="140" y="160" width="4" height="5"/>',
+    lines: [
+      "At eight the evening watcher goes up the hill path with a hand lamp. From the harbour it is one light crossing the hill and coming back, slower on the steep part.",
+      "At the top the light goes in, and a moment later the watch-house window comes on. Whoever it is will read the drawer before anything else. They always do."
+    ]
+  },
+  21: {
+    title: "One lit window",
+    scene: '<defs><linearGradient id="g21" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky)"/><stop offset="1" style="stop-color:var(--sky2)"/></linearGradient></defs><rect x="0" y="0" width="320" height="180" fill="url(#g21)"/>' +
+      stars(22, 21, 50) +
+      '<rect class="wallc" x="0" y="70" width="50" height="50"/><path class="wallc" d="M0 70 L25.0 58 L50 70Z"/><rect class="hillc" x="8" y="82" width="6" height="7" opacity=".55"/><rect class="hillc" x="22" y="82" width="6" height="7" opacity=".55"/><rect class="hillc" x="36" y="82" width="6" height="7" opacity=".55"/><rect class="wallc" x="52" y="80" width="44" height="40"/><path class="wallc" d="M52 80 L74.0 68 L96 80Z"/><rect class="hillc" x="60" y="92" width="6" height="7" opacity=".55"/><rect class="hillc" x="74" y="92" width="6" height="7" opacity=".55"/><rect class="wallc" x="98" y="64" width="56" height="56"/><path class="wallc" d="M98 64 L126.0 52 L154 64Z"/><rect class="hillc" x="106" y="76" width="6" height="7" opacity=".55"/><rect class="hillc" x="120" y="76" width="6" height="7" opacity=".55"/><rect class="hillc" x="134" y="76" width="6" height="7" opacity=".55"/><rect class="wallc" x="156" y="76" width="40" height="44"/><path class="wallc" d="M156 76 L176.0 64 L196 76Z"/><rect class="hillc" x="164" y="88" width="6" height="7" opacity=".55"/><rect class="hillc" x="178" y="88" width="6" height="7" opacity=".55"/><rect class="wallc" x="198" y="60" width="60" height="60"/><path class="wallc" d="M198 60 L228.0 48 L258 60Z"/><rect class="hillc" x="206" y="72" width="6" height="7" opacity=".55"/><rect class="hillc" x="220" y="72" width="6" height="7" opacity=".55"/><rect class="hillc" x="234" y="72" width="6" height="7" opacity=".55"/><rect class="hillc" x="248" y="72" width="6" height="7" opacity=".55"/><rect class="wallc" x="260" y="74" width="36" height="46"/><path class="wallc" d="M260 74 L278.0 62 L296 74Z"/><rect class="hillc" x="268" y="86" width="6" height="7" opacity=".55"/><rect class="hillc" x="282" y="86" width="6" height="7" opacity=".55"/><rect class="wallc" x="298" y="82" width="40" height="38"/><path class="wallc" d="M298 82 L318.0 70 L338 82Z"/><rect class="hillc" x="306" y="94" width="6" height="7" opacity=".55"/><rect class="hillc" x="320" y="94" width="6" height="7" opacity=".55"/>' +
+      '<rect class="seac" x="0" y="122" width="320" height="58"/><rect class="hillc" x="0" y="118" width="320" height="5"/>' +
+      '<rect class="glow" x="212" y="88" width="30" height="22"/><rect class="warm" x="218" y="92" width="18" height="13"/><path d="M227 92 v13 M218 98.5 h18" style="stroke:var(--wall);stroke-width:1.5"/><rect class="warm" x="214" y="70" width="26" height="6" opacity=".25"/>' +
+      '<rect class="warm a-twinkle" style="animation-delay:-0.0s;animation-duration:2.6s" x="219" y="128" width="16" height="2" opacity=".55"/><rect class="warm a-twinkle" style="animation-delay:-0.7s;animation-duration:3.0s" x="221" y="135" width="12" height="2" opacity=".55"/><rect class="warm a-twinkle" style="animation-delay:-1.4s;animation-duration:3.4s" x="218" y="142" width="17" height="2" opacity=".55"/><rect class="warm a-twinkle" style="animation-delay:-2.1s;animation-duration:3.8s" x="222" y="150" width="10" height="2" opacity=".55"/><rect class="warm a-twinkle" style="animation-delay:-2.8s;animation-duration:4.2s" x="220" y="158" width="13" height="2" opacity=".55"/>' +
+      '<g class="a-bob" style="animation-delay:-0s"><path class="hillc" d="M40 146 L70 146 L65 152 L45 152Z"/><rect class="hillc" x="54.0" y="126" width="2" height="20"/></g><g class="a-bob" style="animation-delay:-2s"><path class="hillc" d="M110 156 L146 156 L141 162 L115 162Z"/><rect class="hillc" x="127.0" y="132" width="2" height="24"/></g><g class="a-bob" style="animation-delay:-3.5s"><path class="hillc" d="M280 150 L306 150 L301 156 L285 156Z"/><rect class="hillc" x="292.0" y="132" width="2" height="18"/></g>',
+    lines: [
+      "By nine the harbour front is dark except for the inn, which has one lit window, and in the water under it a second one that will not keep still.",
+      "The boat that answers the lamp is on its mooring with the others. It looks like the others. That is rather the point."
+    ]
+  },
+  22: {
+    title: "The corner lamp",
+    scene: '<rect class="wallc" x="0" y="30" width="70" height="150"/><rect class="wallc" x="250" y="50" width="70" height="130"/>' +
+      '<rect class="hillc" x="0" y="150" width="320" height="30"/>' +
+      '<rect class="hillc" x="104" y="104" width="2" height="46"/><path class="hillc" d="M99 104 h12 l-2 -4 h-8z"/><circle class="fogc" cx="105" cy="105" r="1.4" opacity=".2"/>' +
+      '<rect class="hillc" x="219" y="112" width="2" height="38"/><path class="hillc" d="M215 112 h10 l-2 -3 h-6z"/><circle class="fogc" cx="220" cy="113" r="1.2" opacity=".2"/>' +
+      '<rect class="hillc" x="158" y="70" width="3" height="80"/><path class="hillc" d="M150 70 h19 l-3 -6 h-13z"/>' +
+      '<path class="glow" d="M152 72 L120 150 L200 150 L168 72Z"/><circle class="warm" cx="159.5" cy="72" r="2.4"/>' +
+      '<g class="a-drift" style="animation-duration:40s"><ellipse class="fogc" cx="60" cy="132" rx="60" ry="7" opacity=".22"/></g>' +
+      '<g><path class="a-swing" style="fill:none;stroke:var(--hill);stroke-width:2;stroke-linecap:round;animation-duration:3s" d="M178 149 q8 0 7 -8"/><ellipse class="hillc" cx="172" cy="144" rx="6.5" ry="6"/><circle class="hillc" cx="172" cy="135" r="4"/><path class="hillc" d="M168.5 133 l0.5 -5 l3 3.5z M175.5 133 l-0.5 -5 l-3 3.5z"/></g>',
+    lines: [
+      "At ten the timer on Salt Street turns the lamps off again in the order it turned them on, all but the corner lamp, which stays lit all night because nobody wrote down how to stop it.",
+      "The cat from two o'clock is out early. It sits under the lamp as if it had paid for it."
+    ]
+  },
+  23: {
+    title: "One boat goes out",
+    scene: stars(36, 23, 96) +
+      '<rect class="seac" x="0" y="118" width="320" height="62"/>' +
+      '<path class="hillc" d="M0 92 C30 82 70 84 100 100 L132 120 L0 120Z"/>' +
+      '<rect class="wallc" x="30" y="76" width="14" height="12"/><path class="wallc" d="M27 76 L37 69 L47 76Z"/><circle class="glow" cx="37" cy="81" r="10"/><rect class="warm" x="35" y="79" width="4" height="4"/>' +
+      '<rect class="wallc" x="236" y="106" width="84" height="14"/><rect class="wallc" x="232" y="102" width="8" height="18"/>' +
+      '<g class="a-bob" style="animation-delay:-1s"><path class="hillc" d="M258 134 L282 134 L277 140 L263 140Z"/><rect class="hillc" x="269.0" y="118" width="2" height="16"/></g><g class="a-bob" style="animation-delay:-2.5s"><path class="hillc" d="M290 140 L312 140 L307 146 L295 146Z"/><rect class="hillc" x="300.0" y="126" width="2" height="14"/></g>' +
+      '<g class="a-leave"><g class="a-bob"><path class="hillc" d="M214 148 L244 148 L238 154 L220 154Z"/><rect class="hillc" x="228" y="128" width="2" height="20"/><circle class="glow" cx="229" cy="127" r="7"/><circle class="warm" cx="229" cy="127" r="1.7"/></g></g>',
+    lines: [
+      "At eleven one boat leaves the harbour alone, with nothing in its hold. It is not fishing. It goes round the Point and waits there with the engine off.",
+      "Up on the hill the watcher writes the evening's line for the drawer: wind, sea, a boat going out. Then one more line that is not about any of those, crossed out."
     ]
   }
 };

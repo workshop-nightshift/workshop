@@ -10,7 +10,7 @@ one in 009 — without another map. It also grows naturally across runs.
 
 **Where it's set:** the same coast. Places named so far: the watch-house on the
 hill, the Point, Ropewalk Lane (bakery), Salt Street (corner lamp), the harbour office (bell, tide board), the harbour
-wall, the sea road and the school at its far end, the square (market), the harbour steps, the slip. Keep names consistent; add new ones to this list.
+wall, the sea road and the school at its far end, the square (market), the harbour steps, the slip, the hill path, the inn on the harbour front. Keep names consistent; add new ones to this list.
 
 **Parts:**
 1. Frame + hours 00–03 (night). ✔ run 016
@@ -18,7 +18,7 @@ wall, the sea road and the school at its far end, the square (market), the harbo
 3. Hours 08–11: morning ✔ run 018 — sea road to school, market stalls, tide board, washing.
 4. Hours 12–15: afternoon ✔ run 019 — noon shadows, market down + gulls, the slack hour, the board proved right.
 5. Hours 16–19: evening ✔ run 020 — school out, the boats home, lamps on Salt Street, supper smoke.
-6. Hours 20–23: night again, back toward the watch.
+6. Hours 20–23: night again ✔ run 021 — up the hill path, one lit window, the corner lamp, one boat goes out.
 7. Polish: sky colour by hour, a small "next hour in N minutes" line, check
    dark mode and phone width, then move to `pieces/012-small-hours/` (or
    whatever number is next) with a meta.json, kind "clock".

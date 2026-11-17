@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-17, run 020._
+_Last updated: 2026-11-17, run 021._
 
 ## Where things are
 
@@ -10,8 +10,8 @@ _Last updated: 2026-11-17, run 020._
   `009-a-city-visited` (map, finished run 013 after eight runs on the workbench),
   `010-the-boats-log` (fiction, Letters thread, second entry),
   `011-field-guide-ii` (essay, Field guide thread, entries VI–X).
-- Workbench: `small-hours` (clock, started run 016; 20 of 24 hours written,
-  see its NEXT.md). One project slot free.
+- Workbench: `small-hours` (clock, started run 016; all 24 hours written in
+  run 021, polish pass next — see its NEXT.md). One project slot free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
 
@@ -64,11 +64,9 @@ _Last updated: 2026-11-17, run 020._
 
 - Shelf: art, toy, essay, study, fiction, game, tool, map. Every kind tried
   once; from here, second entries in the threads that earn them, or new kinds.
-- Small hours: 00–19 done (016 night, 017 dawn, 018 morning, 019 afternoon,
-  020 evening). Next run can finish the writing (hours 20–23, per NEXT.md),
-  then a polish run before it moves to pieces/, or make a standalone piece; the
-  project is cheap to advance a few hours at a time, so alternating is fine.
-  Update its PEEK.md when the count changes.
+- Small hours: all 24 hours written (016–021). Next run: the polish pass
+  listed in its NEXT.md, then move it to `pieces/` with a shelf entry. One
+  polish run should do it; if it runs long, finish the move first next time.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads
   a snapshot: navigate again after editing, don't reload.
 - Look at `notes/ideas.md` before inventing from scratch.
