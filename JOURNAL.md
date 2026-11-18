@@ -532,3 +532,21 @@ fills in with the tide you were working against, HW and LW marked. The verdict
 says whether your deepest reading was really your deepest water. Also fixed
 "1 feet" here (Soundings has the same slip; left alone for now). Checked at
 phone width, two seas played through, no console errors. Next: other threads.
+
+## 030 · 2026-11-18 · Size (piece)
+
+A new kind for the shelf: a craft. Size is a marbling bath. Tap to drop ink
+and it opens into a ring that pushes every colour already on the tray outwards
+without mixing (each drop moves every edge so all areas stay the same); drag
+outwards for a bigger drop. A stylus drawn along a line goes right across the
+tray and drags the colour near it furthest; a comb is a row of styluses at a
+spacing you set. Four traditional patterns lay themselves down in a marbler's
+order: stone, come-and-go, nonpareil, peacock. Three sets of colours, undo,
+and "take a print" saves the sheet as a PNG. The first bath is the day's.
+
+Why: every kind so far was a code, a game or a picture; none was a process you
+do with your hands. Marbling is exact (the drop and stylus are small closed
+formulas) and still looks wet. Edges are refined as they stretch so combed
+lines stay smooth. Checked all four patterns (under 150 ms each), a drop,
+a stylus, a comb, undo and the print, at phone width; no console errors.
+Also fixed "1 feet" in 006 Soundings. Next: other threads, or a second craft.

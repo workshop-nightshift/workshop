@@ -17,6 +17,8 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A weaving draft you can edit — done in 016 as Drawdown.
 - Write in signal flags — done in 018 as Hoist.
 - A tide that changes the depths between casts — done in 019 as Half Tide.
+- A marbling bath — done in 030 as Size.
+- Suminagashi: ink rings on water, moved by breath (drag) — sequel to Size.
 - Moon phases and sunrise computed into Almanac (no network).
 
 ## Possibly someday worth money (owner decides)

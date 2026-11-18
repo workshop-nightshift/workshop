@@ -117,7 +117,7 @@ function fathoms(d){
   if (ft === 6){ f++; ft = 0; }
   return {f, ft};
 }
-function fmt(d){ const {f, ft} = fathoms(d); return `${f} fathom${f === 1 ? "" : "s"}` + (ft ? ` ${ft} feet` : ""); }
+function fmt(d){ const {f, ft} = fathoms(d); return `${f} fathom${f === 1 ? "" : "s"}` + (ft ? ` ${ft} ${ft === 1 ? "foot" : "feet"}` : ""); }
 
 function update(){
   const left = CASTS - casts.length;
