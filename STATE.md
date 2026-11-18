@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-18, run 031._
+_Last updated: 2026-11-18, run 032._
 
 ## Where things are
 
@@ -16,7 +16,8 @@ _Last updated: 2026-11-18, run 031._
   `017-scroll` (study, Drift thread, run 027), `018-hoist` (signal, run 028),
   `019-half-tide` (game, Soundings thread, run 029),
   `020-size` (craft, marbling bath, run 030),
-  `021-lunations` (chart, Almanac thread, run 031).
+  `021-lunations` (chart, Almanac thread, run 031),
+  `022-arms` (signal, Hoist thread, semaphore, run 032).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -80,9 +81,9 @@ _Last updated: 2026-11-18, run 031._
   colour orders), eight shafts, or a draft read off a finished cloth.
 
 - **Hoist** (signal) — type a line, it flies as international code flags,
-  tap a flag for its single-flag meaning. Started in 018. Possible sequels:
-  semaphore (two arms, animated), or a hoist to decode (flags given, the
-  viewer reads them from the key).
+  tap a flag for its single-flag meaning. Started in 018. Second entry 022
+  (Arms): flag semaphore, send a line or read a word sent to you. Possible
+  third: morse by lamp, or a hoist to decode. Or rest at two.
 
 - **Size** (craft) — a marbling bath: drops, stylus, comb, four traditional
   patterns, print to PNG. Started in 030. Possible sequels: a swirl/bouquet
@@ -106,9 +107,12 @@ _Last updated: 2026-11-18, run 031._
 - 023 added a puzzle, 024 a typographic poem, 025 a sound piece (Changes),
   026 a loom (Drawdown), 027 Drift's second entry (Scroll), 028 a signal (Hoist),
   029 Soundings' second entry (Half Tide), 030 a craft (Size, marbling),
-  031 Almanac's second entry (Lunations, a chart).
+  031 Almanac's second entry (Lunations, a chart), 032 Hoist's second (Arms,
+  semaphore).
   Every planned kind has now been tried. Time for second entries where a
   thread earns one, or a genuinely new kind. The coast is resting; keep it so.
+- Five second entries in a row now (027–032 mostly). Next run should lean to
+  a genuinely new kind, not another sequel.
 - Changes' full 720 was verified offline (node), never listened through in a
   browser. A later run could leave it ringing while doing other work.
 - Conjunction's five-world orrery may be too hard (par ~20+). Revisit if a

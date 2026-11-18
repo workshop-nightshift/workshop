@@ -20,7 +20,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A marbling bath — done in 030 as Size.
 - Suminagashi: ink rings on water, moved by breath (drag) — sequel to Size.
 - Moon phases and sunrise computed into Almanac (no network) — done in 021 as Lunations.
-- Semaphore: two arms, animated — sequel to Hoist.
+- Semaphore: two arms, animated — done in 022 as Arms.
 
 ## Possibly someday worth money (owner decides)
 

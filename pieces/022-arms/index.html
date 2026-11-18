@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arms</title>
+<style>
+:root{--bg:#eef1f2;--fg:#1b1e20;--mute:#68717a;--line:#cfd6db;--sky:#e3e9ec;--ground:#c9d0d4;--body:#2b3034;--hi:#c8202f}
+@media (prefers-color-scheme:dark){:root{--bg:#111416;--fg:#e4e7e9;--mute:#8f989f;--line:#2a2f33;--sky:#171c1f;--ground:#262c30;--body:#cfd5d9;--hi:#e0525c}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:680px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button[aria-pressed=true]{background:var(--sky);border-color:var(--mute)}
+label{display:block;color:var(--mute);font-size:14px}
+input[type=text]{font:16px/1.3 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;width:100%;padding:7px 9px;margin-top:3px;color:var(--fg);background:var(--sky);border:1px solid var(--line);border-radius:4px}
+canvas#c{display:block;width:100%;height:auto;margin-top:12px;background:var(--sky);border:1px solid var(--line)}
+#tape{font:15px/1.6 ui-monospace,Menlo,monospace;letter-spacing:.14em;margin:8px 0 0;min-height:1.6em;word-break:break-word;color:var(--mute)}
+#tape .on{color:var(--hi);text-decoration:underline;text-underline-offset:3px}
+#tape .done{color:var(--fg)}
+#note{min-height:1.5em;margin:4px 0 0;color:var(--mute);font-size:14px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+select{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:2px 4px}
+a{color:inherit}
+#readbox{display:none;margin-top:10px}
+#readbox .row{margin-top:6px}
+#verdict{min-height:1.5em;margin:6px 0 0}
+#verdict b{font-weight:normal;font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+#key{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:2px 6px;padding:0;margin:0;list-style:none}
+#key li{display:flex;flex-direction:column;align-items:center;font:12px ui-monospace,Menlo,monospace;letter-spacing:.06em;padding:4px 0 6px;cursor:pointer;border-top:1px solid var(--line);text-align:center}
+#key li span{color:var(--mute);font:11px/1.2 Georgia,serif;letter-spacing:0;font-style:italic}
+#key canvas{width:56px;height:56px}
+details{margin-top:18px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Arms</h1>
+  <p class="sub">Two flags and a person to hold them. Say it from a distance.</p>
+  <div class="tabs" role="group" aria-label="mode">
+    <button id="mSend" aria-pressed="true">send</button>
+    <button id="mRead" aria-pressed="false">read</button>
+  </div>
+  <div id="sendbox">
+    <label for="msg">your signal
+      <input type="text" id="msg" maxlength="40" autocomplete="off" spellcheck="false" value="all well">
+    </label>
+  </div>
+  <canvas id="c" width="680" height="420" aria-label="A figure signalling with two flags."></canvas>
+  <p id="tape" aria-hidden="true"></p>
+  <p id="note" aria-live="polite"></p>
+  <div id="readbox">
+    <label for="guess">what did they say?
+      <input type="text" id="guess" maxlength="20" autocomplete="off" spellcheck="false">
+    </label>
+    <div class="row"><span><button id="check">check</button><button id="again">once more</button><button id="next">new word</button></span><span id="score"></span></div>
+    <p id="verdict" aria-live="polite"></p>
+  </div>
+  <div class="row">
+    <span><button id="play">signal again</button>
+      <label style="display:inline">pace <select id="pace"><option value="1.5">slow</option><option value="1" selected>steady</option><option value=".6">brisk</option></select></label></span>
+    <span><a href="../../">← shelf</a></span>
+  </div>
+  <h2>the positions, as you see them</h2>
+  <ul id="key"></ul>
+  <details><summary>about this</summary>
+    <p>Flag semaphore: each letter is a pair of arm positions, out of eight around the body, held long enough to be read through a glass.
+    The letters go round in circles. A to G keep one arm down and walk the other round; H to N keep one arm low and out and walk the other; and so on, each circle a little shorter, until Z.
+    J came late and was fitted in where there was room, which is why it sits outside the order.</p>
+    <p>Figures are sent with the same positions: a numeral sign first, then A for one through I for nine, and K for nought. J, held after them, means letters follow.
+    Between words the arms drop and cross in front. A doubled letter is sent twice with a dip between, so the reader can count it.</p>
+    <p>Everything here is drawn as you, the reader, see it: the signaller's right arm is on your left. In the read tab the word comes from a short list of things worth saying across water.
+    Your signal stays in the address, so it can be passed on.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const c = $("c"), g = c.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const RED = "#c8202f", YEL = "#f2c318";
+
+// directions as seen by the reader: 0 S, 1 SW, 2 W, 3 NW, 4 N, 5 NE, 6 E, 7 SE
+const D = {S:0,SW:1,W:2,NW:3,N:4,NE:5,E:6,SE:7};
+const P = s => s.split(" ").map(k => D[k]);
+const POS = {
+  A:P("SW S"),B:P("W S"),C:P("NW S"),D:P("N S"),E:P("S NE"),F:P("S E"),G:P("S SE"),
+  H:P("W SW"),I:P("NW SW"),K:P("SW N"),L:P("SW NE"),M:P("SW E"),N:P("SW SE"),
+  O:P("W NW"),P:P("W N"),Q:P("W NE"),R:P("W E"),S:P("W SE"),
+  T:P("NW N"),U:P("NW NE"),Y:P("NW E"),
+  J:P("N E"),V:P("N SE"),W:P("NE E"),X:P("NE SE"),Z:P("E SE"),
+  "#":P("N NE"), "/":P("NW SE"), " ":[0,0]
+};
+const NAMES = {"#":"numerals","/":"annul"," ":"rest"};
+const DIGIT = {"1":"A","2":"B","3":"C","4":"D","5":"E","6":"F","7":"G","8":"H","9":"I","0":"K"};
+const dx = d => -Math.sin(d * Math.PI / 4), dy = d => Math.cos(d * Math.PI / 4);
+
+// which arm (reader's left / right) takes which direction
+function arms(pair) {
+  if (pair[0] === 0 && pair[1] === 0) return [0, 0];
+  let [a, b] = pair;
+  const xa = dx(a), xb = dx(b);
+  if (xa > xb + 1e-6 || (Math.abs(xa - xb) < 1e-6 && a === 4)) [a, b] = [b, a];
+  // a goes on reader-left arm, b on reader-right
+  return [a, b];
+}
+// degrees, measured clockwise from straight down as the reader sees it
+const deg = d => d * 45;
+
+// ---------- sequence ----------
+function build(text) {
+  const out = [];
+  let nums = false, prev = null;
+  [...text.toUpperCase()].forEach((ch, i) => {
+    let sym;
+    if (/[0-9]/.test(ch)) {
+      if (!nums) { out.push({sym:"#", i, aux:true}); nums = true; }
+      sym = DIGIT[ch];
+    } else if (/[A-Z]/.test(ch)) {
+      if (nums) { out.push({sym:"J", i, aux:true}); nums = false; }
+      sym = ch;
+    } else if (/\s/.test(ch)) {
+      if (prev === " " || !out.length) return;
+      sym = " ";
+    } else return;
+    if (sym !== " " && prev === sym) out.push({sym:" ", i, dip:true});
+    out.push({sym, i, ch});
+    prev = sym;
+  });
+  while (out.length && out[out.length - 1].sym === " ") out.pop();
+  return out;
+}
+
+// ---------- drawing ----------
+let W = 680, H = 420;
+function fit() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  c.width = W * dpr; c.height = H * dpr;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function figure(ctx, cx, gy, s, A, B, opt = {}) {
+  // A,B: arm angles in degrees for reader-left, reader-right arm
+  const body = css("--body");
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.strokeStyle = body; ctx.fillStyle = body;
+  const hip = gy - 70 * s, sh = gy - 140 * s, head = gy - 164 * s;
+  // legs
+  ctx.lineWidth = 11 * s;
+  ctx.beginPath(); ctx.moveTo(cx - 12 * s, gy); ctx.lineTo(cx - 7 * s, hip); ctx.lineTo(cx + 7 * s, hip); ctx.lineTo(cx + 12 * s, gy); ctx.stroke();
+  // torso
+  ctx.lineWidth = 2 * s;
+  ctx.beginPath();
+  ctx.moveTo(cx - 18 * s, sh); ctx.lineTo(cx + 18 * s, sh); ctx.lineTo(cx + 12 * s, hip); ctx.lineTo(cx - 12 * s, hip); ctx.closePath(); ctx.fill();
+  // head
+  ctx.beginPath(); ctx.arc(cx, head, 14 * s, 0, 7); ctx.fill();
+  // arms + flags
+  const arm = (x0, a, side) => {
+    const r = a * Math.PI / 180, ux = -Math.sin(r), uy = Math.cos(r);
+    const L = 62 * s, st = 34 * s, F = 30 * s;
+    const ex = x0 + ux * L, ey = sh + uy * L;
+    ctx.strokeStyle = body; ctx.lineWidth = 8 * s;
+    ctx.beginPath(); ctx.moveTo(x0, sh); ctx.lineTo(ex, ey); ctx.stroke();
+    const tx = ex + ux * st, ty = ey + uy * st;
+    ctx.lineWidth = 2.2 * s; ctx.strokeStyle = opt.staff || "#7a6a55";
+    ctx.beginPath(); ctx.moveTo(ex - ux * 4 * s, ey - uy * 4 * s); ctx.lineTo(tx, ty); ctx.stroke();
+    // flag square hangs off the staff, on the side away from the body's midline (or downwind)
+    let px = -uy, py = ux;
+    if (Math.abs(ux) < .2) { px = side; py = 0; }
+    else if (px * (tx - cx) + py * (ty - head) < 0) { px = -px; py = -py; }
+    const flut = opt.flut || 0;
+    const ax = tx, ay = ty, bx = tx - ux * F, by = ty - uy * F;
+    const cxp = bx + px * F + flut * ux, cyp = by + py * F + flut * uy;
+    const dxp = ax + px * F + flut * ux * .6, dyp = ay + py * F + flut * uy * .6;
+    // red triangle on the staff side top, yellow the rest
+    ctx.fillStyle = YEL;
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.lineTo(cxp, cyp); ctx.lineTo(dxp, dyp); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = RED;
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.lineTo(cxp, cyp); ctx.closePath(); ctx.fill();
+    // hand
+    ctx.fillStyle = body; ctx.beginPath(); ctx.arc(ex, ey, 5 * s, 0, 7); ctx.fill();
+  };
+  arm(cx - 18 * s, A, -1);
+  arm(cx + 18 * s, B, 1);
+}
+
+function scene(A, B, t) {
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = css("--sky"); g.fillRect(0, 0, W, H);
+  const gy = H - 45;
+  // a low headland and a line of sea
+  g.fillStyle = css("--ground");
+  g.beginPath(); g.moveTo(0, gy + 8); g.quadraticCurveTo(W * .5, gy - 6, W, gy + 10); g.lineTo(W, H); g.lineTo(0, H); g.fill();
+  g.strokeStyle = css("--line"); g.lineWidth = 1;
+  g.beginPath(); g.moveTo(0, gy - 42); g.lineTo(W, gy - 42); g.stroke();
+  // the eight positions, faint
+  const sh = gy - 140 * 1.35;
+  g.strokeStyle = css("--line"); g.setLineDash([2, 5]);
+  for (const side of [-1, 1]) {
+    const x0 = W / 2 + side * 18 * 1.35;
+    for (let d = 0; d < 8; d++) {
+      g.beginPath(); g.moveTo(x0 + dx(d) * 50, sh + dy(d) * 50); g.lineTo(x0 + dx(d) * 166, sh + dy(d) * 166); g.stroke();
+    }
+  }
+  g.setLineDash([]);
+  figure(g, W / 2, gy, 1.35, A, B, {flut: reduce ? 0 : Math.sin(t / 180) * 2.5});
+}
+
+// ---------- playback ----------
+let seq = [], step = -1, from = [0, 0], to = [0, 0], tMove = 0, tStep = 0, playing = false, onDone = null, text = "";
+let cur = [-25, 25];
+const pace = () => +$("pace").value;
+const MOVE = 380;
+const hold = s => (s.dip ? 240 : s.sym === " " ? 700 : 950) * pace();
+function target(sym) { if (sym === " ") return [-25, 25]; const [a, b] = arms(POS[sym]); return [deg(a), deg(b)]; }
+// reader-left arm prefers to travel on the left, reader-right on the right (no swinging through the head)
+function sweep(a0, a1, side) {
+  // map onto a range where the arm never passes straight up through its own side boundary
+  // left arm lives mostly in 0..180, right arm 180..360; allow crossing via the bottom
+  const norm = side < 0 ? x => ((x + 90) % 360 + 360) % 360 - 90 : x => ((x - 90) % 360 + 360) % 360 + 90;
+  return [norm(a0), norm(a1)];
+}
+function start(s, cb) {
+  text = s; seq = build(s); step = -1; onDone = cb || null; playing = true;
+  from = cur.slice(); to = cur.slice(); tStep = performance.now(); tMove = tStep;
+  advance(tStep);
+}
+function advance(now) {
+  step++;
+  if (step >= seq.length) {
+    playing = false; from = cur.slice(); to = target(" "); tMove = now;
+    paintTape(); $("note").textContent = seq.length ? "end of signal" : "";
+    if (onDone) onDone();
+    return;
+  }
+  from = cur.slice(); to = target(seq[step].sym); tMove = now; tStep = now;
+  paintTape();
+  const s = seq[step];
+  if (mode === "send") $("note").textContent = s.dip ? "" : s.sym === " " ? "rest" : s.sym === "#" ? "numerals follow" : s.aux ? "letters follow" : (/[0-9]/.test(s.ch) ? s.ch + "  (as " + s.sym + ")" : s.sym);
+}
+const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+function frame(now) {
+  const k = reduce ? 1 : Math.min(1, (now - tMove) / (MOVE * Math.min(pace(), 1.2)));
+  const e = ease(k);
+  const L = sweep(from[0], to[0], -1), R = sweep(from[1], to[1], 1);
+  cur = [L[0] + (L[1] - L[0]) * e, R[0] + (R[1] - R[0]) * e];
+  scene(cur[0], cur[1], now);
+  if (playing && now - tStep > MOVE + hold(seq[step])) advance(now);
+  requestAnimationFrame(frame);
+}
+
+function paintTape() {
+  const t = $("tape"); t.textContent = "";
+  if (mode === "read") { t.textContent = playing ? "·".repeat(Math.max(0, step + 1)) : ""; return; }
+  const at = playing && seq[step] ? seq[step].i : Infinity;
+  [...text.toUpperCase()].forEach((ch, i) => {
+    const sp = document.createElement("span"); sp.textContent = ch;
+    if (i === at) sp.className = "on"; else if (i < at) sp.className = "done";
+    t.appendChild(sp);
+  });
+}
+
+// ---------- modes ----------
+let mode = "send";
+const WORDS = "anchor ashore boat calm come dawn drift east fog gale harbour help home hove keel lamp land light moor north oars pilot port reef safe sail shoal slack south starboard stay steady storm swell tide wait watch west wind".split(" ");
+let word = "", tries = 0, right = 0, done = 0, over = false;
+function setMode(m) {
+  mode = m;
+  $("mSend").setAttribute("aria-pressed", m === "send"); $("mRead").setAttribute("aria-pressed", m === "read");
+  $("sendbox").style.display = m === "send" ? "" : "none";
+  $("readbox").style.display = m === "read" ? "block" : "none";
+  $("play").style.display = m === "send" ? "" : "none";
+  $("note").textContent = "";
+  if (m === "read") newWord(); else sendNow();
+}
+function newWord() {
+  let w; do w = WORDS[Math.random() * WORDS.length | 0]; while (w === word);
+  word = w; tries = 0; over = false;
+  $("guess").value = ""; $("verdict").textContent = "";
+  showScore();
+  start(word, () => { $("note").textContent = "they've lowered their arms"; });
+}
+function showScore() { $("score").textContent = done ? right + " of " + done + " read" : ""; }
+function check() {
+  const v = $("guess").value.trim().toLowerCase().replace(/\s+/g, "");
+  if (!v || over) return;
+  tries++;
+  if (v === word) {
+    right++; done++; over = true;
+    $("verdict").innerHTML = "Yes — <b>" + word.toUpperCase() + "</b>" + (tries > 1 ? ", on the " + ["", "", "second", "third"][Math.min(tries, 3)] + " go." : ".");
+    showScore();
+    setTimeout(newWord, 1800);
+  } else {
+    let same = 0; for (let i = 0; i < Math.min(v.length, word.length); i++) if (v[i] === word[i]) same++;
+    $("verdict").innerHTML = tries < 3
+      ? "Not quite" + (v.length !== word.length ? " — it was " + word.length + " letters." : " — " + same + " of the letters are right where they are.")
+      : "It was <b>" + word.toUpperCase() + "</b>. Watch it once more, or take a new one.";
+    if (tries >= 3) { done++; over = true; showScore(); }
+  }
+}
+
+function sendNow() {
+  const v = $("msg").value;
+  try { history.replaceState(null, "", "#" + encodeURIComponent(v.trim().toLowerCase())); } catch (e) {}
+  start(v);
+}
+
+// ---------- key ----------
+function key() {
+  const ul = $("key");
+  const order = "ABCDEFGHIJKLMNOPQRSTUVWXYZ# /".split("");
+  for (const sym of order) {
+    const li = document.createElement("li");
+    const k = document.createElement("canvas");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    k.width = 56 * dpr; k.height = 56 * dpr;
+    const x = k.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const [a, b] = target(sym);
+    figure(x, 28, 54, .19, a, b);
+    li.appendChild(k);
+    li.appendChild(document.createTextNode(NAMES[sym] ? "" : sym));
+    if (NAMES[sym]) { const s = document.createElement("span"); s.textContent = NAMES[sym]; li.appendChild(s); }
+    li.title = sym === " " ? "rest (between words)" : sym === "#" ? "numerals follow" : sym === "/" ? "annul: ignore what I just sent" : "letter " + sym;
+    li.onclick = () => {
+      if (mode !== "send") { from = cur.slice(); to = target(sym); tMove = performance.now(); playing = false; $("note").textContent = li.title; return; }
+      if (sym === "/" || sym === "#") { from = cur.slice(); to = target(sym); tMove = performance.now(); playing = false; $("note").textContent = li.title; return; }
+      const m = $("msg"); if (m.value.length < 40) m.value += sym === " " ? " " : sym.toLowerCase();
+      sendNow();
+    };
+    ul.appendChild(li);
+  }
+}
+
+// ---------- wire ----------
+let deb;
+$("msg").addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(sendNow, 500); });
+$("msg").addEventListener("keydown", e => { if (e.key === "Enter") { clearTimeout(deb); sendNow(); } });
+$("play").onclick = sendNow;
+$("mSend").onclick = () => setMode("send");
+$("mRead").onclick = () => setMode("read");
+$("check").onclick = check;
+$("guess").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+$("again").onclick = () => start(word, () => { $("note").textContent = "they've lowered their arms"; });
+$("next").onclick = newWord;
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { $("key").textContent = ""; key(); });
+
+try { const h = decodeURIComponent(location.hash.slice(1)); if (h) $("msg").value = h.slice(0, 40); } catch (e) {}
+fit(); key();
+requestAnimationFrame(frame);
+setTimeout(sendNow, 300);
+})();
+</script>
+</body>
+</html>

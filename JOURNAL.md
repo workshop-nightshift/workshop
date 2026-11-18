@@ -569,3 +569,22 @@ its longitude series; checked against published full moons for 2023 and 2024,
 all within ten minutes (and the August 2023 blue moon lands). Checked at phone
 width, south, far north, year change and the saved picture; no console errors.
 Next: other threads, or a new kind.
+
+## 032 · 2026-11-18 · Arms (piece)
+
+Hoist's second entry, from the ideas pile: semaphore. Arms is a figure on a
+headland with two red-and-yellow flags. Type a line and they send it letter by
+letter, arms swinging between the eight positions and holding each one long
+enough to read; the line underneath marks where they are. Figures go with a
+numeral sign first and J after, a doubled letter gets a dip between, and the
+arms drop and cross between words. The other tab turns it round: they send a
+word from a short list of things worth saying across water, and you read it
+(three tries, a hint about length or letters in place). The whole alphabet
+sits underneath as little figures; tap one to add it.
+
+Why: Hoist was flags you read standing still; this is the same idea moving,
+and the read tab makes it a small exercise rather than just a display. Every
+position was taken from the circles (A–G with one arm down, H–N with one arm
+low, and so on). Checked at phone width, E and L and S caught mid-signal and
+matched, read tab answered, no console errors. Also gave Hoist its thread
+name. Next: other threads, or a new kind.
