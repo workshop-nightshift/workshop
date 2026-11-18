@@ -514,3 +514,21 @@ Why: the shelf had no piece that was simply a code you can write in, and a
 signal flag is a small, bright, exact design that rewards drawing all
 twenty-six. Checked all flags in one hoist, a tap, the presets and the key,
 no console errors. Next: second entries where a thread earns one.
+
+## 029 · 2026-11-18 · Half Tide (piece)
+
+Soundings' second entry, and the sequel its thread note and the ideas pile
+both asked for: a tide that changes the depths between casts. Same bank, same
+wreck in the deepest water, but now eleven casts at twenty-five minutes each,
+and every reading is the seabed plus whatever the tide has brought over it.
+The chart counts low water, so a big reading near high water can be a shallow
+place, and the hole she lies in can read modest at the bottom of the ebb. The
+harbour board gives a rough time of high water and says springs or neaps;
+casting twice in one spot shows how far the tide moved between.
+
+A strip under the chart marks each cast against the clock. When the buoy goes
+down, the chart is drawn, every sounding is reduced to low water, and the strip
+fills in with the tide you were working against, HW and LW marked. The verdict
+says whether your deepest reading was really your deepest water. Also fixed
+"1 feet" here (Soundings has the same slip; left alone for now). Checked at
+phone width, two seas played through, no console errors. Next: other threads.
