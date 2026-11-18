@@ -496,3 +496,21 @@ blinks doesn't count), and the drift picks among the best three, never just
 undoing the last change. About a fifth of the 512 rules pass. "Keep the scroll"
 hands over the last three thousand rows as a tall PNG with its margin notes.
 Checked at phone width, forced drifts, no console errors. Next: other threads.
+
+## 028 · 2026-11-18 · Hoist (piece)
+
+A new kind for the shelf: a signal. Type a line and it runs up a row of
+halyards in the twenty-six letter flags of the international code, one word
+per halyard, seven flags at most to a halyard. The flags are drawn once and
+then sliced into strips that ripple from the halyard out to the fly, with a
+gust that comes and goes (still under reduced motion). Under the hoist, the
+phonetic spelling. Tap a flag to read what it says when flown alone (O: man
+overboard; Y: I am dragging my anchor); a one-flag or known two-flag hoist
+reads its whole sentence, and NC and UW are buttons. Below, the full key;
+tapping a flag there adds it. The signal lives in the address, so a hoist can
+be passed on, and "keep the hoist" saves it as a PNG.
+
+Why: the shelf had no piece that was simply a code you can write in, and a
+signal flag is a small, bright, exact design that rewards drawing all
+twenty-six. Checked all flags in one hoist, a tap, the presets and the key,
+no console errors. Next: second entries where a thread earns one.

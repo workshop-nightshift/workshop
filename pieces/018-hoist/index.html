@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hoist</title>
+<style>
+:root{--bg:#eef1f2;--fg:#1b1e20;--mute:#68717a;--line:#cfd6db;--sky:#e3e9ec;--mast:#6d5a45;--rope:#8b7b68;--edge:#9aa3ab}
+@media (prefers-color-scheme:dark){:root{--bg:#111416;--fg:#e4e7e9;--mute:#8f989f;--line:#2a2f33;--sky:#171c1f;--mast:#9b8466;--rope:#7c6f60;--edge:#4a5258}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:680px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+label{display:block;color:var(--mute);font-size:14px}
+input{font:16px/1.3 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;width:100%;padding:7px 9px;margin-top:3px;color:var(--fg);background:var(--sky);border:1px solid var(--line);border-radius:4px}
+canvas#c{display:block;width:100%;height:auto;margin-top:12px;background:var(--sky);border:1px solid var(--line);touch-action:manipulation;cursor:pointer}
+#spell{font:12px/1.6 ui-monospace,Menlo,monospace;letter-spacing:.06em;color:var(--mute);margin:8px 0 0;min-height:1.6em;word-break:break-word}
+#read{min-height:3em;margin:6px 0 0}
+#read b{font-weight:normal;font-family:ui-monospace,Menlo,monospace}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+a{color:inherit}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+#key{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 12px;padding:0;margin:0;list-style:none}
+#key li{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.35;padding:5px 0;cursor:pointer;border-top:1px solid var(--line)}
+#key canvas{flex:none;width:36px;height:29px}
+#key b{font:12px ui-monospace,Menlo,monospace;letter-spacing:.06em;display:block}
+#key span{color:var(--mute)}
+details{margin-top:18px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Hoist</h1>
+  <p class="sub">Say it in flags. Each word goes up on its own halyard.</p>
+  <label for="msg">your signal
+    <input id="msg" maxlength="48" autocomplete="off" spellcheck="false" value="keep watch">
+  </label>
+  <canvas id="c" width="680" height="440" aria-label="Signal flags flying from a row of halyards. Tap a flag to read it."></canvas>
+  <p id="spell" aria-live="polite"></p>
+  <p id="read" aria-live="polite"></p>
+  <div class="row">
+    <span><button data-say="nc">NC</button><button data-say="uw">UW</button><button data-say="o">O</button><button id="png">keep the hoist</button></span>
+    <span><a href="../../">← shelf</a></span>
+  </div>
+  <h2>the flags, and what each one says alone</h2>
+  <ul id="key"></ul>
+  <details><summary>about this</summary>
+    <p>These are the twenty-six letter flags of the international code of signals, the ones ships still carry.
+    Flown alone, most of them carry a whole sentence; flown in pairs and threes they look up longer sentences in the code book.
+    Two are here as buttons: NC, which means a ship is in distress, and UW, which wishes another a pleasant voyage.</p>
+    <p>Spelling words out letter by letter, as this does, is something a signaller would only do in the last resort,
+    and it would be read with the book open. Numbers, and anything else that isn't a letter, are left off.
+    Tap a flag in the hoist to read it; tap one in the list to add it. The signal stays in the address, so it can be passed on.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const c = $("c"), g = c.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const R = "#c8202f", B = "#1f4fa0", Y = "#f2c318", K = "#151515", W = "#fbfbf6";
+const NAMES = "Alfa Bravo Charlie Delta Echo Foxtrot Golf Hotel India Juliett Kilo Lima Mike November Oscar Papa Quebec Romeo Sierra Tango Uniform Victor Whiskey X-ray Yankee Zulu".split(" ");
+const SAYS = {
+  A:"I have a diver down; keep well clear at slow speed.", B:"I am taking in, discharging or carrying dangerous goods.",
+  C:"Yes.", D:"Keep clear of me; I am manoeuvring with difficulty.", E:"I am altering my course to starboard.",
+  F:"I am disabled; communicate with me.", G:"I require a pilot.", H:"I have a pilot on board.",
+  I:"I am altering my course to port.", J:"I am on fire and have dangerous cargo on board; keep well clear of me.",
+  K:"I wish to communicate with you.", L:"You should stop your vessel instantly.", M:"My vessel is stopped and making no way through the water.",
+  N:"No.", O:"Man overboard.", P:"All persons should report on board, as the vessel is about to proceed to sea.",
+  Q:"My vessel is healthy and I request free pratique.", R:"No meaning alone; it waits for a partner.",
+  S:"I am operating astern propulsion.", T:"Keep clear of me; I am engaged in pair trawling.",
+  U:"You are running into danger.", V:"I require assistance.", W:"I require medical assistance.",
+  X:"Stop carrying out your intentions and watch for my signals.", Y:"I am dragging my anchor.", Z:"I require a tug."
+};
+const PAIRS = { NC:"I am in distress and require immediate assistance.", UW:"I wish you a pleasant voyage.", AC:"I am abandoning my vessel." };
+
+// ---- flag designs, drawn into a w×h box. Swallowtail flags cut their own notch. --------
+function rect(x, y, w, h, col){ g2.fillStyle = col; g2.fillRect(x, y, w, h); }
+let g2;
+const DESIGN = {
+  A:(w,h)=>{ rect(0,0,w/2,h,W); rect(w/2,0,w/2,h,B); },
+  B:(w,h)=>{ rect(0,0,w,h,R); },
+  C:(w,h)=>{ [B,W,R,W,B].forEach((col,i)=>rect(0,i*h/5,w,h/5+.5,col)); },
+  D:(w,h)=>{ rect(0,0,w,h,Y); rect(0,h/4,w,h/2,B); },
+  E:(w,h)=>{ rect(0,0,w,h/2,B); rect(0,h/2,w,h/2,R); },
+  F:(w,h)=>{ rect(0,0,w,h,W); g2.fillStyle=R; g2.beginPath(); g2.moveTo(w/2,0); g2.lineTo(w,h/2); g2.lineTo(w/2,h); g2.lineTo(0,h/2); g2.fill(); },
+  G:(w,h)=>{ for(let i=0;i<6;i++) rect(i*w/6,0,w/6+.5,h,i%2?B:Y); },
+  H:(w,h)=>{ rect(0,0,w/2,h,W); rect(w/2,0,w/2,h,R); },
+  I:(w,h)=>{ rect(0,0,w,h,Y); g2.fillStyle=K; g2.beginPath(); g2.arc(w/2,h/2,h*.24,0,7); g2.fill(); },
+  J:(w,h)=>{ rect(0,0,w,h,B); rect(0,h/3,w,h/3,W); },
+  K:(w,h)=>{ rect(0,0,w/2,h,Y); rect(w/2,0,w/2,h,B); },
+  L:(w,h)=>{ rect(0,0,w,h,K); rect(0,0,w/2,h/2,Y); rect(w/2,h/2,w/2,h/2,Y); },
+  M:(w,h)=>{ rect(0,0,w,h,B); saltire(w,h,W,.13); },
+  N:(w,h)=>{ for(let j=0;j<4;j++) for(let i=0;i<4;i++) rect(i*w/4,j*h/4,w/4+.5,h/4+.5,(i+j)%2?W:B); },
+  O:(w,h)=>{ rect(0,0,w,h,Y); g2.fillStyle=R; g2.beginPath(); g2.moveTo(0,0); g2.lineTo(w,0); g2.lineTo(w,h); g2.fill(); },
+  P:(w,h)=>{ rect(0,0,w,h,B); rect(w/3,h/3,w/3,h/3,W); },
+  Q:(w,h)=>{ rect(0,0,w,h,Y); },
+  R:(w,h)=>{ rect(0,0,w,h,R); rect(0,h*.4,w,h*.2,Y); rect(w/2-h*.1,0,h*.2,h,Y); },
+  S:(w,h)=>{ rect(0,0,w,h,W); rect(w/3,h/3,w/3,h/3,B); },
+  T:(w,h)=>{ rect(0,0,w/3,h,R); rect(w/3,0,w/3,h,W); rect(2*w/3,0,w/3+.5,h,B); },
+  U:(w,h)=>{ rect(0,0,w,h,W); rect(0,0,w/2,h/2,R); rect(w/2,h/2,w/2,h/2,R); },
+  V:(w,h)=>{ rect(0,0,w,h,W); saltire(w,h,R,.13); },
+  W:(w,h)=>{ rect(0,0,w,h,B); rect(w/6,h/6,w*2/3,h*2/3,W); rect(w/3,h/3,w/3,h/3,R); },
+  X:(w,h)=>{ rect(0,0,w,h,W); rect(0,h*.4,w,h*.2,B); rect(w/2-h*.1,0,h*.2,h,B); },
+  Y:(w,h)=>{ rect(0,0,w,h,Y); g2.save(); g2.beginPath(); g2.rect(0,0,w,h); g2.clip(); g2.fillStyle=R;
+             const s=(w+h)/10; for(let k=-h;k<w+h;k+=2*s){ g2.beginPath(); g2.moveTo(k,h); g2.lineTo(k+s,h); g2.lineTo(k+s+h,0); g2.lineTo(k+h,0); g2.fill(); } g2.restore(); },
+  Z:(w,h)=>{ const tri=(col,pts)=>{ g2.fillStyle=col; g2.beginPath(); g2.moveTo(w/2,h/2); for(const [x,y] of pts) g2.lineTo(x,y); g2.fill(); };
+             tri(Y,[[0,0],[w,0]]); tri(B,[[w,0],[w,h]]); tri(R,[[w,h],[0,h]]); tri(K,[[0,h],[0,0]]); }
+};
+function saltire(w,h,col,t){ g2.strokeStyle=col; g2.lineWidth=h*t*1.6; g2.beginPath(); g2.moveTo(0,0); g2.lineTo(w,h); g2.moveTo(w,0); g2.lineTo(0,h); g2.save(); g2.beginPath(); g2.rect(0,0,w,h); g2.clip(); g2.beginPath(); g2.moveTo(0,0); g2.lineTo(w,h); g2.moveTo(w,0); g2.lineTo(0,h); g2.stroke(); g2.restore(); }
+const SWALLOW = new Set(["A","B"]);
+
+function flagCanvas(L, w, h){
+  const cv = document.createElement("canvas"); cv.width = Math.ceil(w); cv.height = Math.ceil(h);
+  const prev = g2; g2 = cv.getContext("2d");
+  if (SWALLOW.has(L)){ g2.beginPath(); g2.moveTo(0,0); g2.lineTo(w,0); g2.lineTo(w*.72,h/2); g2.lineTo(w,h); g2.lineTo(0,h); g2.closePath(); g2.clip(); }
+  DESIGN[L](w, h);
+  // a thin edge so white flags hold their shape against a pale sky
+  g2.strokeStyle = "rgba(0,0,0,.28)"; g2.lineWidth = 1;
+  g2.beginPath();
+  if (SWALLOW.has(L)){ g2.moveTo(.5,.5); g2.lineTo(w-.5,.5); g2.lineTo(w*.72,h/2); g2.lineTo(w-.5,h-.5); g2.lineTo(.5,h-.5); g2.closePath(); }
+  else g2.rect(.5,.5,w-1,h-1);
+  g2.stroke();
+  g2 = prev;
+  return cv;
+}
+
+// ---- the message ---------------------------------------------------------------
+const MAXH = 7; // flags on one halyard
+function parse(s){
+  const words = s.toUpperCase().replace(/[^A-Z\s]/g, "").split(/\s+/).filter(Boolean), hoists = [];
+  for (const w of words) for (let i = 0; i < w.length; i += MAXH) hoists.push(w.slice(i, i + MAXH));
+  return hoists.slice(0, 8);
+}
+
+let hoists = [], layout = [], cache = new Map(), scale = 1, t0 = performance.now(), sel = null;
+const FW = 64, FH = 51, GAP = 5;
+
+function relayout(){
+  hoists = parse($("msg").value);
+  const n = Math.max(1, hoists.length), longest = Math.max(3, ...hoists.map(h => h.length));
+  const colW = FW + 46, W = Math.max(380, 30 + n * colW), H = 70 + longest * (FH + GAP) + 40;
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); scale = dpr;
+  c.style.aspectRatio = W + " / " + H;
+  const left = (W - n * colW) / 2 + 14;
+  layout = hoists.map((word, i) => ({ word, x: left + i * colW, top: 46, flags: [...word].map((L, j) => ({ L, y: 46 + j * (FH + GAP), phase: i * 1.7 + j * .6 })) }));
+  cache.clear();
+  for (const L of new Set(hoists.join(""))) cache.set(L, flagCanvas(L, FW * dpr, FH * dpr));
+  spell(); if (sel && !hoists[sel[0]]?.[sel[1]]) sel = null; readout();
+  try { history.replaceState(null, "", "#" + encodeURIComponent($("msg").value.trim().toLowerCase())); } catch(e){}
+  if (reduce) draw(0);
+}
+
+function spell(){
+  $("spell").textContent = hoists.length ? hoists.map(w => [...w].map(L => NAMES[L.charCodeAt(0) - 65].toUpperCase()).join(" ")).join("  /  ") : "nothing flying";
+}
+
+function readout(){
+  const r = $("read");
+  if (sel){ const L = hoists[sel[0]][sel[1]]; r.innerHTML = `<b>${L}</b> · ${NAMES[L.charCodeAt(0)-65]}. <em>${SAYS[L]}</em>`; return; }
+  const pair = hoists.length === 1 && PAIRS[hoists[0]];
+  if (pair) r.innerHTML = `<b>${hoists[0]}</b>, read from the book: <em>${pair}</em>`;
+  else if (hoists.length === 1 && hoists[0].length === 1) r.innerHTML = `<b>${hoists[0]}</b>, flown alone: <em>${SAYS[hoists[0]]}</em>`;
+  else if (hoists.length) r.innerHTML = `<em>Read top to bottom, halyard by halyard, left to right. Tap a flag to hear what it says alone.</em>`;
+  else r.innerHTML = `<em>Type a word to run it up.</em>`;
+}
+
+function draw(t){
+  const d = scale, W = c.width, H = c.height;
+  g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,W,H);
+  g.setTransform(d,0,0,d,0,0);
+  const w = W / d, h = H / d;
+  const gust = reduce ? 0 : .55 + .45 * Math.sin(t * .00031) * Math.sin(t * .00017 + 1);
+  // yard and halyards
+  g.strokeStyle = css("--mast"); g.lineWidth = 3; g.lineCap = "round";
+  g.beginPath(); g.moveTo(10, 24); g.lineTo(w - 10, 24); g.stroke();
+  g.fillStyle = css("--mast"); g.beginPath(); g.arc(w/2, 24, 4, 0, 7); g.fill();
+  for (const col of layout){
+    const bottom = col.flags.length ? col.flags.at(-1).y + FH + 14 : 60;
+    g.strokeStyle = css("--rope"); g.lineWidth = 1.2;
+    g.beginPath(); g.moveTo(col.x, 24); g.lineTo(col.x, bottom); g.stroke();
+    g.fillStyle = css("--rope"); g.beginPath(); g.arc(col.x, 24, 2.5, 0, 7); g.fill();
+    for (const f of col.flags) drawFlag(f, col.x, t, gust);
+  }
+  if (sel){
+    const col = layout[sel[0]], f = col && col.flags[sel[1]];
+    if (f){ g.strokeStyle = css("--fg"); g.lineWidth = 1.5; g.setLineDash([3,3]); g.strokeRect(col.x - 4, f.y - 4, FW + 10, FH + 8); g.setLineDash([]); }
+  }
+}
+
+function drawFlag(f, x0, t, gust){
+  const img = cache.get(f.L); if (!img) return;
+  const d = scale, slices = 16, sw = img.width / slices;
+  for (let i = 0; i < slices; i++){
+    const u = (i + .5) / slices;                     // 0 at the halyard, 1 at the fly
+    const wave = Math.sin(u * 4.2 - t * .006 + f.phase);
+    const dy = gust * 3.2 * u * wave;
+    const shade = gust * .14 * Math.cos(u * 4.2 - t * .006 + f.phase) * u;
+    const dx = x0 + (i * sw) / d - gust * 1.5 * u * u;
+    g.drawImage(img, i * sw, 0, sw + 1, img.height, dx, f.y + dy, sw / d + .6, FH * (1 - .03 * gust * u));
+    if (shade){ g.fillStyle = shade > 0 ? `rgba(255,255,255,${shade})` : `rgba(0,0,0,${-shade})`; g.fillRect(dx, f.y + dy, sw / d + .6, FH * (1 - .03 * gust * u)); }
+  }
+}
+
+function loop(t){ draw(t - t0); if (!document.hidden) requestAnimationFrame(loop); }
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !reduce) requestAnimationFrame(loop); });
+
+c.addEventListener("click", e => {
+  const r = c.getBoundingClientRect(), x = (e.clientX - r.left) * (c.width / scale) / r.width, y = (e.clientY - r.top) * (c.height / scale) / r.height;
+  sel = null;
+  layout.forEach((col, i) => col.flags.forEach((f, j) => { if (x >= col.x - 4 && x <= col.x + FW + 4 && y >= f.y - 3 && y <= f.y + FH + 3) sel = [i, j]; }));
+  readout(); if (reduce) draw(0);
+});
+
+$("msg").addEventListener("input", () => { sel = null; relayout(); });
+document.querySelectorAll("[data-say]").forEach(b => b.addEventListener("click", () => { $("msg").value = b.dataset.say; sel = null; relayout(); }));
+
+$("png").addEventListener("click", () => {
+  draw(reduce ? 0 : performance.now() - t0);
+  const out = document.createElement("canvas"); out.width = c.width; out.height = c.height;
+  const o = out.getContext("2d"); o.fillStyle = css("--sky"); o.fillRect(0, 0, out.width, out.height); o.drawImage(c, 0, 0);
+  out.toBlob(b => { if (!b) return; const a = document.createElement("a"); a.href = URL.createObjectURL(b);
+    a.download = "hoist-" + (hoists.join("-").toLowerCase() || "empty") + ".png"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); });
+});
+
+// ---- the key ---------------------------------------------------------------
+const key = $("key");
+for (let i = 0; i < 26; i++){
+  const L = String.fromCharCode(65 + i), li = document.createElement("li");
+  const cv = flagCanvas(L, 72, 58); cv.setAttribute("aria-hidden", "true");
+  li.appendChild(cv);
+  const tx = document.createElement("div"); tx.innerHTML = `<b>${L} · ${NAMES[i]}</b><span>${SAYS[L]}</span>`; li.appendChild(tx);
+  li.tabIndex = 0; li.setAttribute("role", "button"); li.setAttribute("aria-label", `add ${NAMES[i]}`);
+  const add = () => { const m = $("msg"); if (m.value.length < 48){ m.value += L.toLowerCase(); sel = null; relayout(); } };
+  li.addEventListener("click", add); li.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); add(); } });
+  key.appendChild(li);
+}
+
+try { const h = decodeURIComponent(location.hash.slice(1)); if (h) $("msg").value = h.slice(0, 48); } catch(e){}
+relayout();
+if (reduce) draw(0); else requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
