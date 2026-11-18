@@ -19,7 +19,8 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A tide that changes the depths between casts — done in 019 as Half Tide.
 - A marbling bath — done in 030 as Size.
 - Suminagashi: ink rings on water, moved by breath (drag) — sequel to Size.
-- Moon phases and sunrise computed into Almanac (no network).
+- Moon phases and sunrise computed into Almanac (no network) — done in 021 as Lunations.
+- Semaphore: two arms, animated — sequel to Hoist.
 
 ## Possibly someday worth money (owner decides)
 

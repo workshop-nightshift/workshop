@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lunations</title>
+<style>
+:root{--bg:#f1efea;--fg:#1d1c1a;--mute:#6f6a62;--line:#d6d1c7;--well:#e7e3da;
+  --day:#f8f3e4;--night:#b4bccd;--lit:#fffdf6;--dark:#34312c;--rim:#34312c;--mark:#9a5a2a}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--fg:#e6e3dd;--mute:#958f86;--line:#2c2b2e;--well:#1a1a1d;
+  --day:#2b2920;--night:#08090f;--lit:#ece5cf;--dark:#25252b;--rim:#5d5a62;--mark:#d79a62}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:680px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+canvas#c{display:block;width:100%;border:1px solid var(--line);touch-action:manipulation;cursor:pointer}
+canvas#c:focus-visible{outline:2px solid var(--mute);outline-offset:2px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin:0 0 10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--well);border-color:var(--mute)}
+input[type=number]{font:inherit;font-size:14px;width:5.5em;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:2px 4px}
+input[type=range]{width:150px;accent-color:var(--mute)}
+#lat-l{min-width:3.6em;display:inline-block;color:var(--fg)}
+#read{min-height:4.6em;margin:10px 0 0;font-size:14px}
+#read b{font-weight:normal;color:var(--fg)}
+#read .m{color:var(--mute)}
+#sum{color:var(--mute);font-size:14px;margin:8px 0 0}
+details{margin-top:18px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+@media print{.row,#read,details,.sub{display:none}body{padding:0}canvas#c{border:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Lunations</h1>
+  <p class="sub">A year on one page: every night's moon, and how long the dark lasts where you stand.</p>
+  <div class="row">
+    <span><label for="yr">year</label><input id="yr" type="number" min="1900" max="2100" step="1">
+      <button id="prev" aria-label="previous year">‹</button><button id="next" aria-label="next year">›</button></span>
+    <span><label for="lat">latitude</label><input id="lat" type="range" min="-66" max="66" step="1" value="52"><span id="lat-l"></span></span>
+  </div>
+  <div class="row">
+    <span role="group" aria-label="latitude presets" id="pre">
+      <button data-lat="0">equator</button>
+      <button data-lat="23">tropic</button>
+      <button data-lat="40">middle</button>
+      <button data-lat="52">north</button>
+      <button data-lat="64">far north</button>
+      <button data-lat="-35">south</button>
+    </span>
+    <span><button id="png">save a copy</button><button id="prt">print</button></span>
+  </div>
+  <canvas id="c" tabindex="0" aria-label="A year of moons: months across, days down. Tap a day, or use the arrow keys, to read it."></canvas>
+  <p id="read" aria-live="polite"></p>
+  <p id="sum"></p>
+  <details>
+    <summary>How it is worked out</summary>
+    <p>Months run across, days down. Each disc is the moon as it stands at midday that day, lit side drawn the way it looks from your hemisphere (right while waxing in the north, left in the south). A ring marks the day of a full moon; an empty disc the day of a new one. Times are in universal time, so a full moon late in the evening for one longitude is the next morning for another.</p>
+    <p>The paper behind each day is shaded by the length of the night at the chosen latitude: pale in midsummer, deep in midwinter. Sunrise and sunset are given in local sun time (noon is when the sun crosses your meridian on average), so they don't know about time zones or clocks going forward. Past the polar circles the sun stops rising or setting; the slider stops just short of them.</p>
+    <p>The moon's place comes from its longitude, worked with the dozen largest terms of the usual series, and the sun's with its two; the phases land within a few minutes of the published times for any year in the range. A second full moon in one calendar month is marked as a blue moon, which is the newer meaning of the phrase but the one most people use.</p>
+  </details>
+</main>
+<script>
+(()=>{
+const R=Math.PI/180,sin=x=>Math.sin(x*R),cos=x=>Math.cos(x*R);
+const DAY=864e5,MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const QN=['new moon','first quarter','full moon','last quarter'];
+const WD=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function sunMoon(ms){
+  const T=(ms/DAY+2440587.5-2451545)/36525;
+  const L0=280.46646+36000.76983*T,M=357.52911+35999.05029*T;
+  const C=(1.914602-0.004817*T)*sin(M)+0.019993*sin(2*M)+0.000289*sin(3*M);
+  const ls=L0+C;
+  const Lp=218.3164477+481267.88123421*T,D=297.8501921+445267.1114034*T,
+        Mp=134.9633964+477198.8675055*T,F=93.2720950+483202.0175233*T;
+  const lm=Lp+6.288774*sin(Mp)+1.274027*sin(2*D-Mp)+0.658314*sin(2*D)+0.213618*sin(2*Mp)
+    -0.185116*sin(M)-0.114332*sin(2*F)+0.058793*sin(2*D-2*Mp)+0.057066*sin(2*D-M-Mp)
+    +0.053322*sin(2*D+Mp)+0.045758*sin(2*D-M)-0.040923*sin(M-Mp)-0.034720*sin(D)-0.030383*sin(M+Mp);
+  let p=lm-ls; p=D+(((p-D)%360+540)%360-180);           // elongation, unwrapped
+  return {p,ls,L0,M};
+}
+function sunTimes(ms,lat){                               // local mean solar time, hours
+  const {ls,L0,M}=sunMoon(ms);
+  const eps=23.4393,dec=Math.asin(sin(eps)*sin(ls))/R;
+  const y=Math.tan(eps/2*R)**2,e=0.016708634;
+  const E=4/R*(y*sin(2*L0)-2*e*sin(M)+4*e*y*sin(M)*cos(2*L0)-0.5*y*y*sin(4*L0)-1.25*e*e*sin(2*M));
+  const noon=12-E/60;
+  const c=(sin(-0.833)-sin(lat)*sin(dec))/(cos(lat)*cos(dec));
+  if(c>=1) return {noon,len:0,polar:'night'};
+  if(c<=-1) return {noon,len:24,polar:'day'};
+  const H=Math.acos(c)/R/15;
+  return {noon,rise:noon-H,set:noon+H,len:2*H};
+}
+
+let year=new Date().getUTCFullYear(),lat=52,data=null,sel=null;
+const cv=document.getElementById('c'),read=document.getElementById('read'),sumEl=document.getElementById('sum');
+const yrI=document.getElementById('yr'),latI=document.getElementById('lat'),latL=document.getElementById('lat-l');
+
+function build(){
+  const days=[];
+  for(let m=0;m<12;m++){
+    const n=new Date(Date.UTC(year,m+1,0)).getUTCDate(),col=[];
+    for(let d=1;d<=n;d++){
+      const t0=Date.UTC(year,m,d),a=sunMoon(t0).p,b=sunMoon(t0+DAY).p,mid=sunMoon(t0+DAY/2).p;
+      const na=Math.floor(a/90),nb=Math.floor(b/90);
+      let ev=null;
+      if(na!==nb){ev={q:((nb%4)+4)%4,t:t0+DAY*((nb*90-a)/(b-a))}}
+      const ph=((mid%360)+360)%360;
+      col.push({m,d,t0,ph,k:(1-cos(ph))/2,ev,sun:sunTimes(t0+DAY/2,lat)});
+    }
+    days.push(col);
+  }
+  // blue moons and the summary
+  let fulls=0,blue=[],longest=null,shortest=null;
+  for(const col of days){
+    let f=0;
+    for(const c of col){
+      if(c.ev&&c.ev.q===2){fulls++;f++;if(f===2){c.blue=true;blue.push(c)}}
+      if(!longest||c.sun.len>longest.sun.len+1e-9)longest=c;
+      if(!shortest||c.sun.len<shortest.sun.len-1e-9)shortest=c;
+    }
+  }
+  data={days,fulls,blue,longest,shortest};
+}
+
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function hex(c){c=c.replace('#','');return[0,2,4].map(i=>parseInt(c.slice(i,i+2),16))}
+function mix(a,b,t){const A=hex(a),B=hex(b);return'rgb('+A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')+')'}
+
+function moon(ctx,x,y,r,ph,north,pal){
+  const k=(1-cos(ph))/2,wax=ph<180,right=wax===north;
+  ctx.save();ctx.translate(x,y);
+  ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.fillStyle=pal.dark;ctx.fill();
+  if(k>0.004){
+    ctx.beginPath();
+    // lit half
+    ctx.arc(0,0,r,-Math.PI/2,Math.PI/2,!right);
+    // terminator
+    const rx=r*Math.abs(1-2*k);
+    const bulge=k>0.5; // gibbous: terminator bulges into the dark half
+    ctx.ellipse(0,0,rx,r,0,Math.PI/2,-Math.PI/2,(right!==bulge)?true:false);
+    ctx.fillStyle=pal.lit;ctx.fill();
+  }
+  ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.lineWidth=Math.max(.6,r/9);ctx.strokeStyle=pal.rim;ctx.stroke();
+  ctx.restore();
+}
+
+const ROW=22,HEAD=26,FOOT=10;
+function geom(w){const cw=w/12;return{w,cw,h:HEAD+31*ROW+FOOT,r:Math.max(3.5,Math.min(7,cw*0.17)),nums:cw>=34}}
+
+function draw(ctx,w,opt={}){
+  const g=geom(w),pal={bg:css('--bg'),fg:css('--fg'),mute:css('--mute'),line:css('--line'),
+    day:css('--day'),night:css('--night'),lit:css('--lit'),dark:css('--dark'),rim:css('--rim'),mark:css('--mark')};
+  const top=opt.top||0;
+  ctx.fillStyle=pal.bg;ctx.fillRect(0,0,w,g.h+top);
+  ctx.save();ctx.translate(0,top);
+  ctx.textBaseline='middle';
+  const north=lat>=0;
+  for(let m=0;m<12;m++){
+    const x=m*g.cw;
+    ctx.fillStyle=pal.mute;ctx.textAlign='center';
+    ctx.font=(g.cw>=40?'13px ':'11px ')+'Georgia,serif';
+    ctx.fillText(g.cw>=48?MON[m].slice(0,3):MON[m][0],x+g.cw/2,HEAD/2+1);
+    for(const c of data.days[m]){
+      const y=HEAD+(c.d-1)*ROW;
+      const nf=1-c.sun.len/24;
+      ctx.fillStyle=mix(pal.day,pal.night,Math.min(1,Math.max(0,(nf-0.25)/0.5)));
+      ctx.fillRect(x+.5,y+.5,g.cw-1,ROW-1);
+      const mx=g.nums?x+g.cw-g.r-6:x+g.cw/2,my=y+ROW/2;
+      if(g.nums){
+        const wd=new Date(c.t0).getUTCDay();
+        ctx.textAlign='left';ctx.font='10px Georgia,serif';
+        ctx.fillStyle=wd===0?pal.fg:pal.mute;
+        ctx.fillText(String(c.d),x+5,my+.5);
+      }
+      moon(ctx,mx,my,g.r,c.ph,north,pal);
+      if(c.ev&&c.ev.q===2){ctx.beginPath();ctx.arc(mx,my,g.r+2.4,0,7);ctx.lineWidth=1.2;ctx.strokeStyle=c.blue?pal.mark:pal.fg;ctx.stroke()}
+      if(c.ev&&c.ev.q===0){ctx.beginPath();ctx.arc(mx,my,g.r,0,7);ctx.fillStyle=mix(pal.day,pal.night,.5);ctx.fill();ctx.lineWidth=1;ctx.strokeStyle=pal.rim;ctx.stroke()}
+      if(sel&&sel.m===c.m&&sel.d===c.d&&!opt.clean){ctx.lineWidth=1.5;ctx.strokeStyle=pal.fg;ctx.strokeRect(x+1.5,y+1.5,g.cw-3,ROW-3)}
+    }
+  }
+  ctx.restore();
+  return g;
+}
+
+function render(){
+  const w=Math.round(cv.clientWidth||600),g=geom(w),s=window.devicePixelRatio||1;
+  cv.style.height=g.h+'px';cv.width=Math.round(w*s);cv.height=Math.round(g.h*s);
+  const ctx=cv.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.scale(s,s);
+  draw(ctx,w);
+}
+
+const hm=h=>{h=((h%24)+24)%24;let H=Math.floor(h),M=Math.round((h-H)*60);if(M===60){H=(H+1)%24;M=0}return String(H).padStart(2,'0')+':'+String(M).padStart(2,'0')};
+const dur=h=>{const H=Math.floor(h),M=Math.round((h-H)*60);return M===60?(H+1)+'h 00m':H+'h '+String(M).padStart(2,'0')+'m'};
+function phaseName(c){
+  const p=c.ph,k=c.k;
+  if(k<0.02)return'new';if(k>0.98)return'full';
+  if(Math.abs(k-.5)<0.04)return p<180?'first quarter':'last quarter';
+  return(p<180?'waxing ':'waning ')+(k<.5?'crescent':'gibbous');
+}
+function readout(){
+  if(!sel){read.textContent='';return}
+  const c=data.days[sel.m][sel.d-1];
+  const date=WD[new Date(c.t0).getUTCDay()]+' '+c.d+' '+MON[c.m]+' '+year;
+  let ev='';
+  if(c.ev){const t=new Date(c.ev.t);ev=' <b>'+(c.blue?'Blue moon':QN[c.ev.q][0].toUpperCase()+QN[c.ev.q].slice(1))+'</b> at '+hm(t.getUTCHours()+t.getUTCMinutes()/60)+' UT.'}
+  const age=c.ph/12.1907;
+  const s=c.sun;
+  const sun=s.polar==='night'?'The sun does not rise.':s.polar==='day'?'The sun does not set.':
+    'Sunrise <b>'+hm(s.rise)+'</b>, sunset <b>'+hm(s.set)+'</b>; '+dur(s.len)+' of daylight, '+dur(24-s.len)+' of night.';
+  read.innerHTML='<b>'+date+'</b>.'+ev+'<br><span class="m">Moon '+phaseName(c)+', '+Math.round(c.k*100)+'% lit, '+age.toFixed(1)+' days old.</span><br>'+sun+' <span class="m">(sun time)</span>';
+}
+function summary(){
+  const L=data.longest,S=data.shortest,latTxt=fmtLat(lat);
+  let t='In '+year+' at '+latTxt+': '+data.fulls+' full moons';
+  if(data.blue.length)t+=' (the second in '+data.blue.map(b=>MON[b.m]).join(' and in ')+' is a blue moon)';
+  t+='. Longest day '+dur(L.sun.len)+' on '+L.d+' '+MON[L.m]+'; shortest '+dur(S.sun.len)+' on '+S.d+' '+MON[S.m]+'.';
+  sumEl.textContent=t;
+}
+const fmtLat=v=>v===0?'0°':Math.abs(v)+'° '+(v>0?'N':'S');
+
+function all(){
+  yrI.value=year;latI.value=lat;latL.textContent=fmtLat(lat);
+  document.querySelectorAll('#pre button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.lat===lat)));
+  build();render();readout();summary();
+}
+
+function pick(e){
+  const r=cv.getBoundingClientRect(),g=geom(r.width);
+  const m=Math.floor((e.clientX-r.left)/g.cw),d=Math.floor((e.clientY-r.top-HEAD)/ROW)+1;
+  if(m<0||m>11||d<1||d>data.days[m].length)return;
+  sel={m,d};render();readout();
+}
+cv.addEventListener('click',pick);
+cv.addEventListener('keydown',e=>{
+  if(!sel)sel={m:0,d:1};
+  let {m,d}=sel;const k=e.key;
+  if(k==='ArrowDown')d++;else if(k==='ArrowUp')d--;else if(k==='ArrowRight')m++;else if(k==='ArrowLeft')m--;else return;
+  e.preventDefault();
+  m=(m+12)%12;const n=data.days[m].length;
+  if(d<1){m=(m+11)%12;d=data.days[m].length}else if(d>n){if(k==='ArrowDown'){m=(m+1)%12;d=1}else d=n}
+  sel={m,d};render();readout();
+});
+yrI.addEventListener('change',()=>{const v=Math.round(+yrI.value);if(v>=1900&&v<=2100){year=v;if(sel&&sel.d>new Date(Date.UTC(year,sel.m+1,0)).getUTCDate())sel.d=28}all()});
+document.getElementById('prev').onclick=()=>{if(year>1900){year--;if(sel&&sel.m===1&&sel.d===29)sel.d=28;all()}};
+document.getElementById('next').onclick=()=>{if(year<2100){year++;if(sel&&sel.m===1&&sel.d===29)sel.d=28;all()}};
+latI.addEventListener('input',()=>{lat=+latI.value;all()});
+document.querySelectorAll('#pre button').forEach(b=>b.onclick=()=>{lat=+b.dataset.lat;all()});
+document.getElementById('prt').onclick=()=>window.print();
+document.getElementById('png').onclick=()=>{
+  const w=900,s=2,top=54,g=geom(w),oc=document.createElement('canvas');
+  oc.width=w*s;oc.height=(g.h+top+30)*s;
+  const ctx=oc.getContext('2d');ctx.scale(s,s);
+  ctx.fillStyle=css('--bg');ctx.fillRect(0,0,w,g.h+top+30);
+  draw(ctx,w,{top,clean:true});
+  ctx.fillStyle=css('--fg');ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.font='26px Georgia,serif';ctx.fillText('Lunations · '+year,8,34);
+  ctx.fillStyle=css('--mute');ctx.font='italic 14px Georgia,serif';ctx.textAlign='right';
+  ctx.fillText('moons and nights at '+fmtLat(lat),w-8,34);
+  ctx.textAlign='left';ctx.font='12px Georgia,serif';ctx.fillText(sumEl.textContent,8,g.h+top+20);
+  const a=document.createElement('a');a.download='lunations-'+year+'.png';a.href=oc.toDataURL('image/png');a.click();
+};
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(render,80)});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
+
+const now=new Date();
+sel={m:now.getUTCMonth(),d:now.getUTCDate()};
+all();
+})();
+</script>
+</body>
+</html>

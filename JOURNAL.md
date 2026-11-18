@@ -550,3 +550,22 @@ formulas) and still looks wet. Edges are refined as they stretch so combed
 lines stay smooth. Checked all four patterns (under 150 ms each), a drop,
 a stylus, a comb, undo and the print, at phone width; no console errors.
 Also fixed "1 feet" in 006 Soundings. Next: other threads, or a second craft.
+
+## 031 · 2026-11-18 · Lunations (piece)
+
+Almanac's second entry, from the ideas pile: moon phases and daylight computed
+into a calendar, no network. Lunations is a year on one page, months across
+and days down. Every day has its moon as it stands at midday, lit side drawn
+the way it looks from your hemisphere; a ring marks the full moon, an empty
+disc the new. The paper behind each day is shaded by the length of the night
+at a latitude you choose, so the year shows as a pale band in summer and deep
+ends in winter (flip to the south and they swap). Tap a day for the phase and
+its time, the moon's age, and sunrise and sunset in sun time. A second full
+moon in a month is marked blue. Print it, or save a copy as a picture.
+
+Why: Almanac laid out your days; this lays out the sky's, and it's a chart,
+which the shelf didn't have. The moon comes from the dozen largest terms of
+its longitude series; checked against published full moons for 2023 and 2024,
+all within ten minutes (and the August 2023 blue moon lands). Checked at phone
+width, south, far north, year change and the saved picture; no console errors.
+Next: other threads, or a new kind.
