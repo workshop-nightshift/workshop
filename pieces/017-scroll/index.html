@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scroll</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d1b18;--mute:#716b60;--line:#d9d3c6;--hi:#b5442a}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--hi:#e07a5f}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
+body{display:flex;flex-direction:column;font:14px/1.5 ui-monospace,Menlo,monospace}
+canvas{flex:1;width:100%;min-height:0;display:block;cursor:crosshair;touch-action:manipulation}
+#bar{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;flex-wrap:wrap;padding:10px 16px 4px;border-top:1px solid var(--line)}
+#rule{display:flex;align-items:center;gap:12px}
+#name{font-weight:600;font-size:16px;min-width:6.5em}
+#table{display:grid;grid-template-columns:auto repeat(5,14px);gap:2px 3px;font-size:10px;color:var(--mute);align-items:center}
+#table i{display:block;width:14px;height:14px;border:1px solid var(--line);border-radius:2px}
+#table i.on{background:var(--fg);border-color:var(--fg)}
+#table i.last{outline:2px solid var(--hi);outline-offset:1px}
+#table b{font-weight:400;text-align:center}
+#gen{color:var(--mute)}
+footer{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;padding:6px 16px 14px;color:var(--mute)}
+button{font:inherit;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 10px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--hi)}
+a{color:inherit}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="A one-dimensional automaton unrolling downward like a scroll; its rule changes one entry at a time, and each change is marked in the margin"></canvas>
+<div id="bar">
+  <div id="rule"><span id="name"></span><div id="table" aria-label="The rule: whether a cell lives, by its own state and how many of its four neighbours are alive"></div></div>
+  <span id="gen"></span>
+</div>
+<footer>
+  <span><button id="pp">pause</button> <button id="st">step</button> <button id="dr">drift now</button> <button id="kp">keep the scroll</button></span>
+  <span><a href="../../">← shelf</a> · tap the scroll to drop ink on the current row</span>
+</footer>
+<script>
+// A sequel to Drift, in one dimension. Each row is a line of cells; each cell looks at
+// itself and the two cells either side (four neighbours). The rule is ten bits: for a
+// dead or live cell with 0–4 live neighbours, does it live next row? Rows unroll downward
+// and the old ones scroll away. Every so often one bit of the rule flips. The flip is
+// chosen by looking ahead: each of the ten candidates is rehearsed on a copy of the
+// current row, and the drift picks among the ones that keep the scroll neither empty,
+// solid, nor boiling. Cells are coloured by the rule they were born under.
+const c = document.getElementById("c"), x = c.getContext("2d");
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const EVERY = 150;                  // rows between drifts
+let rule = 244;                     // starts in something with a bit of grain
+let epoch = 0, row = 0, nextDrift = EVERY, lastBit = -1;
+let W, S, dpr, cur, era, keepRows = [];   // keepRows: [{cells, era, mark}]
+const KEEP = 3000;
+
+function hue(e){ return (e * 137.5 + 20) % 360; }
+let dark = matchMedia("(prefers-color-scheme: dark)").matches;
+function cellCol(e){ return `hsl(${hue(e)} ${dark?45:38}% ${dark?66:38}%)`; }
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+function next(r, ru){
+  const n = new Uint8Array(W);
+  for (let i = 0; i < W; i++){
+    const s = r[(i-2+W)%W] + r[(i-1+W)%W] + r[(i+1)%W] + r[(i+2)%W];
+    n[i] = (ru >> (r[i]*5 + s)) & 1;
+  }
+  return n;
+}
+
+// How watchable is a rule from here? Rehearse 80 rows and look at the last 30:
+// density, and how much each row differs from the one before and two before
+// (two before, so a field that merely blinks doesn't count as alive).
+function rehearse(start, ru){
+  let r = start, h = [r];
+  for (let k = 0; k < 80; k++){ r = next(r, ru); h.push(r); }
+  let d = 0, a1 = 0, a2 = 0, n = 0;
+  for (let k = 50; k <= 80; k++){
+    const R = h[k], P = h[k-1], Q = h[k-2];
+    for (let i = 0; i < W; i++){ d += R[i]; a1 += R[i] !== P[i]; a2 += R[i] !== Q[i]; }
+    n += W;
+  }
+  d /= n; a1 /= n; a2 /= n;
+  const bump = (v, lo, hi) => v < lo ? v/lo : v > hi ? Math.max(0, 1 - (v-hi)/(1-hi)) : 1;
+  return bump(d, .12, .6) * bump(a2, .06, .38) * bump(a1, .06, .6);
+}
+
+function drift(){
+  const scored = [];
+  for (let b = 0; b < 10; b++){
+    if (b === lastBit) continue;          // don't just undo the last change
+    const ru = rule ^ (1 << b);
+    // average two rehearsals: one from the real row, one from a fresh scatter,
+    // so a rule isn't judged only on whatever the last one left behind
+    const s = (rehearse(cur, ru) + rehearse(scatterRow(.35), ru)) / 2;
+    scored.push({ b, s: s + Math.random()*.08 });
+  }
+  scored.sort((p, q) => q.s - p.s);
+  const pick = scored[Math.random() * 3 | 0];   // one of the three best, so it wanders
+  rule ^= 1 << pick.b;
+  lastBit = pick.b;
+  epoch++;
+  nextDrift = row + EVERY;
+  // if what's on the row now can't carry the new rule, give it fresh ink
+  const live = cur.reduce((p, v) => p + v, 0) / W;
+  if (live < .03 || live > .97) cur = scatterRow(.35, epoch);
+  return true;
+}
+
+function scatterRow(p, e){
+  const r = new Uint8Array(W);
+  for (let i = 0; i < W; i++){ r[i] = Math.random() < p ? 1 : 0; if (e != null && r[i]) era[i] = e; }
+  return r;
+}
+
+function size(){
+  dpr = Math.min(2, devicePixelRatio || 1);
+  const cw = c.clientWidth, ch = c.clientHeight;
+  S = Math.max(3, Math.round(cw / 200));
+  W = Math.max(40, Math.floor(cw / S));
+  c.width = Math.round(cw * dpr); c.height = Math.round(ch * dpr);
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const old = cur;
+  era = new Uint16Array(W);
+  cur = scatterRow(.35, epoch);
+  if (old) for (let i = 0; i < Math.min(W, old.length); i++) cur[i] = old[i];
+  keepRows = [];
+  x.fillStyle = css("--bg"); x.fillRect(0, 0, cw, ch);
+}
+
+function rows(){ return Math.floor(c.clientHeight / S); }
+
+// Paint one row at the bottom; everything above moves up a row.
+function paintRow(cells, er, mark){
+  const cw = c.clientWidth, ch = c.clientHeight, y = (rows() - 1) * S;
+  const shift = Math.round(S * dpr);
+  x.save(); x.setTransform(1, 0, 0, 1, 0, 0);
+  x.drawImage(c, 0, shift, c.width, c.height - shift, 0, 0, c.width, c.height - shift);
+  x.restore();
+  x.fillStyle = css("--bg"); x.fillRect(0, y, cw, ch - y);
+  for (let i = 0; i < W; ){
+    if (!cells[i]){ i++; continue; }
+    let j = i; while (j < W && cells[j] && er[j] === er[i]) j++;
+    x.fillStyle = cellCol(er[i]); x.fillRect(i*S, y, (j-i)*S, S);
+    i = j;
+  }
+  if (mark) drawMark(mark, y);
+}
+
+// A margin note where the rule changed: a hairline and the rule's number,
+// on a small backing so it reads over the cells. It scrolls away with its row.
+function drawMark(m, y){
+  const cw = c.clientWidth;
+  x.fillStyle = css("--hi"); x.globalAlpha = .7; x.fillRect(0, y, cw, Math.max(1, S/3)); x.globalAlpha = 1;
+  const t = `↓ rule ${m.rule}  ·  row ${m.row.toLocaleString("en")}`;
+  x.font = "11px ui-monospace,Menlo,monospace";
+  const w = x.measureText(t).width + 10, ty = y - 17;
+  x.fillStyle = css("--bg"); x.fillRect(cw - w - 8, ty, w, 16);
+  x.fillStyle = cellCol(m.epoch); x.fillRect(cw - w - 8, ty, 3, 16);
+  x.fillStyle = css("--fg"); x.fillText(t, cw - w, ty + 12);
+}
+
+let pendingMark = null;
+function step(){
+  if (row >= nextDrift) { drift(); pendingMark = { rule, row, epoch }; }
+  const n = next(cur, rule);
+  for (let i = 0; i < W; i++) if (n[i] && !cur[i]) era[i] = epoch;
+  cur = n; row++;
+  const live = cur.reduce((p, v) => p + v, 0);
+  if ((live === 0 || live === W) && nextDrift - row > 6) nextDrift = row + 6;  // an empty scroll doesn't wait long
+  const mark = pendingMark; pendingMark = null;
+  paintRow(cur, era, mark);
+  keepRows.push({ cells: cur, era: era.slice(), mark });
+  if (keepRows.length > KEEP) keepRows.shift();
+}
+
+function paintTable(){
+  let h = "<span></span>" + [0,1,2,3,4].map(n => `<b>${n}</b>`).join("");
+  for (const self of [0, 1]){
+    h += `<span>${self ? "live" : "dead"}</span>`;
+    for (let s = 0; s < 5; s++){
+      const b = self*5 + s, on = (rule >> b) & 1;
+      h += `<i class="${on ? "on" : ""}${b === lastBit ? " last" : ""}" title="${self ? "live" : "dead"} cell, ${s} live neighbours → ${on ? "lives" : "dies"}"></i>`;
+    }
+  }
+  $("table").innerHTML = h;
+  $("name").textContent = "rule " + rule;
+}
+function paintGen(){ $("gen").textContent = `row ${row.toLocaleString("en")} · drift in ${Math.max(0, nextDrift - row)}`; }
+
+let running = !reduce, last = 0, shownRule = -1;
+const interval = reduce ? 250 : 1000/30;
+function loop(t){
+  if (running && t - last >= interval){ last = t; step(); }
+  if (rule !== shownRule){ shownRule = rule; paintTable(); }
+  paintGen();
+  requestAnimationFrame(loop);
+}
+
+$("pp").onclick = () => { running = !running; $("pp").textContent = running ? "pause" : "play"; };
+$("pp").textContent = running ? "pause" : "play";
+$("st").onclick = () => step();
+$("dr").onclick = () => { nextDrift = row; step(); };
+c.addEventListener("pointerdown", e => {
+  const r = c.getBoundingClientRect();
+  const ci = Math.floor((e.clientX - r.left) / S), w = Math.max(3, W/12 | 0);
+  for (let i = ci - w; i <= ci + w; i++){
+    const k = (i + W) % W;
+    if (Math.random() < .5){ cur[k] ^= 1; if (cur[k]) era[k] = epoch; }
+  }
+  if (!running) step();
+});
+
+// Keep the scroll: every row still held (up to the last few thousand), drawn tall,
+// margin notes included, handed over as a PNG.
+$("kp").onclick = () => {
+  const n = keepRows.length; if (!n) return;
+  const s = 2, k = document.createElement("canvas"), g = k.getContext("2d");
+  k.width = W*s + 120; k.height = n*s + 40;
+  g.fillStyle = css("--bg"); g.fillRect(0, 0, k.width, k.height);
+  g.font = "11px ui-monospace,Menlo,monospace";
+  keepRows.forEach((r, j) => {
+    const y = 20 + j*s;
+    for (let i = 0; i < W; i++) if (r.cells[i]){ g.fillStyle = cellCol(r.era[i]); g.fillRect(i*s, y, s, s); }
+    if (r.mark){
+      g.fillStyle = css("--hi"); g.fillRect(0, y, W*s + 6, 1);
+      g.fillStyle = css("--fg"); g.fillText("rule " + r.mark.rule, W*s + 10, y + 4);
+    }
+  });
+  g.fillStyle = css("--mute");
+  g.fillText(`Scroll · rows ${(row - n + 1).toLocaleString("en")}–${row.toLocaleString("en")}`, 4, 13);
+  k.toBlob(b => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = `scroll-${row}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+};
+
+// Repaint what's held after a resize or a change of light, so nothing is lost but width.
+function repaint(){
+  const held = keepRows.slice(-rows());
+  const ww = W;
+  size();
+  for (const r of held){
+    const cells = new Uint8Array(W), er = new Uint16Array(W);
+    for (let i = 0; i < Math.min(W, ww); i++){ cells[i] = r.cells[i]; er[i] = r.era[i]; }
+    paintRow(cells, er, r.mark);
+    keepRows.push({ cells, era: er, mark: r.mark });
+  }
+  fill();
+}
+// run on until the page is full, so it never shows a blank top
+function fill(){ for (let k = keepRows.length, n = rows(); k < n; k++) step(); }
+let rt;
+addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(repaint, 200); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => { dark = e.matches; repaint(); });
+
+size();
+pendingMark = { rule, row: 0, epoch };
+// pre-roll a screenful so it opens mid-scroll rather than on a blank page
+fill();
+paintTable();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

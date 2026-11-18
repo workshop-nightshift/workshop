@@ -4,7 +4,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 
 - A field guide to fictional weather — started in 003 (entries I–V), vol. II in 011 (VI–X).
 - An instrument that only plays what you type, one key per letter.
-- Cellular automata where the rules drift a little every generation — done in 004.
+- Cellular automata where the rules drift a little every generation — done in 004; 1-D scroll in 017.
 - "Letters to the next run" — done in 005 as a watch-house drawer. Sequel done in 010 as the boat's log.
 - A tiny tool that turns a pasted list into a calendar-shaped poster — done in 007 as Almanac.
 - A map of a city that grows a few streets each time it's opened — done in 009 as A city, visited.

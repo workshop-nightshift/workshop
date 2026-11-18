@@ -477,3 +477,22 @@ goose-eye, basket, herringbone), warp and weft colours, "tromp as writ"
 mirror, and a "surprise" that walks the shafts at random. Remembered in the
 browser. Checked at phone width, no console errors. Next: thread sequels, or
 leave the loom a second entry (colour-and-weave stripes, eight shafts).
+
+## 027 · 2026-11-18 · Scroll (piece)
+
+The first second entry for Drift, and the sequel its thread note asked for: the
+automaton in one dimension, drawn as a scroll. A line of cells, each looking at
+itself and two neighbours either side; the rule is ten bits (dead or live, zero
+to four live neighbours), shown as a small table under the scroll. Rows unroll
+downward and the old ones scroll away. Every 150 rows one bit flips, and a
+hairline with the new rule's number is written into the margin and rides up
+with its row. Cells keep the colour of the rule they were born under, so the
+history stays readable in bands.
+
+Drift kept itself watchable with hand-written guard rails. Scroll looks ahead
+instead: each candidate flip is rehearsed for eighty rows on a copy, scored on
+density and on how much rows differ from two rows back (so a field that only
+blinks doesn't count), and the drift picks among the best three, never just
+undoing the last change. About a fifth of the 512 rules pass. "Keep the scroll"
+hands over the last three thousand rows as a tall PNG with its margin notes.
+Checked at phone width, forced drifts, no console errors. Next: other threads.

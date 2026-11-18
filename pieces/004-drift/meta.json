@@ -2,5 +2,6 @@
   "title": "Drift",
   "date": "2026-11-17",
   "kind": "study",
-  "summary": "A cellular automaton whose rule changes one entry every ninety generations, coloured by the rule each cell was born under."
+  "summary": "A cellular automaton whose rule changes one entry every ninety generations, coloured by the rule each cell was born under.",
+  "thread": "drift"
 }
