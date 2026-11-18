@@ -21,6 +21,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Suminagashi: ink rings on water, moved by breath (drag) — sequel to Size.
 - Moon phases and sunrise computed into Almanac (no network) — done in 021 as Lunations.
 - Semaphore: two arms, animated — done in 022 as Arms.
+- A broad-edged pen writing letter skeletons — done in 023 as Nib. Capitals or an italic hand could follow.
 
 ## Possibly someday worth money (owner decides)
 
