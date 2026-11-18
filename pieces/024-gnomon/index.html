@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gnomon</title>
+<style>
+:root{--bg:#f1ede3;--fg:#1d1b18;--mute:#77705f;--line:#d6cdbb;--paper:#e9e1cf;--stone:#ddd3bd;--ink:#2b2720;--shade:rgba(40,34,26,.42);--sun:#c8771c;--red:#a8381f;--curve:#5d7a8c}
+@media (prefers-color-scheme:dark){:root{--bg:#131210;--fg:#e8e3d8;--mute:#9a927f;--line:#2f2c26;--paper:#24211c;--stone:#2c2822;--ink:#e3dac6;--shade:rgba(0,0,0,.55);--sun:#e8a050;--red:#e2765c;--curve:#86a7ba}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:640px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+canvas{display:block;width:100%;max-width:560px;margin:0 auto;touch-action:none;cursor:grab}
+.read{text-align:center;margin:8px 0 0;min-height:3em}
+.read b{font-weight:normal;font-size:19px;font-variant-numeric:tabular-nums}
+.read small{display:block;color:var(--mute);font-size:14px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px 16px;margin-top:12px}
+.ctl label{display:flex;flex-direction:column;color:var(--mute);font-size:14px}
+.ctl label span{display:flex;justify-content:space-between}
+.ctl output{color:var(--fg);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--sun)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--paper);border-color:var(--mute)}
+a{color:inherit}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+p{margin:.6em 0}
+.prose{max-width:36em}
+</style>
+</head>
+<body>
+<main>
+  <h1>Gnomon</h1>
+  <p class="sub">a horizontal sundial laid out for wherever you say you are</p>
+
+  <canvas id="c" aria-label="a horizontal sundial with the shadow of its gnomon"></canvas>
+  <p class="read" id="read" aria-live="polite"></p>
+
+  <div class="ctl">
+    <label><span>latitude <output id="olat"></output></span><input type="range" id="lat" min="-65" max="65" value="52"></label>
+    <label><span>day <output id="oday"></output></span><input type="range" id="day" min="1" max="365" value="322"></label>
+    <label><span>sun time <output id="otim"></output></span><input type="range" id="tim" min="0" max="1440" step="2" value="630"></label>
+  </div>
+
+  <div class="row">
+    <span><button id="play" aria-pressed="false">run the day</button><button id="year" aria-pressed="false">run the year</button></span>
+    <span><button id="curves" aria-pressed="true">date lines</button><button id="ana" aria-pressed="false">noon mark</button></span>
+  </div>
+  <div class="row">
+    <span>drag the shadow round the dial to change the hour</span>
+    <span><button id="save">save picture</button><a href="../../">← shelf</a></span>
+  </div>
+
+  <h2>about</h2>
+  <div class="prose">
+    <p>The gnomon is the triangle standing on the dial, and the edge that throws the shadow, the style, is not upright. It leans toward the celestial pole at exactly the latitude, so it lies parallel to the earth's axis. The sun then turns round it once a day at an even fifteen degrees an hour, whatever the season, and the shadow of that edge falls on the same line at the same hour all year. That is the whole trick, and the reason every dial is made for one latitude only.</p>
+    <p>Fifteen even degrees around a tilted edge do not land as fifteen even degrees on a flat stone. The hour lines crowd toward noon and spread toward morning and evening; the rule is that the tangent of a line's angle from noon is the sine of the latitude times the tangent of the hour. Move the latitude and watch them gather or fan. Near the equator the dial nearly folds flat; nearer the pole it opens to an even clock face.</p>
+    <p>The date lines are traced by the tip of the style: the summer solstice nearest the gnomon, the equinox a straight line across, the winter solstice farthest out. The shadow's tip rides one of them each day.</p>
+    <p>A sundial tells the sun's time, which runs fast and slow against a clock by up to a quarter of an hour over the year, because the earth's orbit is not a circle and its axis is tilted. Turn on the noon mark to see where the tip falls at twelve by a clock kept to the average sun: not a point but a figure eight, the analemma. Neither number here knows about time zones or summer time.</p>
+  </div>
+</main>
+<script>
+(function(){
+'use strict';
+var D=Math.PI/180;
+var $=function(id){return document.getElementById(id);};
+var cv=$('c'),g=cv.getContext('2d');
+var st={lat:52,day:322,t:630,curves:true,ana:false,play:false,year:false};
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+
+// ---------- the sun ----------
+function decl(d){return 23.44*Math.sin(2*Math.PI*(d-81)/365);}           // degrees
+function eot(d){var B=2*Math.PI*(d-81)/364;return 9.87*Math.sin(2*B)-7.53*Math.cos(B)-1.5*Math.sin(B);} // minutes, sun minus clock
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],ML=[31,28,31,30,31,30,31,31,30,31,30,31];
+function dateOf(d){var m=0;while(d>ML[m]){d-=ML[m];m++;}return d+' '+MON[m];}
+function hm(min){min=((Math.round(min)%1440)+1440)%1440;var h=Math.floor(min/60),m=min%60;return h+':'+(m<10?'0':'')+m;}
+
+// sun direction, east-north-up, for hour angle H (deg, negative = morning)
+function sunVec(phi,dec,H){
+  var p=phi*D,d=dec*D,h=H*D;
+  return [-Math.cos(d)*Math.sin(h), Math.cos(p)*Math.sin(d)-Math.sin(p)*Math.cos(d)*Math.cos(h), Math.sin(p)*Math.sin(d)+Math.cos(p)*Math.cos(d)*Math.cos(h)];
+}
+// screen frame: up is toward the visible pole. north: (E,N); south: (W,S)
+function toScr(phi,v){return phi>=0?[v[0],v[1]]:[-v[0],-v[1]];}
+// the style tip in ENU, style length L
+function tip(phi,L){var s=phi>=0?1:-1;return [0,s*L*Math.cos(phi*D),s*L*Math.sin(phi*D)];}
+// where the shadow of a point P falls on the ground, sun vector s (s[2]>0)
+function shadowOf(P,s){var k=P[2]/s[2];return [P[0]-s[0]*k,P[1]-s[1]*k];}
+// hour line angle from noon (deg), screen-oriented so morning is to the west
+function hourAngleOnDial(phi,H){var a=Math.abs(phi)*D,h=H*D,t=Math.atan2(Math.sin(a)*Math.sin(h),Math.cos(h));return phi>=0?t:-t;}
+function dialToHour(phi,th){var a=Math.abs(phi)*D;if(phi<0)th=-th;return Math.atan2(Math.sin(th),Math.cos(th)*Math.sin(a))/D;}
+
+var ROM=['XII','I','II','III','IIII','V','VI','VII','VIII','IX','X','XI'];
+
+// ---------- layout ----------
+var W=0,R=0,O=[0,0],dpr=1;
+function size(){
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  W=cv.clientWidth||520;
+  cv.width=Math.round(W*dpr);cv.height=Math.round(W*dpr);cv.style.height=W+'px';
+  R=W*0.44;O=[W/2,W/2];
+}
+// style sized so the tip's winter-solstice noon shadow just stays on the dial
+function styleLen(){var a=Math.abs(st.lat)*D,aw=Math.max(8,90-Math.abs(st.lat)-23.44)*D;var h=0.66*R/(1/Math.tan(a)+1/Math.tan(aw));return Math.min(h/Math.sin(a),0.78*R);}
+// dial point (screen units, y up) -> canvas px
+function P(x,y){return [O[0]+x,O[1]-y];}
+
+// ---------- drawing ----------
+function draw(){
+  var C={fg:css('--fg'),mute:css('--mute'),paper:css('--paper'),stone:css('--stone'),ink:css('--ink'),shade:css('--shade'),sun:css('--sun'),red:css('--red'),curve:css('--curve'),bg:css('--bg')};
+  g.setTransform(dpr,0,0,dpr,0,0);
+  g.clearRect(0,0,W,W);
+  var phi=st.lat,a=Math.abs(phi)*D,L=styleLen(),T=tip(phi,L);
+  var dec=decl(st.day),H=(st.t/4)-180; // sun time -> hour angle
+  var s=sunVec(phi,dec,H),up=s[2]>0;
+
+  // stone plate
+  g.fillStyle=C.stone;g.beginPath();g.arc(O[0],O[1],R*1.08,0,7);g.fill();
+  g.fillStyle=C.paper;g.beginPath();g.arc(O[0],O[1],R,0,7);g.fill();
+  g.strokeStyle=C.mute;g.lineWidth=1;g.beginPath();g.arc(O[0],O[1],R*0.84,0,7);g.stroke();
+  g.beginPath();g.arc(O[0],O[1],R*0.995,0,7);g.stroke();
+
+  // which hours can the sun ever be up at this latitude?
+  var c0=-Math.tan(a)*Math.tan(23.44*D),H0=c0<=-1?180:Math.acos(Math.max(-1,Math.min(1,c0)))/D;
+  var hmin=Math.ceil(12-H0/15-0.001),hmax=Math.floor(12+H0/15+0.001);
+  // hour lines and half-hour ticks
+  g.save();g.beginPath();g.arc(O[0],O[1],R*0.84,0,7);g.clip();
+  for(var q=hmin*4;q<=hmax*4;q++){
+    var hh=q/4,th=hourAngleOnDial(phi,(hh-12)*15),dx=Math.sin(th),dy=Math.cos(th);
+    if(q%4===0){
+      g.strokeStyle=C.ink;g.lineWidth=hh===12?1.6:1;
+      var p0=P(dx*R*0.06,dy*R*0.06),p1=P(dx*R*0.84,dy*R*0.84);
+      g.beginPath();g.moveTo(p0[0],p0[1]);g.lineTo(p1[0],p1[1]);g.stroke();
+    }
+  }
+  g.restore();
+  for(q=hmin*4;q<=hmax*4;q++){
+    hh=q/4;th=hourAngleOnDial(phi,(hh-12)*15);dx=Math.sin(th);dy=Math.cos(th);
+    var r0=q%4===0?0.84:(q%2===0?0.88:0.91);
+    g.strokeStyle=C.ink;g.lineWidth=q%4===0?1.2:0.8;
+    p0=P(dx*R*r0,dy*R*r0);p1=P(dx*R*0.96,dy*R*0.96);
+    g.beginPath();g.moveTo(p0[0],p0[1]);g.lineTo(p1[0],p1[1]);g.stroke();
+  }
+  // numerals
+  g.fillStyle=C.ink;g.textAlign='center';g.textBaseline='middle';
+  var fs=Math.max(10,R*0.075);g.font=fs+'px Georgia,serif';
+  for(var h=hmin;h<=hmax;h++){
+    th=hourAngleOnDial(phi,(h-12)*15);
+    var pp=P(Math.sin(th)*R*1.04,Math.cos(th)*R*1.04);
+    g.save();g.translate(pp[0],pp[1]);g.rotate(th);
+    g.fillText(ROM[((h%12)+12)%12],0,0);g.restore();
+  }
+  // compass and motto
+  g.fillStyle=C.mute;g.font='italic '+Math.max(10,R*0.06)+'px Georgia,serif';
+  var pole=phi>=0?'N':'S',eq=phi>=0?'S':'N',left=phi>=0?'W':'E',right=phi>=0?'E':'W';
+  var cp=P(0,-R*0.62);g.fillText('I count only the sunny hours',cp[0],cp[1]);
+  g.font=Math.max(9,R*0.05)+'px Georgia,serif';
+  cp=P(0,-R*0.74);g.fillText(eq,cp[0],cp[1]);
+  cp=P(-R*0.74,0);g.fillText(left,cp[0],cp[1]);
+  cp=P(R*0.74,0);g.fillText(right,cp[0],cp[1]);
+  cp=P(0,-R*0.53);g.fillText(Math.abs(phi)+'° '+(phi>=0?'N':'S'),cp[0],cp[1]);
+
+  g.save();g.beginPath();g.arc(O[0],O[1],R*0.84,0,7);g.clip();
+  // date lines traced by the tip: summer solstice, equinox, winter solstice
+  if(st.curves){
+    [23.44,0,-23.44].forEach(function(dd,i){
+      g.strokeStyle=C.curve;g.lineWidth=1;g.setLineDash(i===1?[]:[4,3]);
+      g.beginPath();var on=false;
+      for(var HH=-180;HH<=180;HH+=1){
+        var sv=sunVec(phi,dd,HH);
+        if(sv[2]<0.04){on=false;continue;}
+        var sp=toScr(phi,shadowOf(T,sv));if(Math.hypot(sp[0],sp[1])>R*1.2){on=false;continue;}
+        var cpp=P(sp[0],sp[1]);if(on)g.lineTo(cpp[0],cpp[1]);else g.moveTo(cpp[0],cpp[1]);on=true;
+      }
+      g.stroke();
+    });
+    g.setLineDash([]);
+  }
+  // analemma: tip at 12:00 mean time through the year
+  if(st.ana){
+    g.strokeStyle=C.red;g.lineWidth=1.2;g.beginPath();var on2=false;
+    for(var d=1;d<=366;d++){
+      var dd=d>365?1:d,sv=sunVec(phi,decl(dd),eot(dd)/4);
+      if(sv[2]<0.04){on2=false;continue;}
+      var sp=toScr(phi,shadowOf(T,sv)),cpp=P(sp[0],sp[1]);
+      if(on2)g.lineTo(cpp[0],cpp[1]);else g.moveTo(cpp[0],cpp[1]);on2=true;
+    }
+    g.stroke();
+    sv=sunVec(phi,dec,eot(st.day)/4);
+    if(sv[2]>0.04){sp=toScr(phi,shadowOf(T,sv));cpp=P(sp[0],sp[1]);g.fillStyle=C.red;g.beginPath();g.arc(cpp[0],cpp[1],2.6,0,7);g.fill();}
+  }
+  // the shadow
+  var foot=[0,(phi>=0?1:-1)*L*Math.cos(a),0];
+  if(up){
+    var st2=toScr(phi,shadowOf(T,s)),ft=toScr(phi,foot);
+    var A0=P(0,0),A1=P(st2[0],st2[1]),A2=P(ft[0],ft[1]);
+    g.fillStyle=C.shade;g.beginPath();g.moveTo(A0[0],A0[1]);g.lineTo(A1[0],A1[1]);g.lineTo(A2[0],A2[1]);g.closePath();g.fill();
+  }
+  g.restore();
+  // the gnomon seen from above: a thin plate along the noon line
+  var fp=P(0,L*Math.cos(a));
+  g.strokeStyle=C.ink;g.lineWidth=Math.max(2.5,R*0.018);g.lineCap='round';
+  g.beginPath();g.moveTo(O[0],O[1]);g.lineTo(fp[0],fp[1]);g.stroke();g.lineCap='butt';
+  g.fillStyle=C.ink;g.beginPath();g.arc(O[0],O[1],R*0.018,0,7);g.fill();
+  // night veil
+  if(!up){g.fillStyle=C.shade;g.beginPath();g.arc(O[0],O[1],R*1.08,0,7);g.fill();}
+  // the sun's bearing, a small mark outside the plate
+  if(up){
+    var ss=toScr(phi,s),m=Math.hypot(ss[0],ss[1])||1,bp=P(ss[0]/m*R*1.15,ss[1]/m*R*1.15);
+    g.fillStyle=C.sun;g.beginPath();g.arc(bp[0],bp[1],Math.max(4,R*0.03),0,7);g.fill();
+  }
+
+  // readout
+  var alt=Math.asin(Math.max(-1,Math.min(1,s[2])))/D,e=eot(st.day),clock=st.t-e;
+  var out='';
+  if(up){
+    out='<b>'+hm(st.t)+'</b> by the sun &nbsp;·&nbsp; <b>'+hm(clock)+'</b> by a mean clock';
+    var ea=Math.abs(Math.round(e));
+    out+='<small>sun '+Math.round(alt)+'° up &nbsp;·&nbsp; '+(ea===0?'sun and clock agree today':'the sun is '+ea+' min '+(e>0?'fast':'slow')+' today')+'</small>';
+  }else{
+    out='<b>'+hm(st.t)+'</b> &nbsp;·&nbsp; the sun is down';
+    var cH=-Math.tan(a)*Math.tan(dec*D);
+    out+='<small>'+(cH>=1?'it does not rise today at this latitude':cH<=-1?'':'sunrise at '+hm(720-Math.acos(cH)/D*4)+', sunset at '+hm(720+Math.acos(cH)/D*4)+', by the sun')+'</small>';
+  }
+  $('read').innerHTML=out;
+  $('olat').textContent=Math.abs(phi)+'° '+(phi>=0?'N':'S');
+  $('oday').textContent=dateOf(st.day);
+  $('otim').textContent=hm(st.t);
+}
+
+// ---------- controls ----------
+function sync(){$('lat').value=st.lat;$('day').value=st.day;$('tim').value=st.t;}
+$('lat').addEventListener('input',function(){var v=+this.value;if(Math.abs(v)<5)v=v<0?-5:5;st.lat=v;draw();});
+$('lat').addEventListener('change',sync);
+$('day').addEventListener('input',function(){st.day=+this.value;draw();});
+$('tim').addEventListener('input',function(){st.t=+this.value;draw();});
+function tog(id,key){$(id).addEventListener('click',function(){st[key]=!st[key];this.setAttribute('aria-pressed',st[key]);draw();});}
+tog('curves','curves');tog('ana','ana');
+
+var raf=0,last=0;
+function loop(ts){
+  if(!st.play&&!st.year){raf=0;return;}
+  var dt=last?Math.min(0.1,(ts-last)/1000):0;last=ts;
+  if(st.play){
+    st.t+=dt*90;
+    var cH=-Math.tan(Math.abs(st.lat)*D)*Math.tan(decl(st.day)*D);
+    var rise=cH<=-1?0:cH>=1?720:720-Math.acos(cH)/D*4,set=1440-rise;
+    if(cH>=1){st.t=720;}
+    else if(st.t>set||st.t<rise)st.t=rise;
+  }
+  if(st.year){st.day+=dt*24;if(st.day>365)st.day-=365;}
+  st.day=Math.round(st.day*100)/100;
+  var keepDay=st.day;st.day=Math.max(1,Math.round(keepDay));draw();st.day=keepDay;
+  $('day').value=Math.round(st.day);$('tim').value=st.t;
+  raf=requestAnimationFrame(loop);
+}
+function startLoop(){if(!raf){last=0;raf=requestAnimationFrame(loop);}}
+$('play').addEventListener('click',function(){st.play=!st.play;this.setAttribute('aria-pressed',st.play);startLoop();});
+$('year').addEventListener('click',function(){st.year=!st.year;this.setAttribute('aria-pressed',st.year);if(!st.year)st.day=Math.round(st.day);startLoop();});
+
+// drag round the dial to set the hour
+var drag=false;
+function setFromPointer(ev){
+  var r=cv.getBoundingClientRect(),x=ev.clientX-r.left-O[0],y=O[1]-(ev.clientY-r.top);
+  if(Math.hypot(x,y)<R*0.08)return;
+  var th=Math.atan2(x,y),H=dialToHour(st.lat,th);
+  // the shadow lies opposite the sun; dialToHour gives the hour whose line points this way
+  var t=720+H*4;
+  st.t=Math.max(0,Math.min(1438,Math.round(t/2)*2));
+  if(st.play){st.play=false;$('play').setAttribute('aria-pressed','false');}
+  $('tim').value=st.t;draw();
+}
+cv.addEventListener('pointerdown',function(e){drag=true;cv.setPointerCapture(e.pointerId);setFromPointer(e);});
+cv.addEventListener('pointermove',function(e){if(drag)setFromPointer(e);});
+cv.addEventListener('pointerup',function(){drag=false;});
+cv.addEventListener('pointercancel',function(){drag=false;});
+
+$('save').addEventListener('click',function(){
+  var a=document.createElement('a');a.download='gnomon-'+Math.abs(st.lat)+(st.lat>=0?'n':'s')+'.png';a.href=cv.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
+});
+
+window.addEventListener('resize',function(){size();draw();});
+if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+size();draw();
+})();
+</script>
+</body>
+</html>

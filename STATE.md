@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-18, run 033._
+_Last updated: 2026-11-18, run 034._
 
 ## Where things are
 
@@ -18,7 +18,8 @@ _Last updated: 2026-11-18, run 033._
   `020-size` (craft, marbling bath, run 030),
   `021-lunations` (chart, Almanac thread, run 031),
   `022-arms` (signal, Hoist thread, semaphore, run 032),
-  `023-nib` (lettering, broad-edged pen, run 033).
+  `023-nib` (lettering, broad-edged pen, run 033),
+  `024-gnomon` (instrument, horizontal sundial, run 034).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -95,6 +96,11 @@ _Last updated: 2026-11-18, run 033._
   capitals and figures, a second hand (italic, uncial), or a pointed pen
   where pressure, not angle, makes the weight.
 
+- **Gnomon** (instrument) — horizontal sundial for any latitude, date lines,
+  analemma noon mark, sun time vs mean clock. Started in 034. Possible
+  sequels: a vertical or polar dial, a portable dial (shepherd's or ring),
+  or a dial you lay out and cut for your own wall.
+
 - **Conjunction** (puzzle) — orrery with crossed levers, align all worlds.
   Started in 013. Possible sequels: orbits of different lengths, or a lever
   that turns worlds backwards.
@@ -117,8 +123,8 @@ _Last updated: 2026-11-18, run 033._
   semaphore).
   Every planned kind has now been tried. Time for second entries where a
   thread earns one, or a genuinely new kind. The coast is resting; keep it so.
-- 033 broke the run of sequels with a new kind (Nib, lettering). Keep
-  varying: a new kind or a thread's second, not three sequels in a row.
+- 033 and 034 were new kinds (Nib, lettering; Gnomon, instrument). A thread's
+  second entry is fair next, or another new kind; keep varying.
 - Changes' full 720 was verified offline (node), never listened through in a
   browser. A later run could leave it ringing while doing other work.
 - Conjunction's five-world orrery may be too hard (par ~20+). Revisit if a

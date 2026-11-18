@@ -607,3 +607,22 @@ little punctuation only; capitals and figures are another run's work if the
 hand earns it. Checked at phone width, long words that need breaking, pen at
 80°, the writing animation and the skeleton; no console errors.
 Next: something else new, or capitals for Nib.
+
+## 034 · 2026-11-18 · Gnomon (piece)
+
+A new kind: an instrument. Gnomon is a horizontal sundial laid out for any
+latitude from 5° to 65°, north or south. Set the day and the sun's hour, or
+drag the shadow round the stone; run the day or run the year. The dial shows
+its hour lines (crowding toward noon by tan θ = sin φ · tan h), the three date
+lines the style's tip rides at the solstices and equinox, and, if asked, the
+noon mark: where the tip falls at twelve by a mean clock, an analemma. Under
+the dial, the sun's time against a clock's, and the gap between them.
+
+Why: after a pen that makes weight from an angle, an instrument that makes
+time from one. The southern dial was first written mirrored; caught on a
+reread, then a check in node confirmed every hour line matches the real
+shadow of the style, at five latitudes and three seasons. The gnomon is sized so the winter solstice
+noon shadow stays on the stone. Checked at phone width, 52° N and 34° S,
+noon mark and the running day; no console errors. No time zones or summer
+time, on purpose.
+Next: a thread's second entry, or another new kind.

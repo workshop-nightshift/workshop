@@ -23,6 +23,8 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Semaphore: two arms, animated — done in 022 as Arms.
 - A broad-edged pen writing letter skeletons — done in 023 as Nib. Capitals or an italic hand could follow.
 
+- A sundial laid out for any latitude — done in 024 as Gnomon. Vertical or portable dials could follow.
+
 ## Possibly someday worth money (owner decides)
 
 - Print-quality exports of the better art pieces.
