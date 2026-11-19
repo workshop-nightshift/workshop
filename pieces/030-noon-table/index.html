@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Noon Table</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d1b18;--mute:#716b60;--line:#d9d3c6}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:16px/1.55 ui-serif,Georgia,"Iowan Old Style",serif}
+main{max-width:1100px;margin:0 auto;padding:40px 16px 72px}
+h1{font-size:28px;margin:0 0 6px;font-weight:600}
+.lede{color:var(--mute);margin:0 0 32px;max-width:36em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:32px 24px}
+figure{margin:0}
+canvas{display:block;width:100%;aspect-ratio:1;border:1px solid var(--line);cursor:pointer}
+figcaption{margin-top:8px;font-size:15px}
+figcaption b{font:600 12px/1 ui-monospace,Menlo,monospace;color:var(--mute);margin-right:6px;letter-spacing:.06em}
+figcaption span{display:block;color:var(--mute);font-size:14px}
+footer{margin-top:48px;color:var(--mute);font:13px ui-monospace,Menlo,monospace;display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<h1>Noon table</h1>
+<p class="lede">A second scene for <a href="../008-ten-ways/">Ten ways</a>. A jug,
+a bowl and a pear on a table under a window, light from the upper left, the same
+every time. Ten new constraints, none of them used on the lighthouse. Tap a
+drawing to make it again; the ones that use chance will come out a little different.</p>
+<div class="grid" id="grid"></div>
+<footer><a href="../../">← shelf</a><span>study · 2026</span></footer>
+</main>
+<script>
+// ---------- the scene, in unit coordinates (0..1, y down) ----------
+const TABLE = .56;                                   // back edge of the table
+const LIGHT = (() => { const v = [-.55, -.6, .58], n = Math.hypot(...v); return v.map(c => c/n); })();
+const JUG = {cx:.5, cy:.58, rx:.12, ry:.13};
+const BOWL = {cx:.24, cy:.64, rx:.14, ry:.1, rimY:.035};
+const PEAR = [{cx:.79, cy:.69, r:.065}, {cx:.775, cy:.615, r:.04}];
+const SHADOWS = [{cx:.665, cy:.712, rx:.16, ry:.026}, {cx:.36, cy:.745, rx:.12, ry:.02}, {cx:.885, cy:.752, rx:.085, ry:.017}];
+const PATCH = [[.1,TABLE],[.36,TABLE],[.62,.9],[.24,.9]];   // window light on the table
+
+function inPoly(p, x, y){
+  let c = false;
+  for (let i = 0, j = p.length-1; i < p.length; j = i++){
+    const [xi,yi] = p[i], [xj,yj] = p[j];
+    if ((yi > y) !== (yj > y) && x < (xj-xi)*(y-yi)/(yj-yi) + xi) c = !c;
+  }
+  return c;
+}
+// lambert light on an ellipsoid at (x,y), or -1 if outside
+function ball(x, y, cx, cy, rx, ry){
+  const nx = (x-cx)/rx, ny = (y-cy)/ry, d = nx*nx + ny*ny;
+  if (d >= 1) return -1;
+  return Math.max(0, nx*LIGHT[0] + ny*LIGHT[1] + Math.sqrt(1-d)*LIGHT[2]);
+}
+const inEll = (x, y, cx, cy, rx, ry) => ((x-cx)/rx)**2 + ((y-cy)/ry)**2 < 1;
+function segDist(x, y, ax, ay, bx, by){
+  const dx = bx-ax, dy = by-ay, t = Math.max(0, Math.min(1, ((x-ax)*dx + (y-ay)*dy)/(dx*dx+dy*dy)));
+  return Math.hypot(x - ax - t*dx, y - ay - t*dy);
+}
+
+// scene(x,y) returns the name of the thing here and sets T (darkness, 0 = lit) and SH (in shadow)
+let T = 0, SH = false;
+function scene(x, y){
+  SH = false;
+  // pear and its stalk
+  if (segDist(x, y, .772, .578, .786, .548) < .0045){ T = .88; SH = true; return "stalk"; }
+  for (const p of PEAR){
+    const lam = ball(x, y, p.cx, p.cy, p.r, p.r);
+    if (lam >= 0){ T = .86 - .7*lam; SH = lam < .32; return "pear"; }
+  }
+  // jug: lip, neck, body, handle
+  if (inEll(x, y, .5, .4, .052, .013)){
+    if (inEll(x, y, .5, .401, .04, .008)){ T = .95; SH = true; return "mouth"; }
+    T = .22; return "lip";
+  }
+  if (x > .455 && x < .545 && y > .4 && y < .47){
+    const nx = (x-.5)/.045, lam = Math.max(0, nx*LIGHT[0] + Math.sqrt(1-nx*nx)*LIGHT[2]);
+    T = .95 - .6*lam; SH = lam < .35; return "neck";
+  }
+  { const lam = ball(x, y, JUG.cx, JUG.cy, JUG.rx, JUG.ry);
+    if (lam >= 0){
+      if (lam > .955){ T = .04; return "glaze"; }
+      T = .95 - .62*lam; SH = lam < .35; return "jug";
+    } }
+  { const r = Math.hypot(x-.618, y-.56);
+    if (x > .61 && Math.abs(r - .052) < .012){ T = y < .54 ? .55 : .85; SH = y >= .54; return "handle"; } }
+  // bowl: rim, inside, outside
+  if (inEll(x, y, BOWL.cx, BOWL.cy, BOWL.rx, BOWL.rimY)){
+    if (inEll(x, y, BOWL.cx, BOWL.cy + .002, BOWL.rx - .014, BOWL.rimY - .008)){
+      const k = (BOWL.cx - x)/(BOWL.rx - .014);
+      T = Math.max(.2, Math.min(.85, .48 + .38*k)); SH = k > 0; return "inside";
+    }
+    T = .1; return "rim";
+  }
+  if (y > BOWL.cy){
+    const lam = ball(x, y, BOWL.cx, BOWL.cy, BOWL.rx, BOWL.ry);
+    if (lam >= 0){ T = .74 - .62*lam; SH = lam < .3; return "bowl"; }
+  }
+  // window and wall
+  if (y < TABLE){
+    if (x > .07 && x < .33 && y > .08 && y < .4){
+      const fr = x < .082 || x > .318 || y < .092 || y > .388 || Math.abs(x-.2) < .006 || Math.abs(y-.24) < .006;
+      if (fr){ T = .5; return "frame"; }
+      T = .03 + (y-.08)*.15; return "window";
+    }
+    T = .48 + .3*Math.min(1, Math.hypot(x-.2, y-.24)/.75); return "wall";
+  }
+  // table
+  for (const s of SHADOWS) if (inEll(x, y, s.cx, s.cy, s.rx, s.ry)){ T = .82; SH = true; return "shadow"; }
+  if (y > .9){ T = .9; SH = true; return "edge"; }
+  if (inPoly(PATCH, x, y)){ T = .26; return "light"; }
+  T = .6 - (y-TABLE)*.15; return "table";
+}
+
+// ---------- drawing helpers ----------
+let DARK = matchMedia("(prefers-color-scheme: dark)").matches;
+// on paper ink is dark, on a dark screen ink is light, so the drawing reads either way
+const ink = t => DARK ? 1 - t : t;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hex = h => { h = h.replace("#",""); return [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); };
+function mix(t){ const a = hex(css("--bg")), b = hex(css("--fg"));
+  return `rgb(${a.map((v,i) => Math.round(v + (b[i]-v)*t)).join(",")})`; }
+function rng(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+  let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+// an ink map of the scene at M×M, sampled in canvas pixels
+const M = 300;
+let MAP = null, SHMAP = null;
+function buildMap(){
+  MAP = new Float32Array(M*M); SHMAP = new Uint8Array(M*M);
+  for (let j = 0; j < M; j++) for (let i = 0; i < M; i++){
+    // 2×2 supersample so edges are soft
+    let s = 0, h = 0;
+    for (let a = 0; a < 2; a++) for (let b = 0; b < 2; b++){ scene((i+.25+a*.5)/M, (j+.25+b*.5)/M); s += T; h += SH; }
+    MAP[j*M+i] = s/4; SHMAP[j*M+i] = h >= 2 ? 1 : 0;
+  }
+}
+// darkness at canvas pixel (x,y), bilinear, then turned into ink
+function inkAt(x, y, S){
+  const u = Math.max(0, Math.min(M-1.001, x/S*M - .5)), v = Math.max(0, Math.min(M-1.001, y/S*M - .5));
+  const i = u|0, j = v|0, fu = u-i, fv = v-j, k = j*M+i;
+  const t = MAP[k]*(1-fu)*(1-fv) + MAP[k+1]*fu*(1-fv) + MAP[k+M]*(1-fu)*fv + MAP[k+M+1]*fu*fv;
+  return ink(t);
+}
+const shadeAt = (x, y, S) => SHMAP[Math.min(M-1, (y/S*M)|0)*M + Math.min(M-1, (x/S*M)|0)];
+
+// parallel lines at an angle, inked only where darker than th
+function hatch(g, S, ang, gap, th, lw){
+  const dx = Math.cos(ang), dy = Math.sin(ang), nx = -dy, ny = dx, D = S*1.5, c = S/2, st = 1.5;
+  g.lineWidth = lw; g.lineCap = "butt"; g.beginPath();
+  for (let o = -D/2; o < D/2; o += gap){
+    let on = false;
+    for (let s = -D/2; s < D/2; s += st){
+      const x = c + nx*o + dx*s, y = c + ny*o + dy*s;
+      const inside = x >= 0 && y >= 0 && x < S && y < S;
+      const want = inside && inkAt(x, y, S) > th;
+      if (want && !on){ g.moveTo(x, y); on = true; }
+      else if (!want && on){ g.lineTo(x - dx*st, y - dy*st); on = false; }
+    }
+  }
+  g.stroke();
+}
+
+const WAYS = [
+ { name:"Only vertical lines", note:"Engraved: every line runs top to bottom and swells where it's dark.",
+   draw(g, S){
+     const gap = S/84;
+     for (let x = gap/2; x < S; x += gap) for (let y = 0; y < S; y++){
+       const w = gap*.92*inkAt(x, y, S)**1.15;
+       if (w > .25) g.fillRect(x - w/2, y, w, 1.02);
+     }
+   }},
+ { name:"Four hatchings", note:"One direction per depth of dark, laid one over the last.",
+   draw(g, S){
+     const gap = Math.max(2.4, S/95), lw = Math.max(.7, S/900);
+     hatch(g, S, Math.PI/4, gap, .22, lw);
+     hatch(g, S, -Math.PI/4, gap, .42, lw);
+     hatch(g, S, 0, gap, .62, lw);
+     hatch(g, S, Math.PI/2, gap, .8, lw);
+   }},
+ { name:"Contours", note:"Lines of equal dark, nine levels, as on a map of hills.",
+   draw(g, S){
+     const N = 170, c = S/N, v = new Float32Array((N+1)*(N+1));
+     for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) v[j*(N+1)+i] = inkAt(i*c, j*c, S);
+     g.lineWidth = Math.max(.7, S/520); g.beginPath();
+     for (let L = .1; L < .95; L += .1){
+       for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){
+         const a = v[j*(N+1)+i], b = v[j*(N+1)+i+1], d = v[(j+1)*(N+1)+i], e = v[(j+1)*(N+1)+i+1];
+         const pts = [];
+         const cross = (p, q, x0, y0, x1, y1) => {
+           if ((p > L) !== (q > L)){ const t = (L-p)/(q-p); pts.push([(x0 + (x1-x0)*t)*c, (y0 + (y1-y0)*t)*c]); } };
+         cross(a, b, i, j, i+1, j); cross(b, e, i+1, j, i+1, j+1);
+         cross(d, e, i, j+1, i+1, j+1); cross(a, d, i, j, i, j+1);
+         for (let k = 0; k+1 < pts.length; k += 2){ g.moveTo(...pts[k]); g.lineTo(...pts[k+1]); }
+       }
+     }
+     g.stroke();
+   }},
+ { name:"Sixteen squares across", note:"Each square one even tone, the average of what it covers.",
+   draw(g, S){
+     const n = 16, c = S/n, gp = Math.max(1, S/260);
+     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++){
+       let s = 0;
+       for (let a = 0; a < 6; a++) for (let b = 0; b < 6; b++) s += inkAt((i + (a+.5)/6)*c, (j + (b+.5)/6)*c, S);
+       g.fillStyle = mix(s/36); g.fillRect(i*c + gp/2, j*c + gp/2, c - gp, c - gp);
+     }
+   }},
+ { name:"Only straight lines, edge to edge", note:"Thread between pins on the frame, each pulled where the most dark is left.",
+   draw(g, S, R){
+     const n = 130, res = new Float32Array(n*n);
+     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) res[j*n+i] = (Math.max(0, inkAt((i+.5)*S/n, (j+.5)*S/n, S) - .3)/.7)**1.6;
+     const P = [], k = 60;
+     for (let i = 0; i < k; i++){ const t = (i+.5)/k; P.push([t,0,0],[1,t,1],[1-t,1,2],[0,1-t,3]); }
+     const line = (a, b, f) => {
+       let sum = 0; const steps = 110;
+       for (let s = 0; s <= steps; s++){
+         const x = a[0] + (b[0]-a[0])*s/steps, y = a[1] + (b[1]-a[1])*s/steps;
+         const idx = Math.min(n-1, (y*n)|0)*n + Math.min(n-1, (x*n)|0);
+         if (f) res[idx] = Math.max(0, res[idx] - .14); else sum += res[idx];
+       }
+       return sum/steps;
+     };
+     g.lineWidth = Math.max(.4, S/1100); g.globalAlpha = .32;
+     let cur = P[0];
+     for (let l = 0; l < 2600; l++){
+       let best = null, bs = -1;
+       for (let c = 0; c < 90; c++){
+         const p = P[(R()*P.length)|0];
+         if (p[2] === cur[2]) continue;
+         const s = line(cur, p, false);
+         if (s > bs){ bs = s; best = p; }
+       }
+       if (!best || bs < .02) break;
+       line(cur, best, true);
+       g.beginPath(); g.moveTo(cur[0]*S, cur[1]*S); g.lineTo(best[0]*S, best[1]*S); g.stroke();
+       cur = best;
+     }
+     g.globalAlpha = 1;
+   }},
+ { name:"Only the shadows", note:"Where the window's light can't reach, solid; the rest is left out.",
+   draw(g, S){
+     const st = Math.max(1, S/M);
+     for (let y = 0; y < S; y += st) for (let x = 0; x < S; x += st){
+       const s = shadeAt(x, y, S);
+       if (DARK ? !s : s) g.fillRect(x, y, st + .5, st + .5);
+     }
+   }},
+ { name:"One spiral", note:"From the middle outward, one turn after another, thick where it's dark.",
+   draw(g, S){
+     const sp = S/62, cx = S/2, cy = S/2, maxR = S*.72, B = 10;
+     const paths = Array.from({length:B}, () => new Path2D());
+     let px = cx, py = cy, th = 0;
+     g.lineCap = "round";
+     while (true){
+       const r = sp*th/(2*Math.PI);
+       if (r > maxR) break;
+       th += Math.min(.3, 2/Math.max(r, 1));
+       const r2 = sp*th/(2*Math.PI), x = cx + r2*Math.cos(th), y = cy + r2*Math.sin(th);
+       const mx = (px+x)/2, my = (py+y)/2;
+       const w = mx >= 0 && my >= 0 && mx < S && my < S ? inkAt(mx, my, S) : 0;
+       const b = Math.min(B-1, Math.floor(w*B));
+       if (b > 0){ paths[b].moveTo(px, py); paths[b].lineTo(x, y); }
+       px = x; py = y;
+     }
+     paths.forEach((p, b) => { if (b){ g.lineWidth = sp*.95*(b+.5)/B; g.stroke(p); } });
+   }},
+ { name:"Paint by numbers", note:"The regions and the number of the paint. Nothing painted.",
+   draw(g, S){
+     const n = 90, c = S/n, q = new Uint8Array(n*n);
+     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++)
+       q[j*n+i] = Math.min(4, Math.floor(inkAt((i+.5)*c, (j+.5)*c, S)*5));
+     g.lineWidth = Math.max(.6, S/700); g.beginPath();
+     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++){
+       const v = q[j*n+i];
+       if (i+1 < n && q[j*n+i+1] !== v){ g.moveTo((i+1)*c, j*c); g.lineTo((i+1)*c, (j+1)*c); }
+       if (j+1 < n && q[(j+1)*n+i] !== v){ g.moveTo(i*c, (j+1)*c); g.lineTo((i+1)*c, (j+1)*c); }
+     }
+     g.stroke();
+     g.fillStyle = css("--mute"); g.textAlign = "center"; g.textBaseline = "middle";
+     g.font = `${Math.max(7, c*2.6)}px ui-monospace,Menlo,monospace`;
+     for (let j = 2; j < n-2; j += 5) for (let i = 2 + (j % 10 ? 2 : 0); i < n-2; i += 5){
+       const v = q[j*n+i]; let same = true;
+       for (let a = -2; a <= 2 && same; a++) for (let b = -2; b <= 2; b++) if (q[(j+b)*n+i+a] !== v){ same = false; break; }
+       if (same) g.fillText(String(v+1), (i+.5)*c, (j+.5)*c);
+     }
+   }},
+ { name:"Only torn paper", note:"Strips torn from ten greys and pasted down, big ones first.",
+   draw(g, S, R){
+     const count = 2600;
+     for (let k = 0; k < count; k++){
+       const f = k/count, size = S*(.11*(1-f)**1.8 + .012);
+       let x = R()*S, y = R()*S;
+       if (f > .3){   // the small late pieces go where things change
+         let tries = 0;
+         while (tries++ < 8){
+           const gr = Math.abs(inkAt(x+3, y, S) - inkAt(x-3, y, S)) + Math.abs(inkAt(x, y+3, S) - inkAt(x, y-3, S));
+           if (gr > .05) break;
+           x = R()*S; y = R()*S;
+         }
+       }
+       const t = Math.round(inkAt(x, y, S)*9)/9 + (R()-.5)*.04;
+       const w = size*(.35 + .3*R()), l = size*(1 + 1.2*R()), a = R()*Math.PI;
+       const ca = Math.cos(a), sa = Math.sin(a), j = size*.05;
+       const corners = [[-l/2,-w/2],[l/2,-w/2],[l/2,w/2],[-l/2,w/2]];
+       g.beginPath();
+       for (let e = 0; e < 4; e++){
+         const [x0,y0] = corners[e], [x1,y1] = corners[(e+1)%4];
+         for (let s = 0; s < 6; s++){
+           const u = x0 + (x1-x0)*s/6 + (R()-.5)*j, v = y0 + (y1-y0)*s/6 + (R()-.5)*j;
+           const X = x + u*ca - v*sa, Y = y + u*sa + v*ca;
+           s || e ? g.lineTo(X, Y) : g.moveTo(X, Y);
+         }
+       }
+       g.closePath(); g.fillStyle = mix(Math.max(0, Math.min(1, t))); g.fill();
+     }
+   }},
+ { name:"Only strokes that go round things", note:"Each mark follows its level of dark, the way a hand shades a curve.",
+   draw(g, S, R){
+     const n = S*S/70, st = S/220, e = S/120;
+     g.lineCap = "round";
+     for (let k = 0; k < n; k++){
+       const x0 = R()*S, y0 = R()*S, t = inkAt(x0, y0, S);
+       if (R() > t**1.3) continue;
+       g.lineWidth = Math.max(.6, S/700*(.6 + 1.6*t));
+       g.globalAlpha = .5;
+       g.beginPath(); g.moveTo(x0, y0);
+       for (const dir of [1, -1]){
+         let x = x0, y = y0, pdx = dir, pdy = 0;
+         if (dir < 0) g.moveTo(x0, y0);
+         for (let s = 0; s < 14; s++){
+           const gx = inkAt(x+e, y, S) - inkAt(x-e, y, S), gy = inkAt(x, y+e, S) - inkAt(x, y-e, S);
+           const m = Math.hypot(gx, gy);
+           let dx = m > .004 ? -gy/m : 1, dy = m > .004 ? gx/m : 0;
+           if (dx*pdx + dy*pdy < 0){ dx = -dx; dy = -dy; }
+           x += dx*st; y += dy*st; pdx = dx; pdy = dy;
+           if (x < 0 || y < 0 || x >= S || y >= S) break;
+           g.lineTo(x, y);
+         }
+       }
+       g.stroke();
+     }
+     g.globalAlpha = 1;
+   }},
+];
+
+// ---------- the page ----------
+const grid = document.getElementById("grid");
+const seeds = WAYS.map((_, i) => 2000 + i*91);
+const canvases = WAYS.map((w, i) => {
+  const f = document.createElement("figure");
+  f.innerHTML = `<canvas role="img" aria-label="A jug, a bowl and a pear on a table, drawn: ${w.name.toLowerCase()}"></canvas>
+    <figcaption><b>${String(i+1).padStart(2,"0")}</b>${w.name}<span>${w.note}</span></figcaption>`;
+  grid.append(f);
+  const c = f.querySelector("canvas");
+  c.addEventListener("click", () => { seeds[i] = (Math.random()*1e9)|0; paint(i); });
+  return c;
+});
+
+function paint(i){
+  const c = canvases[i], w = WAYS[i];
+  const dpr = Math.min(2, devicePixelRatio || 1);
+  const S = Math.round(c.clientWidth * dpr);
+  if (!S) return;
+  c.width = c.height = S;
+  const g = c.getContext("2d");
+  g.fillStyle = css("--bg"); g.fillRect(0, 0, S, S);
+  g.fillStyle = g.strokeStyle = css("--fg");
+  w.draw(g, S, rng(seeds[i]));
+}
+
+let queue = [];
+function paintAll(){ queue = WAYS.map((_, i) => i); tick(); }
+function tick(){ if (!queue.length) return; paint(queue.shift()); requestAnimationFrame(tick); }
+
+buildMap();
+let lastW = 0;
+new ResizeObserver(() => {
+  const w = canvases[0].clientWidth;
+  if (Math.abs(w - lastW) > 2){ lastW = w; paintAll(); }
+}).observe(grid);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => { DARK = e.matches; paintAll(); });
+</script>
+</body>
+</html>

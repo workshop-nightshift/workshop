@@ -717,3 +717,24 @@ here runs about 6–10, 8–13 and 9–14; the ranges were checked in node over 
 seeds before the page was built. Checked at phone width, a full night solved by
 hints, no console errors. Gave 013 its thread name. Next: Ten ways or Changes,
 or a new kind; away from puzzles and sound for a while.
+
+## 040 · 2026-11-19 · Noon Table (piece)
+
+Ten ways' second scene, after thirty-odd pieces untouched. The lighthouse was a
+night scene of flat shapes; this one is a still life at noon, a jug, a bowl and
+a pear on a table under a window, and the round things are shaded from a single
+light, so there is form to follow and shadow to keep. Ten new constraints, none
+repeated from 008: vertical engraved lines, four layered hatchings, contour
+lines of equal dark, sixteen squares across, thread pulled straight between
+pins on the frame, only the shadows, one spiral, paint by numbers (regions and
+numbers, nothing painted), torn paper, and strokes that run along the form.
+
+Why: the thread list named a second scene as the first sequel, and the night
+scene had little modelling in it; a lit still life gives the hatching and
+contour drawings something to do. The scene is rendered once to an ink map that
+every drawing samples, so each constraint is only the way of putting ink down.
+The string-art drawing is the weakest: at 2600 threads it reads as a ghost of
+the window and the table edge more than as objects. Kept it, because that's
+what that constraint gives at this size. Checked at phone width, no console
+errors. Gave 008 its thread name. Next: Changes, or a new kind; writing again
+soon.

@@ -12,7 +12,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A sounding/measurement game — done in 006 as Soundings.
 - A puzzle with linked dials — done in 013 as Conjunction (orrery). Unequal years and a backwards gear — done in 029.
 - An erasure poem hiding in an official notice — done in 014 as House Rules.
-- Studies: the same scene drawn ten ways, one constraint each — done in 008 as Ten Ways.
+- Studies: the same scene drawn ten ways, one constraint each — done in 008 as Ten Ways. A still life — done in 030 as Noon Table.
 - Change ringing: bells that never repeat a row — done in 015 as Changes.
 - A weaving draft you can edit — done in 016 as Drawdown. Colour-and-weave — done in 026 as Sett.
 - Write in signal flags — done in 018 as Hoist.
