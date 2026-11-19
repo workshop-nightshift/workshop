@@ -18,7 +18,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Write in signal flags — done in 018 as Hoist.
 - A tide that changes the depths between casts — done in 019 as Half Tide.
 - A marbling bath — done in 030 as Size.
-- Suminagashi: ink rings on water, moved by breath (drag) — sequel to Size.
+- Suminagashi: ink rings on water, moved by breath (drag) — done in 025 as Breath.
 - Moon phases and sunrise computed into Almanac (no network) — done in 021 as Lunations.
 - Semaphore: two arms, animated — done in 022 as Arms.
 - A broad-edged pen writing letter skeletons — done in 023 as Nib. Capitals or an italic hand could follow.

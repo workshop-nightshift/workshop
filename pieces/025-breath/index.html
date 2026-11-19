@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Breath</title>
+<style>
+:root{--bg:#f1efea;--fg:#1d1c1a;--mute:#6f6a62;--line:#d6d1c7;--well:#e7e3da}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--fg:#e6e3dd;--mute:#958f86;--line:#2c2b2e;--well:#1a1a1d}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:680px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+canvas#c{display:block;width:100%;height:auto;border:1px solid var(--line);touch-action:none;cursor:crosshair}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--well);border-color:var(--mute)}
+button:disabled{opacity:.4;cursor:default}
+input[type=range]{width:110px;accent-color:var(--mute)}
+#hint{min-height:1.5em;margin:8px 0 0;color:var(--mute);font-size:14px}
+#load{display:inline-block;width:60px;height:6px;border:1px solid var(--line);border-radius:3px;position:relative;overflow:hidden;vertical-align:middle}
+#load i{position:absolute;left:0;top:0;bottom:0;background:var(--mute)}
+a{color:inherit}
+details{margin-top:18px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Breath</h1>
+  <p class="sub">Plain water, two brushes, and your breath. Lay a sheet on it when it looks right.</p>
+  <canvas id="c" width="600" height="480" aria-label="A tray of still water. Hold to touch the brushes; drag to breathe across it."></canvas>
+  <p id="hint" aria-live="polite"></p>
+  <div class="row">
+    <span role="group" aria-label="tool">
+      <button data-tool="brush" aria-pressed="true">brushes</button>
+      <button data-tool="breath" aria-pressed="false">breath</button>
+      <button data-tool="hair" aria-pressed="false">a hair</button>
+    </span>
+    <span><label for="sz" id="szl">touch</label><input id="sz" type="range" min="4" max="22" value="11"></span>
+  </div>
+  <div class="row">
+    <span role="group" aria-label="ink">
+      <button data-ink="sumi" aria-pressed="true">sumi</button>
+      <button data-ink="ai" aria-pressed="false">indigo</button>
+      <button data-ink="beni" aria-pressed="false">red</button>
+    </span>
+    <span>brush <span id="load"><i></i></span><button id="dip">dip</button></span>
+  </div>
+  <div class="row">
+    <span><button id="undo">undo</button><button id="still">fresh water</button><button id="paper">lay paper</button><button id="save" hidden>save sheet</button></span>
+    <span><a href="../../">← shelf</a></span>
+  </div>
+  <details><summary>about this</summary>
+    <p>Suminagashi, floating ink, is the older Japanese cousin of marbling. There is no size: the bath is plain water.
+    The maker holds two brushes, one loaded with ink and one with something that keeps a clear film on water
+    (traditionally a pine resin; a hair drawn through the hair of your head works too, the oil does it). Touching them
+    to the same spot in turn lays down a ring of ink, then a clear ring that pushes it out, then ink again, until the
+    water holds a target of thin nested lines. Then a breath, or a fan, moves them, and a sheet of paper laid on top
+    takes the whole surface at once.</p>
+    <p>Here every touch pushes everything around it outward, keeping the area of each ring. The brush empties as you go,
+    so the rings get paler until you dip it again. A breath is a small jet with the water coming back round its sides,
+    so it moves the rings without making any ink appear or vanish; a wide breath is a long slow sigh, a narrow one a
+    puff through pursed lips. A hair makes one tiny clear spot, which is how the eyes in the old sheets were made.</p>
+    <p>The water you start with is the same for everyone each day.</p>
+  </details>
+</main>
+<script>
+"use strict";
+const W = 600, H = 480;
+const cv = document.getElementById("c"), cx = cv.getContext("2d");
+const hint = document.getElementById("hint");
+const sz = document.getElementById("sz"), szl = document.getElementById("szl");
+const dark = matchMedia("(prefers-color-scheme:dark)").matches;
+// on the water ink is shown against the tray; on paper it's the ink itself
+const INKS = {
+  sumi: {water: dark ? "#d2cec4" : "#1d1c1b", paper: "#1b1a19"},
+  ai:   {water: dark ? "#8eb0d8" : "#1f3d6b", paper: "#1d3a66"},
+  beni: {water: dark ? "#e2907e" : "#9c2c25", paper: "#9a2a22"},
+};
+const WATER = dark ? "#18191c" : "#e4e3de", PAPER = "#f3eee2";
+let tool = "brush", ink = "sumi", load = 1, paperView = false;
+let polys = [];   // {ink: key|null, load, p: Float64Array}
+let ops = [];
+let floor = null; // a ring that has spread over the whole tray
+
+// ---------- the water ----------
+const MAXL = 2.2, MINL = .35, PAD = 40;
+function segNear(ax, ay, bx, by){
+  return Math.max(ax, bx) > -PAD && Math.min(ax, bx) < W + PAD && Math.max(ay, by) > -PAD && Math.min(ay, by) < H + PAD;
+}
+function deform(p, f){
+  const n = p.length >> 1, T = new Float64Array(p.length), q = [0, 0];
+  for (let i = 0; i < n; i++){ q[0] = p[2*i]; q[1] = p[2*i+1]; f(q); T[2*i] = q[0]; T[2*i+1] = q[1]; }
+  const out = [];
+  let lx = NaN, ly = NaN;
+  function put(x, y){
+    if (out.length && Math.abs(x - lx) + Math.abs(y - ly) < MINL) return;
+    out.push(x, y); lx = x; ly = y;
+  }
+  function refine(ax, ay, bx, by, fax, fay, fbx, fby, d){
+    const dx = fbx - fax, dy = fby - fay;
+    if (d > 10 || dx*dx + dy*dy <= MAXL*MAXL || !segNear(fax, fay, fbx, fby)) return;
+    const mx = (ax + bx) / 2, my = (ay + by) / 2;
+    q[0] = mx; q[1] = my; f(q);
+    const fmx = q[0], fmy = q[1];
+    refine(ax, ay, mx, my, fax, fay, fmx, fmy, d + 1);
+    put(fmx, fmy);
+    refine(mx, my, bx, by, fmx, fmy, fbx, fby, d + 1);
+  }
+  for (let i = 0; i < n; i++){
+    const j = (i + 1) % n;
+    put(T[2*i], T[2*i+1]);
+    refine(p[2*i], p[2*i+1], p[2*j], p[2*j+1], T[2*i], T[2*i+1], T[2*j], T[2*j+1], 0);
+  }
+  return new Float64Array(out);
+}
+function inside(p, x, y){
+  let c = false;
+  for (let i = 0, n = p.length >> 1, j = n - 1; i < n; j = i++){
+    const xi = p[2*i], yi = p[2*i+1], xj = p[2*j], yj = p[2*j+1];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+}
+function tidy(){
+  const keep = [];
+  for (const g of polys){
+    const p = g.p;
+    let any = false;
+    for (let i = 0; i < p.length; i += 2){
+      if (p[i] > -2 && p[i] < W + 2 && p[i+1] > -2 && p[i+1] < H + 2){ any = true; break; }
+    }
+    if (any){ keep.push(g); continue; }
+    if (inside(p, W/2, H/2) && inside(p, 0, 0) && inside(p, W, H)){ floor = g; keep.length = 0; }
+  }
+  polys = keep;
+}
+function apply(f){
+  for (const g of polys) g.p = deform(g.p, f);
+  tidy();
+}
+// a touch of a brush: everything around (x,y) moves out so a disc of radius r opens, areas kept
+function touch(x, y, r, k, l){
+  const r2 = r * r;
+  apply(q => {
+    const dx = q[0] - x, dy = q[1] - y, d2 = dx*dx + dy*dy;
+    if (d2 < 1e-9){ q[0] += r; return; }
+    const s = Math.sqrt(1 + r2 / d2);
+    q[0] = x + dx * s; q[1] = y + dy * s;
+  });
+  const n = Math.max(24, Math.ceil(2 * Math.PI * r / 1.6)), p = new Float64Array(2 * n);
+  for (let i = 0; i < n; i++){ const a = i / n * 2 * Math.PI; p[2*i] = x + r * Math.cos(a); p[2*i+1] = y + r * Math.sin(a); }
+  polys.push({ink: k, load: l, p});
+}
+// a breath at c moving along unit e by a: the flow of a small dipole, which has no divergence.
+// stream function psi = a (m.r) exp(-r^2/s^2), m = e turned a quarter; u = (dpsi/dy, -dpsi/dx)
+function puff(cx0, cy0, ex, ey, a, s){
+  const mx = -ey, my = ex, is2 = 1 / (s * s), cut = 9 * s * s;
+  apply(q => {
+    const rx = q[0] - cx0, ry = q[1] - cy0, r2 = rx*rx + ry*ry;
+    if (r2 > cut) return;
+    const g = Math.exp(-r2 * is2), md = (mx * rx + my * ry) * 2 * is2;
+    const gx = a * g * (mx - md * rx), gy = a * g * (my - md * ry);
+    q[0] += gy; q[1] -= gx;
+  });
+}
+function breathe(x0, y0, x1, y1, s, gain = .6){
+  const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
+  if (L < .5) return;
+  const k = Math.max(1, Math.ceil(L / (s / 5))), ex = dx / L, ey = dy / L, st = L / k;
+  for (let i = 0; i < k; i++) puff(x0 + dx * (i + .5) / k, y0 + dy * (i + .5) / k, ex, ey, st * gain, s);
+}
+function run(op){
+  if (op.k === "t") touch(op.x, op.y, op.r, op.ink, op.load);
+  else if (op.k === "b"){ const p = op.pts; for (let i = 2; i < p.length; i += 2) breathe(p[i-2], p[i-1], p[i], p[i+1], op.s, op.g); }
+}
+function rebuild(){
+  polys = []; floor = null;
+  for (const op of ops) run(op);
+  paint();
+}
+
+// ---------- drawing ----------
+function hex(c){ return [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16)]; }
+function mix(a, b, t){
+  const A = hex(a), B = hex(b);
+  return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")";
+}
+function colourOf(g, onPaper){
+  const ground = onPaper ? PAPER : WATER;
+  if (!g || !g.ink) return ground;
+  return mix(ground, INKS[g.ink][onPaper ? "paper" : "water"], onPaper ? .42 + .55 * g.load : .2 + .8 * g.load);
+}
+const bath = document.createElement("canvas"), bx = bath.getContext("2d");
+let scale = 1, sheet = null;
+function fit(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const cssW = cv.clientWidth || W;
+  scale = Math.max(1, Math.round(cssW / W * dpr * 100) / 100);
+  bath.width = cv.width = Math.round(W * scale); bath.height = cv.height = Math.round(H * scale);
+  if (paperView) sheet = makeSheet(scale);
+  paint();
+}
+function drawRings(g2, s, onPaper){
+  g2.setTransform(1, 0, 0, 1, 0, 0);
+  g2.fillStyle = colourOf(floor, onPaper);
+  g2.fillRect(0, 0, W * s, H * s);
+  g2.setTransform(s, 0, 0, s, 0, 0);
+  for (const g of polys){
+    const p = g.p, c = colourOf(g, onPaper);
+    g2.beginPath(); g2.moveTo(p[0], p[1]);
+    for (let i = 2; i < p.length; i += 2) g2.lineTo(p[i], p[i+1]);
+    g2.closePath();
+    g2.fillStyle = c; g2.fill();
+    g2.strokeStyle = c; g2.lineWidth = .35; g2.stroke();
+  }
+}
+function paint(){
+  if (paperView && sheet){ cx.setTransform(1, 0, 0, 1, 0, 0); cx.drawImage(sheet, 0, 0, cv.width, cv.height); return; }
+  drawRings(bx, scale, false);
+  // a faint sheen across the water
+  bx.setTransform(scale, 0, 0, scale, 0, 0);
+  const gr = bx.createLinearGradient(0, 0, W, H);
+  gr.addColorStop(0, dark ? "rgba(255,255,255,.035)" : "rgba(255,255,255,.22)");
+  gr.addColorStop(.5, "rgba(255,255,255,0)");
+  gr.addColorStop(1, dark ? "rgba(0,0,0,.15)" : "rgba(0,0,0,.035)");
+  bx.fillStyle = gr; bx.fillRect(0, 0, W, H);
+  show();
+}
+let cursor = null;
+function show(){
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  cx.drawImage(bath, 0, 0);
+  if (!cursor || paperView) return;
+  cx.setTransform(scale, 0, 0, scale, 0, 0);
+  cx.strokeStyle = dark ? "rgba(230,227,221,.45)" : "rgba(29,28,26,.35)";
+  cx.lineWidth = 1; cx.setLineDash([3, 4]);
+  cx.beginPath();
+  const r = tool === "breath" ? breathW() : tool === "hair" ? 3 : touchR();
+  cx.arc(cursor.x, cursor.y, r, 0, 2 * Math.PI); cx.stroke();
+  cx.setLineDash([]);
+}
+function touchR(){ return +sz.value; }
+function breathW(){ return 16 + (+sz.value - 4) * 5; }
+
+// ---------- the sheet ----------
+function rng(seed){
+  let s = seed >>> 0 || 1;
+  return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+}
+function makeSheet(s){
+  const out = document.createElement("canvas");
+  out.width = Math.round(W * s); out.height = Math.round(H * s);
+  const o = out.getContext("2d");
+  const ink = document.createElement("canvas"); ink.width = out.width; ink.height = out.height;
+  drawRings(ink.getContext("2d"), s, true);
+  o.fillStyle = PAPER; o.fillRect(0, 0, out.width, out.height);
+  // the paper takes the ink a little softly
+  o.filter = "blur(" + (.45 * s).toFixed(2) + "px)";
+  o.drawImage(ink, 0, 0);
+  o.filter = "none";
+  o.globalAlpha = .55; o.drawImage(ink, 0, 0); o.globalAlpha = 1;
+  // fibres and a little unevenness in the wash
+  const R = rng(7919 + ops.length * 31);
+  o.setTransform(s, 0, 0, s, 0, 0);
+  for (let i = 0; i < 26; i++){
+    const x = R() * W, y = R() * H, r = 40 + R() * 140;
+    const g = o.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, R() < .5 ? "rgba(255,252,240,.16)" : "rgba(120,100,70,.03)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    o.fillStyle = g; o.fillRect(x - r, y - r, 2 * r, 2 * r);
+  }
+  o.lineCap = "round";
+  for (let i = 0; i < 1400; i++){
+    const x = R() * W, y = R() * H, a = R() * Math.PI, l = 2 + R() * 9, b = R() * 1.6 - .8;
+    o.strokeStyle = R() < .6 ? "rgba(255,253,245,.35)" : "rgba(90,75,55,.10)";
+    o.lineWidth = .3 + R() * .5;
+    o.beginPath(); o.moveTo(x, y);
+    o.quadraticCurveTo(x + Math.cos(a) * l / 2 + b, y + Math.sin(a) * l / 2 - b, x + Math.cos(a) * l, y + Math.sin(a) * l);
+    o.stroke();
+  }
+  // where the sheet was lifted, the edges took a little less
+  o.setTransform(1, 0, 0, 1, 0, 0);
+  const e = o.createLinearGradient(0, 0, out.width, 0);
+  e.addColorStop(0, "rgba(243,238,226,.35)"); e.addColorStop(.04, "rgba(243,238,226,0)");
+  e.addColorStop(.96, "rgba(243,238,226,0)"); e.addColorStop(1, "rgba(243,238,226,.35)");
+  o.fillStyle = e; o.fillRect(0, 0, out.width, out.height);
+  return out;
+}
+const paperB = document.getElementById("paper"), saveB = document.getElementById("save");
+function setPaper(on){
+  paperView = on;
+  sheet = on ? makeSheet(scale) : null;
+  paperB.textContent = on ? "back to the water" : "lay paper";
+  saveB.hidden = !on;
+  paint(); say();
+}
+paperB.onclick = () => setPaper(!paperView);
+saveB.onclick = () => {
+  const out = makeSheet(Math.max(2.5, scale));
+  out.toBlob(b => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b); a.download = "floating-ink.png";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  });
+};
+
+// ---------- hands ----------
+const loadBar = document.querySelector("#load i");
+function showLoad(){ loadBar.style.width = Math.round(load * 100) + "%"; }
+function say(){
+  if (paperView){ hint.textContent = "The sheet, lifted. Save it, or go back to the water and carry on."; return; }
+  const t = {
+    brush: "Hold on the water: ink, then clear, then ink, in turn. Move while holding to walk the rings.",
+    breath: "Drag across the water to breathe on it. Slow and wide for a sigh, quick and narrow for a puff.",
+    hair: "Tap to touch the water with a hair. It opens one small clear spot.",
+  }[tool];
+  hint.textContent = t;
+  szl.textContent = tool === "breath" ? "breath" : "touch";
+}
+function pos(ev){
+  const r = cv.getBoundingClientRect();
+  return {x: (ev.clientX - r.left) / r.width * W, y: (ev.clientY - r.top) / r.height * H};
+}
+let hold = null, gest = null, phase = 0;
+function doTouch(){
+  if (!hold) return;
+  const p = hold.p, isInk = phase % 2 === 0;
+  const op = {k: "t", x: p.x, y: p.y, r: touchR() * (isInk ? 1 : 1.15), ink: isInk ? ink : null, load: isInk ? load : 0};
+  if (isInk) load = Math.max(.12, load * .955);
+  phase++;
+  ops.push(op); run(op); paint(); showLoad();
+}
+cv.addEventListener("pointerdown", ev => {
+  if (paperView){ setPaper(false); return; }
+  ev.preventDefault();
+  cv.setPointerCapture(ev.pointerId);
+  const p = pos(ev); cursor = p;
+  if (tool === "brush"){
+    hold = {p, t: 0}; phase = 0; doTouch();
+    hold.t = setInterval(doTouch, 170);
+  } else if (tool === "hair"){
+    const op = {k: "t", x: p.x, y: p.y, r: 3, ink: null, load: 0};
+    ops.push(op); run(op); paint();
+  } else {
+    gest = {k: "b", s: breathW(), pts: [p.x, p.y]};
+    ops.push(gest);
+  }
+});
+cv.addEventListener("pointermove", ev => {
+  const p = pos(ev); cursor = p;
+  if (paperView) return;
+  if (hold){ hold.p = p; show(); return; }
+  if (gest){
+    const q = gest.pts, lx = q[q.length - 2], ly = q[q.length - 1];
+    if (Math.hypot(p.x - lx, p.y - ly) < 2) return;
+    q.push(p.x, p.y);
+    breathe(lx, ly, p.x, p.y, gest.s);
+    paint(); return;
+  }
+  show();
+});
+function end(){
+  if (hold){ clearInterval(hold.t); hold = null; }
+  if (gest){ if (gest.pts.length < 4) ops.pop(); gest = null; }
+}
+cv.addEventListener("pointerup", end);
+cv.addEventListener("pointercancel", end);
+cv.addEventListener("pointerleave", () => { if (!hold && !gest){ cursor = null; show(); } });
+
+document.querySelectorAll("[data-tool]").forEach(b => b.onclick = () => {
+  tool = b.dataset.tool;
+  document.querySelectorAll("[data-tool]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  sz.disabled = tool === "hair";
+  if (paperView) setPaper(false); else say();
+});
+document.querySelectorAll("[data-ink]").forEach(b => b.onclick = () => {
+  if (ink !== b.dataset.ink) load = 1;
+  ink = b.dataset.ink;
+  document.querySelectorAll("[data-ink]").forEach(x => x.setAttribute("aria-pressed", x === b));
+  showLoad();
+});
+document.getElementById("dip").onclick = () => { load = 1; showLoad(); };
+document.getElementById("undo").onclick = () => {
+  if (!ops.length) return;
+  ops.pop();
+  if (paperView){ paperView = false; setPaper(false); }
+  rebuild();
+};
+document.getElementById("still").onclick = () => { ops = []; load = 1; showLoad(); if (paperView) setPaper(false); rebuild(); };
+
+// ---------- the day's water ----------
+function daySeed(){ const d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+function dayWater(R){
+  const o = [], inks = ["sumi", "sumi", "ai", "beni"], k = inks[Math.floor(R() * inks.length)];
+  const cxs = 1 + Math.floor(R() * 2);
+  let l = 1;
+  for (let c = 0; c < cxs; c++){
+    const x = W * (.3 + R() * .4), y = H * (.3 + R() * .4), n = 44 + Math.floor(R() * 30), r = 9 + R() * 5;
+    for (let i = 0; i < n; i++){
+      if (i % 2 === 0){ o.push({k: "t", x, y, r, ink: k, load: l}); l = Math.max(.35, l * .975); }
+      else o.push({k: "t", x, y, r: r * 1.15, ink: null, load: 0});
+    }
+  }
+  // one long breath across
+  const pts = [], y0 = H * (.25 + R() * .5), amp = 20 + R() * 50, ph = R() * 6.28, dir = R() < .5 ? 1 : -1;
+  for (let i = 0; i <= 30; i++){
+    const t = i / 30, x = dir > 0 ? W * (.05 + .9 * t) : W * (.95 - .9 * t);
+    pts.push(x, y0 + amp * Math.sin(t * 5 + ph));
+  }
+  o.push({k: "b", s: 50 + R() * 40, g: .3, pts});
+  return o;
+}
+ops = dayWater(rng(daySeed()));
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(fit, 120); });
+showLoad(); say(); fit(); rebuild();
+</script>
+</body>
+</html>

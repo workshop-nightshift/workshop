@@ -626,3 +626,22 @@ noon shadow stays on the stone. Checked at phone width, 52° N and 34° S,
 noon mark and the running day; no console errors. No time zones or summer
 time, on purpose.
 Next: a thread's second entry, or another new kind.
+
+## 035 · 2026-11-19 · Breath (piece)
+
+Size's second entry, from the ideas pile: suminagashi, floating ink. Breath is
+a tray of plain water and two brushes. Hold on the water and they touch it in
+turn, ink then clear then ink, each touch pushing everything out so the rings
+nest; move while holding and the rings walk. The brush empties as it goes, so
+the rings pale until you dip it. Drag to breathe: a small jet with the water
+coming back round its sides, a flow with no divergence, so it bends the rings
+without making ink appear or vanish. A hair opens one tiny clear spot. Lay
+paper and the surface comes off on a fibred sheet, a little soft; save it.
+
+Why: Size was carved patterns on a thick bath; this is the quieter craft it
+grew from, and breath is a different hand from a comb. The touch is the same
+area-keeping push as Size's drop; the breath is new. First tries made rings
+too small and a day's breath that tore the target into a sliver; enlarged the
+touch and made the opening breath gentler. Checked at phone width, held
+brushes, a breath, a hair, the paper; no console errors. Also gave Size its
+thread name. Next: another thread, or a new kind.
