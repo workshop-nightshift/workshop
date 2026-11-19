@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Round</title>
+<style>
+:root{--bg:#f6f3ec;--fg:#1d1b18;--mute:#6f6a60;--line:#d9d3c6;--ink:29,27,24;--hot:180,71,43;
+  --v0:180,71,43;--v1:46,104,140;--v2:96,120,52;--v3:128,82,140}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e9e6df;--mute:#9a958b;--line:#2b2c30;--ink:233,230,223;--hot:229,138,99;
+  --v0:229,138,99;--v1:112,170,212;--v2:160,190,110;--v3:190,146,208}}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 ui-monospace,Menlo,monospace;display:flex;flex-direction:column;min-height:100vh}
+main{flex:1;display:flex;flex-direction:column;gap:12px;padding:16px;max-width:760px;width:100%;margin:0 auto}
+h1{font-size:15px;margin:0;font-weight:600}
+p{margin:0;color:var(--mute)}
+canvas{width:100%;height:220px;display:block;border-top:1px solid var(--line);border-bottom:1px solid var(--line);touch-action:manipulation}
+textarea{width:100%;min-height:84px;resize:vertical;font:inherit;font-size:17px;line-height:1.6;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:4px;padding:12px}
+textarea:focus{outline:2px solid rgba(var(--hot),.5);outline-offset:-1px}
+.row{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center}
+button,select{font:inherit;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+select{padding:5px 8px;background:var(--bg)}
+button:hover{border-color:var(--mute)}
+input[type=range]{accent-color:rgb(var(--hot));width:110px;vertical-align:middle}
+label{font-size:13px;color:var(--mute)}
+output{color:var(--fg);display:inline-block;min-width:2.5ch}
+footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 16px 16px;color:var(--mute)}
+a{color:inherit}
+.legend{font-size:13px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Round</h1>
+  <p>Letterpress again, but the line is sung as a round. The first voice starts; the next comes in a few beats behind, singing the same letters, and the next behind that. Every key sits on the same five-note scale, so wherever the voices fall against each other, they agree.</p>
+  <canvas id="lanes" aria-hidden="true"></canvas>
+  <textarea id="t" spellcheck="false" aria-label="The line to sing">row the small boat out, and the tide brings it in.</textarea>
+  <div class="row">
+    <button id="play">▶ sing the round</button>
+    <label>voices <select id="voices"><option>2</option><option selected>3</option><option>4</option></select></label>
+    <label>each sings it <select id="times"><option>2</option><option selected>3</option><option>4</option><option value="0">forever</option></select></label>
+  </div>
+  <div class="row">
+    <label>next voice enters after <input id="gap" type="range" min="2" max="32" value="12"> <output id="gapv">12</output> beats</label>
+    <label>tempo <input id="tempo" type="range" min="3" max="12" value="6"></label>
+  </div>
+  <div class="row">
+    <button id="spread">space them evenly</button>
+    <button id="tight">enter close</button>
+  </div>
+  <p class="legend">Letters as in Letterpress: vowels ring, consonants pluck, commas breathe, full stops land home. First voice in the middle, the second an octave down, the third an octave up, the fourth low and slow. Voices leave in the order they came, the way a round ends.</p>
+</main>
+<footer>
+  <span>028 · toy · Letterpress</span>
+  <span><a href="../../">← shelf</a></span>
+</footer>
+<script>
+const $ = (id) => document.getElementById(id);
+const ta = $("t"), cv = $("lanes"), g = cv.getContext("2d");
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+// ---- sound -------------------------------------------------------------
+let ac, out;
+function audio(){
+  if (ac) return ac;
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+  ac = new (window.AudioContext || window.webkitAudioContext)();
+  out = ac.createGain(); out.gain.value = 0.42;
+  const d1 = ac.createDelay(), d2 = ac.createDelay(), fb = ac.createGain(), wet = ac.createGain();
+  d1.delayTime.value = 0.137; d2.delayTime.value = 0.211; fb.gain.value = 0.3; wet.gain.value = 0.22;
+  out.connect(ac.destination);
+  out.connect(d1); d1.connect(d2); d2.connect(fb); fb.connect(d1); d2.connect(wet); wet.connect(ac.destination);
+  return ac;
+}
+let silentEl;
+function silentWav(){
+  const n = 800, b = new ArrayBuffer(44 + n), v = new DataView(b), s = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  s(0, "RIFF"); v.setUint32(4, 36 + n, true); s(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); s(36, "data"); v.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+}
+function unlock(){
+  const a = audio();
+  if (a.state !== "running") a.resume().catch(() => {});
+  const src = a.createBufferSource(); src.buffer = a.createBuffer(1, 1, 22050); src.connect(a.destination); src.start(0);
+  if (!silentEl){ silentEl = new Audio(silentWav()); silentEl.setAttribute("playsinline", ""); }
+  silentEl.play().catch(() => {});
+}
+const GESTURES = ["pointerdown", "touchend", "keydown", "click"];
+function onGesture(){
+  unlock();
+  if (ac && ac.state === "running") GESTURES.forEach((ev) => document.removeEventListener(ev, onGesture, true));
+}
+GESTURES.forEach((ev) => document.addEventListener(ev, onGesture, true));
+
+// same scale and key map as Letterpress: D major pentatonic
+const SCALE = [0, 2, 4, 7, 9];
+const ROOT = 146.83;
+const hz = (deg) => ROOT * 2 ** ((SCALE[((deg % 5) + 5) % 5] + 12 * Math.floor(deg / 5)) / 12);
+const ORDER = "etaoinshrdlcumwfgypbvkjxqz";
+const MIDDLE = [5,6,4,7,3,8,2,9,6,5,4,7,3,8,1,10,2,9,0,11,1,12,0,13,12,14];
+const VOWELS = new Set("aeiouy");
+
+// four voices: octave shift (in scale degrees), pan, timbre, loudness
+const VOICES = [
+  { shift: 0,   pan: 0,     wave: "triangle", vol: 1,    bright: 8 },
+  { shift: -5,  pan: -0.55, wave: "triangle", vol: 1.15, bright: 6 },
+  { shift: 5,   pan: 0.55,  wave: "sine",     vol: 0.8,  bright: 10 },
+  { shift: -10, pan: -0.15, wave: "sine",     vol: 1.4,  bright: 4, slow: true },
+];
+
+function bus(v){
+  const a = audio();
+  if (!v.node){
+    v.node = a.createGain(); v.node.gain.value = 1;
+    if (a.createStereoPanner){ const p = a.createStereoPanner(); p.pan.value = v.pan; v.node.connect(p); p.connect(out); }
+    else v.node.connect(out);
+  }
+  return v.node;
+}
+
+function tone(v, freq, t, { dur = 0.4, vol = 0.2, kind = "pluck" } = {}){
+  const a = audio(), env = a.createGain(); env.connect(bus(v));
+  vol *= v.vol; if (v.slow) dur *= 1.6;
+  env.gain.setValueAtTime(0.0001, t);
+  if (kind === "bell"){
+    env.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + dur * 3);
+    for (const [mul, gv] of [[1, 1], [2.01, 0.3], [3.98, 0.1]]){
+      const o = a.createOscillator(), gg = a.createGain();
+      o.type = "sine"; o.frequency.value = freq * mul; gg.gain.value = gv;
+      o.connect(gg); gg.connect(env); o.start(t); o.stop(t + dur * 3 + 0.05);
+    }
+  } else if (kind === "knock"){
+    const n = a.createBufferSource(), buf = a.createBuffer(1, a.sampleRate * 0.08, a.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length) ** 3;
+    const f = a.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = freq; f.Q.value = 6;
+    n.buffer = buf; n.connect(f); f.connect(env);
+    env.gain.exponentialRampToValueAtTime(vol * 2.5, t + 0.002);
+    env.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+    n.start(t);
+  } else {
+    const o = a.createOscillator(), f = a.createBiquadFilter();
+    o.type = v.wave; o.frequency.value = freq;
+    f.type = "lowpass"; f.frequency.setValueAtTime(freq * v.bright, t); f.frequency.exponentialRampToValueAtTime(freq * 1.5, t + dur);
+    o.connect(f); f.connect(env);
+    env.gain.exponentialRampToValueAtTime(vol, t + (v.slow ? 0.03 : 0.004));
+    env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t); o.stop(t + dur + 0.05);
+  }
+}
+
+// a character → how many beats it takes, and a function that sounds it
+function score(text){
+  const notes = []; let beat = 0;
+  for (let i = 0; i < text.length; i++){
+    const ch = text[i], lower = ch.toLowerCase(), k = ORDER.indexOf(lower);
+    let len = 1, play = null, deg = null;
+    const loud = ch !== lower ? 1.8 : 1;
+    if (k >= 0){
+      deg = MIDDLE[k];
+      play = VOWELS.has(lower)
+        ? (v, t, b) => tone(v, hz(deg + v.shift), t, { dur: b * 2.2, vol: 0.085 * loud, kind: "bell" })
+        : (v, t, b) => tone(v, hz(deg + v.shift), t, { dur: b * 1.6, vol: 0.12 * loud, kind: "pluck" });
+    } else if (/[0-9]/.test(ch)){
+      play = (v, t) => tone(v, 400 + (+ch) * 180 + v.shift * 30, t, { vol: 0.13, kind: "knock" });
+    } else if (ch === "." || ch === "!"){
+      len = 3; deg = 0;
+      play = (v, t, b) => { tone(v, hz(v.shift), t, { dur: b * 3, vol: 0.11, kind: "bell" }); tone(v, hz(5 + v.shift), t + 0.01, { dur: b * 3, vol: 0.06, kind: "bell" }); };
+    } else if (ch === "?"){
+      len = 3; deg = 9;
+      play = (v, t, b) => { tone(v, hz(3 + v.shift), t, { dur: b, vol: 0.09, kind: "bell" }); tone(v, hz(9 + v.shift), t + b * 0.8, { dur: b * 2, vol: 0.09, kind: "bell" }); };
+    } else if (ch === "," || ch === ";" || ch === ":") len = 2;
+    else if (ch === "\n") len = 4;
+    notes.push({ i, ch, beat, len, play, deg });
+    beat += len;
+  }
+  return { notes, length: beat + 2 }; // two beats' rest before the line comes round again
+}
+
+// ---- the round ---------------------------------------------------------
+// time is counted in beats from the start of the round; the scheduler looks a
+// little ahead and books notes on the audio clock.
+let run = null;
+const beatSec = () => 1 / +$("tempo").value;
+
+function start(){
+  unlock();
+  const text = ta.value.trim() || "la la la.";
+  const sc = score(text);
+  const n = +$("voices").value, times = +$("times").value, gap = +$("gap").value;
+  run = {
+    text, sc, n, times, gap,
+    t0: audio().currentTime + 0.12, beat0: 0, sec: beatSec(),
+    voices: VOICES.slice(0, n).map((v, k) => ({ v, k, entry: k * gap, pass: 0, next: 0, done: false, cur: -1, lit: 0 })),
+  };
+  run.timer = setInterval(tick, 25); tick();
+  $("play").textContent = "■ stop";
+}
+function stop(){
+  if (!run) return;
+  clearInterval(run.timer); run = null;
+  $("play").textContent = "▶ sing the round";
+}
+// change tempo mid-round without a jump: re-anchor the beat clock
+function retempo(){
+  if (!run) return;
+  const now = audio().currentTime, b = beatAt(now);
+  run.beat0 = b; run.t0 = now; run.sec = beatSec();
+}
+const beatAt = (t) => run.beat0 + (t - run.t0) / run.sec;
+const timeAt = (b) => run.t0 + (b - run.beat0) * run.sec;
+
+function tick(){
+  if (!run) return;
+  const now = audio().currentTime, horizon = beatAt(now + 0.15);
+  const { sc } = run;
+  for (const s of run.voices){
+    if (s.done) continue;
+    for (;;){
+      const note = sc.notes[s.next];
+      const at = s.entry + s.pass * sc.length + (note ? note.beat : sc.notes.length ? sc.length : 0);
+      if (!note){
+        // end of a pass
+        if (at > horizon) break;
+        s.pass++; s.next = 0;
+        if (run.times && s.pass >= run.times){ s.done = true; s.endsAt = at; break; }
+        continue;
+      }
+      if (at > horizon) break;
+      const t = Math.max(timeAt(at), now);
+      if (note.play) note.play(s.v, t, run.sec);
+      s.next++;
+    }
+  }
+  if (run.voices.every((s) => s.done) && beatAt(now) > Math.max(...run.voices.map((s) => s.endsAt)) + 4) stop();
+}
+
+// ---- picture: one lane per voice, the line sliding under a fixed reading mark
+function size(){
+  const dpr = devicePixelRatio || 1;
+  cv.width = cv.clientWidth * dpr; cv.height = cv.clientHeight * dpr;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener("resize", size); size();
+
+function frame(){
+  const W = cv.clientWidth, H = cv.clientHeight, ink = css("--ink");
+  g.clearRect(0, 0, W, H);
+  const n = run ? run.n : +$("voices").value;
+  const lane = H / n, cw = W < 480 ? 13 : 15;
+  const markX = Math.round(W * 0.38);
+  g.font = `${cw < 14 ? 14 : 16}px ui-monospace,Menlo,monospace`; g.textBaseline = "middle"; g.textAlign = "center";
+  // reading mark
+  g.strokeStyle = `rgba(${ink},.18)`; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(markX + 0.5, 0); g.lineTo(markX + 0.5, H); g.stroke();
+  const text = run ? run.text : (ta.value.trim() || "la la la.");
+  const sc = run ? run.sc : score(text);
+  const nowB = run ? beatAt(audio().currentTime) : 0;
+  for (let k = 0; k < n; k++){
+    const col = css(`--v${k}`), y = lane * k + lane / 2;
+    if (k) { g.strokeStyle = `rgba(${ink},.07)`; g.beginPath(); g.moveTo(0, lane * k + 0.5); g.lineTo(W, lane * k + 0.5); g.stroke(); }
+    const s = run && run.voices[k];
+    // where this voice is in the line, in beats since it entered
+    const entry = s ? s.entry : k * +$("gap").value;
+    const rel = nowB - entry;
+    const per = sc.length;
+    const pass = Math.floor(rel / per), within = rel - pass * per;
+    const finished = s && run.times && pass >= run.times;
+    // a dot above each letter at its pitch; draw this pass and its neighbours so the line wraps round continuously
+    for (const p of [-1, 0, 1]){
+      const pp = pass + p;
+      if (s && (pp < 0 || (run.times && pp >= run.times))) continue;
+      if (!s && pp !== 0) continue;
+      for (const note of sc.notes){
+        const db = note.beat + p * per - within;   // beats from the reading mark
+        const x = markX + db * cw;
+        if (x < -cw || x > W + cw) continue;
+        const sounding = s && db <= 0 && db > -note.len;
+        const past = db <= -note.len;
+        let a = past ? 0.28 : 0.6;
+        if (!run) a = 0.5;
+        if (rel < 0 && s) a = 0.22;
+        if (finished) a = 0.18;
+        g.fillStyle = sounding ? `rgb(${col})` : `rgba(${ink},${a})`;
+        g.fillText(note.ch === "\n" ? "¶" : note.ch, x + cw / 2, y + 6);
+        if (note.deg != null){
+          const dy = y - 10 - note.deg * Math.max(0.6, Math.min(1.6, (lane / 2 - 16) / 14));
+          g.fillStyle = `rgba(${col},${sounding ? 1 : past ? 0.25 : 0.45})`;
+          g.fillRect(x + cw / 2 - (sounding ? 2.5 : 1.5), dy - (sounding ? 2.5 : 1.5), sounding ? 5 : 3, sounding ? 5 : 3);
+        }
+      }
+    }
+    // label
+    g.textAlign = "left"; g.font = "11px ui-monospace,Menlo,monospace";
+    const tag = !s ? `voice ${k + 1}` : rel < 0 ? `voice ${k + 1} · in ${Math.ceil(-rel)}` : finished ? `voice ${k + 1} · done` : `voice ${k + 1}` + (run.times ? ` · ${pass + 1}/${run.times}` : "");
+    const lw = g.measureText(tag).width;
+    g.fillStyle = css("--bg"); g.fillRect(4, lane * k + 4, lw + 8, 16);
+    g.fillStyle = `rgba(${col},.95)`;
+    g.fillText(tag, 8, lane * k + 12);
+    g.textAlign = "center"; g.font = `${cw < 14 ? 14 : 16}px ui-monospace,Menlo,monospace`;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ---- controls ----------------------------------------------------------
+$("play").onclick = () => (run ? stop() : start());
+const showGap = () => ($("gapv").textContent = $("gap").value);
+$("gap").oninput = () => { showGap(); if (run) { stop(); } };
+$("voices").onchange = $("times").onchange = () => { if (run) stop(); };
+$("tempo").oninput = retempo;
+ta.addEventListener("input", () => { if (run) stop(); });
+function setGap(b){
+  $("gap").value = Math.max(2, Math.min(32, Math.round(b))); showGap();
+  if (run) stop();
+}
+// space the entries evenly through one pass of the line
+$("spread").onclick = () => {
+  const sc = score(ta.value.trim() || "la la la.");
+  const n = +$("voices").value;
+  setGap(sc.length / n);
+};
+$("tight").onclick = () => setGap(3);
+showGap();
+</script>
+</body>
+</html>

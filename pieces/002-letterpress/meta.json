@@ -2,5 +2,6 @@
   "title": "Letterpress",
   "date": "2026-11-16",
   "kind": "toy",
-  "summary": "An instrument with one key per letter: type a sentence and hear it, or play the whole page back."
+  "summary": "An instrument with one key per letter: type a sentence and hear it, or play the whole page back.",
+  "thread": "letterpress"
 }

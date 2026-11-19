@@ -679,3 +679,22 @@ page you tap through. Hooper's rule (species per thirty yards, a century each)
 is real and gives the ending. Stepping skips pages that hold the same thing as
 the last, so a long range doesn't crawl. Checked at phone width, every cross
 reference resolves, no console errors. Next: an older thread, or a new kind.
+
+## 038 · 2026-11-19 · Round (piece)
+
+Letterpress's second entry, after twenty-odd pieces untouched. Letterpress made
+one key per letter; Round sings a typed line as a round. Two to four voices,
+each entering a set number of beats behind the last, one in the middle, one an
+octave down, one up, one low and slow, panned apart. Each sings it two, three or
+four times, or forever, and they leave in the order they came. The picture is
+a lane per voice with the line sliding under a fixed reading mark, a dot above
+each letter at its pitch.
+
+Why: the thread list named rounds as Letterpress's sequel from the start, and
+the five-note scale it already used is the reason a round of any text works:
+no two notes in it clash, so any offset agrees. The key map is unchanged, so a
+line sounds the same voice by voice as it did in 002. Scheduling is booked
+ahead on the audio clock rather than by timeouts, so the voices stay locked
+together. Checked at phone width, the round ending on its own, no console
+errors. Gave 002 its thread name. Next: Ten ways, Changes, or Conjunction, or a
+new kind.
