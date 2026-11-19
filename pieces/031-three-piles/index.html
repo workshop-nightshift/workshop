@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Three Piles</title>
+<style>
+:root{--bg:#f2efe8;--fg:#1d1b18;--mute:#787164;--line:#d8d1c2;--card:#fbf9f4;--keep:#2f6b4f;--give:#a26a14;--bin:#8b3a2b;--tape:rgba(0,0,0,.05)}
+@media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#e8e4db;--mute:#9b9587;--line:#2f3034;--card:#1b1c1f;--keep:#79c39f;--give:#e0ad5c;--bin:#e58b78;--tape:rgba(255,255,255,.05)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:16px/1.55 Georgia,"Iowan Old Style",serif;padding:22px 16px 150px;display:flex;justify-content:center}
+main{width:100%;max-width:640px}
+h1{font-size:24px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 18px;font-style:italic}
+.cast{font-size:14.5px;color:var(--mute);margin:0 0 6px}
+.cast b{color:var(--fg);font-weight:normal;letter-spacing:.08em;font-variant:small-caps;font-size:15.5px}
+h2{font-size:13px;letter-spacing:.3em;text-transform:uppercase;font-weight:normal;color:var(--mute);margin:34px 0 12px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.sd{font-style:italic;color:var(--mute);margin:12px 0 12px 1.6em}
+.l{margin:0 0 9px;padding-left:1.6em;text-indent:-1.6em}
+.l .n{font-variant:small-caps;letter-spacing:.08em;font-size:15.5px;margin-right:.45em}
+.l .n.r{color:var(--keep)}
+.l .p{font-style:italic;color:var(--mute)}
+.mv{font-style:normal;border-bottom:1.5px solid currentColor;padding:0 1px;transition:background .4s}
+.mv.keep{color:var(--keep)}.mv.give{color:var(--give)}.mv.bin{color:var(--bin)}.mv.room{color:var(--mute)}
+.mv.now{background:var(--tape)}
+.end{text-align:center;color:var(--mute);letter-spacing:.3em;font-size:13px;margin:36px 0 8px}
+details{margin-top:24px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+#floor{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 22px -16px rgba(0,0,0,.45);padding:8px 16px 10px;display:flex;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#floor .in{width:100%;max-width:640px}
+#floor .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.col h3{margin:0;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:normal;display:flex;justify-content:space-between;border-bottom:2px solid currentColor;padding-bottom:2px}
+.col.keep h3{color:var(--keep)}.col.give h3{color:var(--give)}.col.bin h3{color:var(--bin)}
+.col ul{list-style:none;margin:4px 0 0;padding:0;font-size:13.5px;line-height:1.35}
+.col li{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .5s}
+.col li.fresh{animation:in .6s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+#floor:not(.open) .col li:not(:first-child){display:none}
+#floor.open .col ul{max-height:46vh;overflow:auto}
+.hint{font-size:12px;color:var(--mute);text-align:center;margin-top:4px}
+.col li.none{color:var(--mute);font-style:italic}
+@media (max-width:420px){body{font-size:15.5px}.col h3{letter-spacing:.12em}.col ul{font-size:12.5px}}
+@media (prefers-reduced-motion:reduce){.col li.fresh{animation:none}.mv{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Three Piles</h1>
+<p class="sub">a play in one room</p>
+<p class="cast"><b>Ros</b>, the elder, has brought tape. <b>Dan</b>, the younger, has brought coffee.</p>
+<p class="cast">A front room, nearly empty. The house is sold; the keys go back on Monday. Three squares of masking tape on the carpet, labelled in marker: KEEP, GIVE, BIN.</p>
+
+<div id="play">
+<h2>Morning</h2>
+<p class="sd">ROS is kneeling at the sideboard. DAN comes in with two paper cups and stops in the doorway.</p>
+<p class="l"><span class="n">Dan</span>You've taped the floor.</p>
+<p class="l"><span class="n">Ros</span>I've taped the floor.</p>
+<p class="l"><span class="n">Dan</span>She'd have hated that. The glue.</p>
+<p class="l"><span class="n">Ros</span>It's low-tack. It says on the roll. Low-tack, it says, for delicate surfaces. Give me that.</p>
+<p class="sd">She takes a coffee. He looks at the squares.</p>
+<p class="l"><span class="n">Dan</span>Where's Undecided?</p>
+<p class="l"><span class="n">Ros</span>There isn't an Undecided. That's the whole point. If there's an Undecided everything goes in Undecided and on Monday we're standing in the drive with a van full of Undecided.</p>
+<p class="l"><span class="n">Dan</span>Fine. Three piles.</p>
+<p class="l"><span class="n">Ros</span>The <span class="mv bin" data-item="phone book, 1998" data-to="bin">phone book</span> is a bin.</p>
+<p class="l"><span class="n">Dan</span>Agreed. Is that 1998?</p>
+<p class="l"><span class="n">Ros</span>It's 1998. She's ringed the chimney sweep.</p>
+<p class="l"><span class="n">Dan</span>She never had the chimney swept.</p>
+<p class="l"><span class="n">Ros</span>She ringed him, though. She was thinking about it for twenty-six years. <span class="p">(She lifts a wooden case off the wall.)</span> <span class="mv keep" data-item="barometer" data-to="keep">Barometer</span>.</p>
+<p class="l"><span class="n">Dan</span>Keep.</p>
+<p class="l"><span class="n">Ros</span>Does it work?</p>
+<p class="l"><span class="n">Dan</span>It says Change. It's always said Change. It said Change when I left for college and it said Change at the funeral. It's the most reliable instrument in the house.</p>
+<p class="l"><span class="n">Ros</span>Keep, then.</p>
+<p class="l"><span class="n">Dan</span><span class="p">(holding up a cake tin)</span> <span class="mv give" data-item="tin of buttons" data-to="give">Buttons</span>.</p>
+<p class="l"><span class="n">Ros</span>Give. The charity shop on Dale Street takes buttons by the jar.</p>
+<p class="l"><span class="n">Dan</span>There must be a thousand. Where do people get this many buttons?</p>
+<p class="l"><span class="n">Ros</span>Every shirt you ever outgrew. She cut them off before the shirt went. You're in there about four hundred times.</p>
+<p class="sd">DAN looks into the tin a little longer than he needs to. He puts it in GIVE.</p>
+<p class="l"><span class="n">Ros</span><span class="mv keep" data-item="the good scissors" data-to="keep">The good scissors</span>.</p>
+<p class="l"><span class="n">Dan</span>Oh, the good scissors.</p>
+<p class="l"><span class="n">Ros</span>Not for paper.</p>
+<p class="l"><span class="n">Dan</span>Not for paper, not for string, not for hair. What were they for?</p>
+<p class="l"><span class="n">Ros</span>Fabric. Theoretically.</p>
+<p class="l"><span class="n">Dan</span>Did she ever cut fabric?</p>
+<p class="l"><span class="n">Ros</span>She was keeping them good. Keep.</p>
+<p class="l"><span class="n">Dan</span><span class="p">(from a drawer)</span> <span class="mv bin" data-item="lids, no jars" data-to="bin">Lids</span>. Just lids. No jars.</p>
+<p class="l"><span class="n">Ros</span>The jars are in the garage. With no lids.</p>
+<p class="l"><span class="n">Dan</span>Do we reunite them?</p>
+<p class="l"><span class="n">Ros</span>We do not reunite them. Bin. And the jars, later, bin.</p>
+<p class="l"><span class="n">Dan</span><span class="mv give" data-item="tea towel, Lake Bled" data-to="give">Tea towel</span>. Lake Bled.</p>
+<p class="l"><span class="n">Ros</span>Who went to Lake Bled?</p>
+<p class="l"><span class="n">Dan</span>Nobody went to Lake Bled. I've been thinking about it since I was nine. Nobody in this family has ever been to Slovenia.</p>
+<p class="l"><span class="n">Ros</span>Someone brought it back for her.</p>
+<p class="l"><span class="n">Dan</span>Who? Name one person she knew who went to Slovenia.</p>
+<p class="l"><span class="n">Ros</span>Give, Dan.</p>
+
+<h2>Midday</h2>
+<p class="sd">The sideboard is empty. KEEP has a barometer and a pair of scissors in it. ROS opens the cupboard under the stairs and stands back.</p>
+<p class="l"><span class="n">Dan</span>Oh no.</p>
+<p class="l"><span class="n">Ros</span><span class="mv bin" data-item="Christmas lights" data-to="bin">Christmas lights</span>.</p>
+<p class="l"><span class="n">Dan</span>They work. They worked last year. I did them.</p>
+<p class="l"><span class="n">Ros</span>They're one knot. It's not lights any more, it's a single object.</p>
+<p class="l"><span class="n">Dan</span>Give me ten minutes.</p>
+<p class="l"><span class="n">Ros</span>She gave them ten minutes every December for thirty years and so did you. Bin.</p>
+<p class="sd">He puts them in BIN. Then he takes them out and puts them in GIVE.</p>
+<p class="l"><span class="n">Dan</span>Someone will want a project.</p>
+<p class="l"><span class="n">Ros</span><span class="p">(she lets it go)</span> <span class="mv keep" data-item="Dad's coat" data-to="keep">Dad's coat</span>.</p>
+<p class="sd">A heavy wool coat on the last hook. Neither of them takes it down.</p>
+<p class="l"><span class="n">Dan</span>How long has that been there?</p>
+<p class="l"><span class="n">Ros</span>Since. Nineteen years.</p>
+<p class="l"><span class="n">Dan</span>She wore it to put the bins out.</p>
+<p class="l"><span class="n">Ros</span>She did. In the rain.</p>
+<p class="l"><span class="n">Dan</span>So it's been worn. It's not a shrine. It's a bin coat.</p>
+<p class="l"><span class="n">Ros</span>It's a bin coat and it's Dad's coat.</p>
+<p class="l"><span class="n">Dan</span>Keep.</p>
+<p class="l"><span class="n">Ros</span>Where will you put it?</p>
+<p class="l"><span class="n">Dan</span>On a hook. I've got hooks.</p>
+<p class="sd">He takes it down and puts it on. It is too big for him. He doesn't take it off.</p>
+<p class="l"><span class="n">Ros</span><span class="p">(the kitchen; she comes back carrying a heavy orange dish with a lid)</span> The casserole.</p>
+<p class="l"><span class="n">Dan</span>The casserole.</p>
+<p class="sd">A pause. Both of them want it. Neither will say.</p>
+<p class="l"><span class="n">Ros</span>You've got a small kitchen.</p>
+<p class="l"><span class="n">Dan</span>It's a medium kitchen. You've got a dishwasher. That doesn't go in a dishwasher.</p>
+<p class="l"><span class="n">Ros</span>I'd wash it by hand.</p>
+<p class="l"><span class="n">Dan</span>You've never washed anything by hand in your life.</p>
+<p class="l"><span class="n">Ros</span><span class="p">(lifting the lid)</span> There's something in it.</p>
+<p class="sd">A folded sheet of lined paper. She reads it, then reads it again, then hands it to him.</p>
+<p class="l"><span class="n">Dan</span><span class="p">(reading)</span> "The orange dish. To whoever asks second."</p>
+<p class="l"><span class="n">Ros</span>That's her writing.</p>
+<p class="l"><span class="n">Dan</span>"Whoever asks second." What does that mean?</p>
+<p class="l"><span class="n">Ros</span>It means she knew we'd both want it.</p>
+<p class="l"><span class="n">Dan</span>So whoever says "can I have it" first —</p>
+<p class="l"><span class="n">Ros</span>— loses. Yes.</p>
+<p class="l"><span class="n">Dan</span>So neither of us says it.</p>
+<p class="l"><span class="n">Ros</span>Apparently.</p>
+<p class="sd">Silence. The dish sits between the three squares, in none of them.</p>
+<p class="l"><span class="n">Dan</span>Well, I don't want it.</p>
+<p class="l"><span class="n">Ros</span>That's not asking. You can't win by not asking.</p>
+<p class="l"><span class="n">Dan</span>You can't win by not asking either.</p>
+<p class="l"><span class="n">Ros</span>I'm not trying to win.</p>
+<p class="l"><span class="n">Dan</span>You taped the floor.</p>
+<p class="sd">The dish stays where it is. They go on around it.</p>
+<p class="l"><span class="n">Ros</span><span class="mv room" data-item="the orange dish" data-to="room">The dish</span> can wait.</p>
+<p class="l"><span class="n">Dan</span>I thought there wasn't an Undecided.</p>
+<p class="l"><span class="n">Ros</span>There isn't. It's on the floor. The floor isn't a pile.</p>
+
+<h2>Afternoon</h2>
+<p class="sd">Late light. Most of the room is in GIVE now; BIN is two black bags. DAN, still in the coat, pulls out the hall-table drawer and tips it onto the carpet. Keys. Thirty or forty, on rings and loose.</p>
+<p class="l"><span class="n">Ros</span>Bin.</p>
+<p class="l"><span class="n">Dan</span>You haven't looked.</p>
+<p class="l"><span class="n">Ros</span>I've looked at that drawer all my life. They're keys to nothing. That one's the old car. That one's the shed we pulled down. That one's Auntie Bea's flat and Auntie Bea has been dead since the Millennium.</p>
+<p class="l"><span class="n">Dan</span>She kept them.</p>
+<p class="l"><span class="n">Ros</span>She kept lids.</p>
+<p class="l"><span class="n">Dan</span><span class="p">(sorting, not listening)</span> Gate. Bike lock. Bike lock. A tiny one, that's a diary.</p>
+<p class="l"><span class="n">Ros</span>Did she keep a diary?</p>
+<p class="l"><span class="n">Dan</span>I kept a diary. When I was eleven. Which is why that key is in this drawer and not in my room.</p>
+<p class="l"><span class="n">Ros</span><span class="p">(laughing despite herself)</span> She took your diary key?</p>
+<p class="l"><span class="n">Dan</span>She took my diary key. Then she gave it back and I lost it and she must have found it. She always found things. That was the trick of her. You lost a thing in this house and it turned up in this drawer a year later.</p>
+<p class="sd">ROS kneels beside him. They sort for a while without talking.</p>
+<p class="l"><span class="n">Ros</span><span class="p">(holding one up)</span> This one doesn't look like anything.</p>
+<p class="l"><span class="n">Dan</span>Brass. Old. Try it.</p>
+<p class="l"><span class="n">Ros</span>Try it on what?</p>
+<p class="l"><span class="n">Dan</span>On the house. Every door. It's a house of doors. We've got till Monday.</p>
+<p class="sd">She goes out. We hear her trying the front door, the cellar, the cupboard under the stairs. She comes back.</p>
+<p class="l"><span class="n">Ros</span>The back door.</p>
+<p class="l"><span class="n">Dan</span>We never used the back door.</p>
+<p class="l"><span class="n">Ros</span>It opens the back door. It's the only key in the house that does. If we'd tried it in the last twenty years we could have used the back door.</p>
+<p class="l"><span class="n">Dan</span>Where does it go?</p>
+<p class="l"><span class="n">Ros</span>The garden. Where the jars are.</p>
+<p class="sd">A pause. DAN scoops the keys back into the drawer, all of them, and puts <span class="mv keep" data-item="the drawer of keys" data-to="keep">the drawer</span> in KEEP.</p>
+<p class="l"><span class="n">Ros</span>Dan.</p>
+<p class="l"><span class="n">Dan</span>One of them was the back door.</p>
+<p class="l"><span class="n">Ros</span>One of forty.</p>
+<p class="l"><span class="n">Dan</span>So it's one in forty. It's better odds than the chimney sweep.</p>
+<p class="sd">She doesn't argue. She picks up the roll of tape, considers the empty floor, and tears a strip.</p>
+<p class="l"><span class="n">Dan</span>What are you doing?</p>
+<p class="l"><span class="n">Ros</span><span class="p">(writing on it)</span> Undecided.</p>
+<p class="sd">She makes a small fourth square around the orange dish and the brass key, and sits on the floor next to it. He sits down on the other side.</p>
+<p class="l"><span class="n">Dan</span>Can I have the dish?</p>
+<p class="l"><span class="n">Ros</span><span class="p">(at once)</span> Can I have the dish?</p>
+<p class="sd">They look at each other.</p>
+<p class="l"><span class="n">Dan</span>Who was first?</p>
+<p class="l"><span class="n">Ros</span>You were first.</p>
+<p class="l"><span class="n">Dan</span>Then you win.</p>
+<p class="l"><span class="n">Ros</span>Then <span class="mv keep" data-item="the orange dish (Ros, for now)" data-to="keep">I'll have it</span>. You can come for dinner. Bring the coat.</p>
+<p class="l"><span class="n">Dan</span>It's a bin coat.</p>
+<p class="l"><span class="n">Ros</span>Then bring the bins.</p>
+<p class="sd">On the carpet, face up in KEEP, the barometer says Change.</p>
+<p class="end">END</p>
+</div>
+
+<details><summary>about this</summary>
+<p>A short play, read rather than staged. As you read, the things the two of them decide on move to the
+pile they end up in; the floor along the bottom keeps count, and tapping it opens the full lists.
+Scroll back and the decisions come undone. One thing waits on the carpet for a long time and isn't in any pile.</p>
+</details>
+</main>
+
+<div id="floor" role="button" tabindex="0" aria-expanded="false" aria-label="The three piles; tap to show all">
+<div class="in">
+<div class="cols">
+<div class="col keep"><h3><span>Keep</span><span id="ck">0</span></h3><ul id="lk"></ul></div>
+<div class="col give"><h3><span>Give</span><span id="cg">0</span></h3><ul id="lg"></ul></div>
+<div class="col bin"><h3><span>Bin</span><span id="cb">0</span></h3><ul id="lb"></ul></div>
+</div>
+<div class="hint" id="hint">tap for the full piles</div>
+</div>
+</div>
+
+<script>
+(function(){
+var mvs=[].slice.call(document.querySelectorAll('.mv'));
+var floor=document.getElementById('floor');
+var lists={keep:document.getElementById('lk'),give:document.getElementById('lg'),bin:document.getElementById('lb')};
+var counts={keep:document.getElementById('ck'),give:document.getElementById('cg'),bin:document.getElementById('cb')};
+var shown=-2,prev={};
+// the lights are moved to GIVE by a stage direction a few lines later; find that direction
+var sds=[].slice.call(document.querySelectorAll('.sd'));
+var lightsSd=sds.filter(function(s){return /takes them out/.test(s.textContent)})[0];
+function events(){
+  var ev=mvs.map(function(el){return {el:el,item:el.dataset.item,to:el.dataset.to}});
+  if(lightsSd){ev.push({el:lightsSd,item:'Christmas lights',to:'give'})}
+  ev.sort(function(a,b){return a.el.compareDocumentPosition(b.el)&Node.DOCUMENT_POSITION_FOLLOWING?-1:1});
+  return ev;
+}
+var ev=events();
+function stateAt(k){
+  var where={},order=[];
+  for(var i=0;i<=k;i++){
+    var e=ev[i],it=e.item;
+    if(/^the orange dish/.test(it)){delete where['the orange dish'];}
+    var key=/^the orange dish/.test(it)?(e.to==='room'?'the orange dish':it):it;
+    where[key]=e.to;
+    var j=order.indexOf(key);if(j>=0)order.splice(j,1);order.push(key);
+  }
+  return {where:where,order:order};
+}
+function render(k){
+  if(k===shown)return;shown=k;
+  var s=stateAt(k),now={};
+  ['keep','give','bin'].forEach(function(p){
+    var items=s.order.filter(function(it){return s.where[it]===p}).reverse();
+    counts[p].textContent=items.length;
+    var ul=lists[p];ul.innerHTML='';
+    if(!items.length){var li=document.createElement('li');li.className='none';li.textContent='—';ul.appendChild(li)}
+    items.forEach(function(it){
+      var li=document.createElement('li');li.textContent=it;
+      if(prev[it]!==p)li.className='fresh';
+      ul.appendChild(li);now[it]=p;
+    });
+  });
+  prev=now;
+  ev.forEach(function(e,i){if(e.el.classList.contains('mv'))e.el.classList.toggle('now',i===k)});
+}
+function tick(){
+  var lim=window.innerHeight*0.62,k=-1;
+  for(var i=0;i<ev.length;i++){if(ev[i].el.getBoundingClientRect().top<lim)k=i;else break}
+  render(k);
+}
+var raf=0;
+function onScroll(){if(!raf)raf=requestAnimationFrame(function(){raf=0;tick()})}
+window.addEventListener('scroll',onScroll,{passive:true});
+window.addEventListener('resize',onScroll);
+function toggle(){
+  var o=floor.classList.toggle('open');floor.setAttribute('aria-expanded',o);
+  document.getElementById('hint').textContent=o?'tap to fold':'tap for the full piles';
+}
+floor.addEventListener('click',toggle);
+floor.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
+tick();
+})();
+</script>
+</body>
+</html>

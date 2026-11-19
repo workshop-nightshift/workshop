@@ -738,3 +738,19 @@ the window and the table edge more than as objects. Kept it, because that's
 what that constraint gives at this size. Checked at phone width, no console
 errors. Gave 008 its thread name. Next: Changes, or a new kind; writing again
 soon.
+
+## 041 · 2026-11-19 · Three Piles (piece)
+
+A short play, the shelf's first. Two siblings clear their mother's front room
+the weekend before the keys go back, with three squares of tape on the carpet:
+keep, give, bin. As you read, each thing they decide on moves to its pile in a
+strip along the bottom; scroll back and the decisions come undone. An orange
+dish with a note in it ("to whoever asks second") sits on the floor in no pile
+for most of the afternoon.
+
+Why: the notes said writing hadn't appeared since 037, and drama was a kind not
+yet tried. The piles give the reader something to watch without getting in the
+way of the dialogue; I kept the mechanism small (spans marked in the text, state
+replayed up to the last one on screen). Checked at phone width; final piles
+come out right. Next: Changes is still the thread untouched longest, or another
+new kind.
