@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Index</title>
+<style>
+:root{--bg:#f1ede4;--fg:#1e1c19;--mute:#7a7364;--line:#d6cfbf;--card:#faf7f0;--mark:#8a3b22;--markbg:rgba(138,59,34,.12)}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e7e3da;--mute:#9a9486;--line:#2e2f33;--card:#1a1b1e;--mark:#e3906f;--markbg:rgba(227,144,111,.16)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:18px 16px 190px;display:flex;justify-content:center}
+main{width:100%;max-width:760px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 6px;font-style:italic}
+.how{color:var(--mute);font-size:14px;margin:0 0 16px}
+#ix{columns:2 300px;column-gap:34px;background:var(--card);border:1px solid var(--line);padding:18px 20px 14px}
+.letter{break-after:avoid;font-size:13px;letter-spacing:.3em;color:var(--mute);margin:14px 0 4px;border-bottom:1px solid var(--line)}
+.letter:first-child{margin-top:0}
+.e{break-inside:avoid;margin:0 0 6px;padding-left:1.2em;text-indent:-1.2em;scroll-margin:24px;border-radius:3px;transition:background .6s}
+.e.flash{background:var(--markbg)}
+.e .h{font-weight:bold}
+.e .s{display:block;padding-left:1.2em;text-indent:-1.2em;margin-left:1.2em}
+.ref{font-style:italic}
+.ref a{color:inherit;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:2px;font-style:normal}
+button.p{font:inherit;color:inherit;background:none;border:0;padding:1px 2px;margin:0 -1px;border-radius:3px;cursor:pointer;touch-action:manipulation}
+button.p:hover{color:var(--mark)}
+button.p.on{color:var(--mark);background:var(--markbg);font-weight:bold}
+.colo{color:var(--mute);font-size:13px;font-style:italic;text-align:center;margin:10px 0 0;column-span:all}
+#panel{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -8px 22px -16px rgba(0,0,0,.4);padding:10px 16px 12px;display:flex;justify-content:center}
+#panel .in{width:100%;max-width:760px}
+#strip{position:relative;height:22px;cursor:pointer;touch-action:none;margin:0 0 8px}
+#strip::before{content:"";position:absolute;left:0;right:0;top:10px;height:2px;background:var(--line)}
+#strip i{position:absolute;top:6px;width:1px;height:10px;background:var(--mute);opacity:.7}
+#strip b{position:absolute;top:2px;width:3px;margin-left:-1px;height:18px;background:var(--mark);border-radius:1px;transition:left .25s}
+.bar{display:flex;align-items:baseline;gap:10px}
+.bar button.nav{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 10px;cursor:pointer;touch-action:manipulation}
+.bar button.nav:disabled{opacity:.35;cursor:default}
+#pg{font-size:18px;min-width:4.5em}
+.bar .sp{flex:1}
+.bar a{color:var(--mute);font-size:14px}
+#on{margin:6px 0 0;font-size:14px;min-height:3em;max-height:28vh;overflow:auto}
+#on a{color:inherit;text-decoration:none;display:inline}
+#on a:hover{color:var(--mark)}
+#on .sep{color:var(--mute)}
+#on .none{color:var(--mute);font-style:italic}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+@media (max-width:480px){#ix{padding:14px 12px 10px}body{font-size:14.5px}}
+@media (prefers-reduced-motion:reduce){.e,#strip b{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Index</h1>
+  <p class="sub">from <span style="font-style:normal">The Hedge at Long Acre: thirty years of one field boundary</span></p>
+  <p class="how">The book is not here; the index is. Tap a page number to see what else that page holds,
+    then step through the pages in order.</p>
+  <div id="ix"></div>
+  <details><summary>about this</summary>
+    <p>A short story told only as the index at the back of a book. Nothing is said outright; the story is
+    in which things share a page. Every page number is real to the story, and the strip at the bottom is
+    the book's length, 460 pages, with a tick wherever the index sends you.</p>
+    <p>Hooper's rule is a real rule of thumb from English hedgerow survey: count the woody species in a
+    thirty-yard length, and each one is roughly a century of age. Everything else is invented.</p>
+    <p><a href="../../">← shelf</a></p>
+  </details>
+</main>
+<div id="panel"><div class="in">
+  <div id="strip" aria-hidden="true"></div>
+  <div class="bar">
+    <button class="nav" id="prev" aria-label="previous page">‹</button>
+    <span id="pg">p. —</span>
+    <button class="nav" id="next" aria-label="next page">›</button>
+    <span class="sp"></span>
+    <a href="../../">shelf</a>
+  </div>
+  <div id="on" aria-live="polite"><span class="none">Choose a page number, or press › to begin at page 1.</span></div>
+</div></div>
+<script>
+const SRC = `
+author | also: gate, the; Tom
+- arrives at Long Acre | 1-3
+- first survey of the hedge | 9-24
+- learns to lay a hedge | 95-102
+- alone | 88, 91
+- petition by | 188-95
+- at the funeral | 305
+- does not watch the grubbing | 312
+- walks the line of the hedge | 330, 362, 401
+- gives cuttings to D. Calder | 429
+- last survey | 455-60
+- lets the error stand | 459
+billhook | 95, 101
+blackthorn (Prunus spinosa) | 11, 14, 40, 97
+- flowers before leaf | 57
+- in the new hedge | 431
+bluebells | 33, 118 | also: ghost hedge
+- persist after removal | 334-7, 362, 401
+bramble, not counted | 12
+Calder, Alan | 7, 26
+- buys the far field | 160
+- plans to grub out the hedge | 176-84
+- applies for grant | 181
+- at the parish meeting | 196
+- and Ruth | 141, 263
+- widowed | 301
+- grubs out the hedge | 312
+- spares the oak | 314
+- sells the dairy herd | 340
+- death of | 411
+Calder, Daniel | also: hedge, new
+- as a boy | 47, 110
+- finds a dormouse nest | 110
+- leaves for college | 220
+- at his mother's funeral | 305
+- returns to the farm | 413
+- replants the hedge | 425-34
+- asks for cuttings | 429
+- hangs a new gate | 433
+Calder, Ruth | also: letters; seed tin
+- first meeting | 6
+- brings eggs | 6, 29, 88
+- helps lay the hedge | 95-102
+- her hands | 99
+- laughs at the author's billhook | 101
+- at the gate | 140-1, 207, 296
+- does not sign the petition | 194
+- letters to the author | 205-9
+- illness | 263, 280-98
+- last visit | 296
+- death | 301
+cuttings | also: spindle (Euonymus europaeus)
+- taken | 296
+- rooted on the kitchen sill | 318
+- given away | 429
+dog rose | 14, 431
+dog's mercury, as old-woodland sign | 34, 118
+dormice | 110-13, 186
+- cited in the petition | 190
+eggs | see: Calder, Ruth
+field maple | 14, 22, 431
+figures
+- fig. 1, the hedge from the lane, 1979 | 2
+- fig. 14, the hedge from the lane, 1995 | 320
+- fig. 15, the line of it, from the air | 402
+gap | see: gate, the; hedge, grubbed out
+gate, the | 7, 140-1, 207, 296
+- left standing in the open field | 314, 330
+- a new one hung | 433
+ghost hedge | 330-7 | also: bluebells
+- in the drought | 362
+- from the air | 402
+grant
+- for hedgerow removal | 181, 185
+- for hedgerow planting | 425
+hawthorn | 11, 14, 97
+- the commonest | 22
+- in the new hedge | 431
+hazel | 14, 22, 60, 431
+- coppiced | 74
+hedge | also: ghost hedge; hedge, new
+- measured | 9-24
+- its age by Hooper's rule | 24
+- laid | 95-102
+- dispute over | 176-200
+- grubbed out | 312
+hedge, grubbed out | see: hedge
+hedge, new | also: Hooper's rule
+- planted | 425-34
+- species in | 431
+- planted up to the oak | 432
+- first survey of | 458
+holly | 14, 296
+Hooper's rule
+- explained | 18-20
+- applied | 24
+- doubted | 75
+- the author's faith in | 197
+- fails | 458-9
+letters
+- from R.C. | 205-9, 280, 291
+- kept in the seed tin | 210, 455
+- not answered | 209
+- not sent | 299
+- read again | 455
+Long Acre (cottage) | 1-3, 88
+meeting, parish | 196-9
+oak, standard | 14, 40, 312
+- left alone in the field | 314
+- the new hedge planted up to | 432
+petition | 188-95
+- R.C. does not sign | 194
+- fails | 199
+plates | see: figures
+primroses | 33, 57
+rain | 99, 296, 312
+seed tin | 210, 296, 455
+spindle (Euonymus europaeus) | 14, 22, 53
+- its pink fruit | 53, 297
+- cuttings from | 296, 318, 429
+survey, method of | 9-12 | also: Hooper's rule
+- thirty-yard lengths | 11
+Tom | 3, 41, 65
+- leaves | 88
+- writes once | 91
+weather | see: rain
+window, kitchen
+- the hedge seen from | 1, 88, 312, 460
+yards, thirty | see: survey, method of
+`;
+
+const ix = document.getElementById('ix');
+const entries = [];
+let cur = null;
+for (const raw of SRC.split('\n')) {
+  const line = raw.trim();
+  if (!line) continue;
+  const sub = line.startsWith('- ');
+  const parts = (sub ? line.slice(2) : line).split(' | ');
+  const it = { text: parts[0], pages: [], see: [], also: [] };
+  for (const p of parts.slice(1)) {
+    if (p.startsWith('see:')) it.see = p.slice(4).split(';').map(s => s.trim());
+    else if (p.startsWith('also:')) it.also = p.slice(5).split(';').map(s => s.trim());
+    else it.pages = parsePages(p);
+  }
+  if (sub) cur.subs.push(it); else { it.subs = []; entries.push(it); cur = it; }
+}
+function parsePages(s) {
+  return s.split(',').map(t => t.trim()).filter(Boolean).map(t => {
+    const [a, b] = t.split('-');
+    if (!b) return { a: +a, b: +a, label: a };
+    const full = b.length < a.length ? a.slice(0, a.length - b.length) + b : b;
+    return { a: +a, b: +full, label: a + '–' + b };
+  });
+}
+const key = t => t.toLowerCase().replace(/^the /, '').replace(/[^a-z ]/g, '');
+entries.sort((x, y) => key(x.text) < key(y.text) ? -1 : 1);
+const idOf = t => 'e-' + key(t).replace(/ +/g, '-');
+const known = new Set(entries.map(e => e.text));
+
+// citations: page -> [{entry, label}]
+const cites = new Map();
+function cite(range, entry, label) {
+  for (let p = range.a; p <= range.b; p++) {
+    if (!cites.has(p)) cites.set(p, []);
+    const list = cites.get(p);
+    if (!list.some(c => c.label === label)) list.push({ entry, label });
+  }
+}
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function pagesHTML(pages) {
+  return pages.map(r => `<button class="p" data-a="${r.a}" data-b="${r.b}">${r.label}</button>`).join(', ');
+}
+function refHTML(word, list) {
+  return `<span class="ref">${word} ${list.map(t => known.has(t)
+    ? `<a href="#${idOf(t)}" data-go="${idOf(t)}">${esc(t)}</a>` : esc(t)).join('; ')}</span>`;
+}
+let html = '', lastL = '';
+for (const e of entries) {
+  const L = key(e.text)[0].toUpperCase();
+  if (L !== lastL) { html += `<div class="letter">${L}</div>`; lastL = L; }
+  let h = `<div class="e" id="${idOf(e.text)}"><span class="h">${esc(e.text)}</span>`;
+  const bits = [];
+  if (e.pages.length) bits.push(pagesHTML(e.pages));
+  if (e.see.length) bits.push(refHTML('see', e.see));
+  if (e.subs.length === 0 && e.also.length) bits.push(refHTML('see also', e.also));
+  if (bits.length) h += ', ' + bits.join('; ');
+  e.pages.forEach(r => cite(r, e.text, e.text));
+  for (const s of e.subs) {
+    h += `<span class="s">${esc(s.text)}, ${pagesHTML(s.pages)}</span>`;
+    s.pages.forEach(r => cite(r, e.text, e.text + ': ' + s.text));
+  }
+  if (e.subs.length && e.also.length) h += `<span class="s">${refHTML('see also', e.also)}</span>`;
+  html += h + '</div>';
+}
+html += `<p class="colo">Index compiled by the author.</p>`;
+ix.innerHTML = html;
+
+const PAGES = [...cites.keys()].sort((a, b) => a - b);
+const MAXP = 460;
+const strip = document.getElementById('strip');
+const pct = p => ((p - 1) / (MAXP - 1) * 100) + '%';
+strip.innerHTML = PAGES.map(p => `<i style="left:${pct(p)}"></i>`).join('') + '<b id="mk" style="left:0;opacity:0"></b>';
+const mk = document.getElementById('mk');
+const pg = document.getElementById('pg'), on = document.getElementById('on');
+const prev = document.getElementById('prev'), next = document.getElementById('next');
+let page = null;
+
+function show(p) {
+  page = p;
+  pg.textContent = 'p. ' + p;
+  mk.style.left = pct(p); mk.style.opacity = 1;
+  const list = cites.get(p) || [];
+  on.innerHTML = list.length
+    ? list.map(c => `<a href="#${idOf(c.entry)}" data-go="${idOf(c.entry)}">${esc(c.label)}</a>`).join('<span class="sep"> · </span>')
+    : '<span class="none">Nothing on this page is indexed.</span>';
+  document.querySelectorAll('button.p').forEach(b => b.classList.toggle('on', +b.dataset.a <= p && p <= +b.dataset.b));
+  const i = PAGES.indexOf(p);
+  prev.disabled = i <= 0; next.disabled = i === PAGES.length - 1;
+}
+function go(id) {
+  const el = document.getElementById(id); if (!el) return;
+  el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1100);
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('button.p');
+  if (b) { const a = +b.dataset.a, z = +b.dataset.b;
+    // tapping a range again walks through it
+    show(page !== null && page >= a && page < z ? page + 1 : a); return; }
+  const g = ev.target.closest('[data-go]');
+  if (g) { ev.preventDefault(); go(g.dataset.go); }
+});
+function step(d) {
+  if (page === null) { show(PAGES[0]); return; }
+  // skip pages that hold exactly what this one holds (the middle of a long range)
+  const sig = p => cites.get(p).map(c => c.label).join('|');
+  const here = sig(page);
+  let i = PAGES.indexOf(page) + d;
+  while (i > 0 && i < PAGES.length - 1 && sig(PAGES[i]) === here) i += d;
+  if (d < 0) { // land on the first page of a run, not its last
+    const s = i >= 0 ? sig(PAGES[i]) : null;
+    while (i > 0 && sig(PAGES[i - 1]) === s && PAGES[i - 1] === PAGES[i] - 1) i--;
+  }
+  if (i >= 0 && i < PAGES.length) show(PAGES[i]);
+}
+prev.onclick = () => step(-1);
+next.onclick = () => step(1);
+prev.disabled = true;
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'ArrowRight') { step(1); ev.preventDefault(); }
+  else if (ev.key === 'ArrowLeft') { step(-1); ev.preventDefault(); }
+});
+function fromStrip(ev) {
+  const r = strip.getBoundingClientRect();
+  const want = 1 + Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * (MAXP - 1);
+  let best = PAGES[0];
+  for (const p of PAGES) if (Math.abs(p - want) < Math.abs(best - want)) best = p;
+  if (best !== page) show(best);
+}
+strip.addEventListener('pointerdown', ev => { strip.setPointerCapture(ev.pointerId); fromStrip(ev); });
+strip.addEventListener('pointermove', ev => { if (strip.hasPointerCapture(ev.pointerId)) fromStrip(ev); });
+</script>
+</body>
+</html>

@@ -29,3 +29,4 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 
 - Print-quality exports of the better art pieces.
 - Collected writing as an ebook if a series gets long enough.
+- A story told only as a book's index — done in 027 as Index.

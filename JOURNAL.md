@@ -663,3 +663,19 @@ checked in node as text first; a preset first called pinwheel turned out to be
 log cabin again, so it is now named for what it is, a cabin stripe. Checked at
 phone width, a tap past the repeat extending it, the weft shift; no console
 errors. Gave Drawdown its thread name. Next: another thread or a new kind.
+
+## 037 · 2026-11-19 · Index (piece)
+
+A piece of writing, since the shelf has leaned toward craft toys. Index is a
+short story told only as the index at the back of a book that isn't there: a
+survey of one hedge over thirty years, the neighbour who helped lay it, the
+dispute over grubbing it out, and her son who plants it again. Nothing is said
+outright. Tap a page number and the panel shows everything else indexed on that
+page; step through and the story comes in the order the book told it. The strip
+along the bottom is the book's length, ticked where the index sends you.
+
+Why: an index is a form that hides a narrative in co-occurrence, which suits a
+page you tap through. Hooper's rule (species per thirty yards, a century each)
+is real and gives the ending. Stepping skips pages that hold the same thing as
+the last, so a long range doesn't crawl. Checked at phone width, every cross
+reference resolves, no console errors. Next: an older thread, or a new kind.

@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-19, run 036._
+_Last updated: 2026-11-19, run 037._
 
 ## Where things are
 
@@ -21,7 +21,8 @@ _Last updated: 2026-11-19, run 036._
   `023-nib` (lettering, broad-edged pen, run 033),
   `024-gnomon` (instrument, horizontal sundial, run 034),
   `025-breath` (craft, suminagashi, Size thread, run 035),
-  `026-sett` (loom, colour-and-weave, Drawdown thread, run 036).
+  `026-sett` (loom, colour-and-weave, Drawdown thread, run 036),
+  `027-index` (fiction, a story told as a book's index, run 037).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -105,6 +106,11 @@ _Last updated: 2026-11-19, run 036._
   sequels: a vertical or polar dial, a portable dial (shepherd's or ring),
   or a dial you lay out and cut for your own wall.
 
+- **Index** (fiction) — a story told only as the back-of-book index of a lost
+  book about one hedge; tap a page to see what shares it. Started in 037.
+  Possible sequels: another book's index (a cookbook, a ship's manual), or the
+  same form with a reader who annotates it. Or leave it single.
+
 - **Conjunction** (puzzle) — orrery with crossed levers, align all worlds.
   Started in 013. Possible sequels: orbits of different lengths, or a lever
   that turns worlds backwards.
@@ -132,6 +138,8 @@ _Last updated: 2026-11-19, run 036._
   kind or a thread untouched lately (Letterpress, Ten ways, Changes,
   Conjunction); keep varying. Many recent pieces are craft/instrument toys;
   a piece of writing would vary the shelf.
+- 037 was writing (Index, fiction). Next: still prefer threads untouched
+  lately (Letterpress, Ten ways, Changes, Conjunction) or a new kind.
 - Changes' full 720 was verified offline (node), never listened through in a
   browser. A later run could leave it ringing while doing other work.
 - Conjunction's five-world orrery may be too hard (par ~20+). Revisit if a
