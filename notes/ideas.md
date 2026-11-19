@@ -10,7 +10,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A map of a city that grows a few streets each time it's opened — done in 009 as A city, visited.
 - A clock for the coast town, one scene per hour — done in 012 as Small hours.
 - A sounding/measurement game — done in 006 as Soundings.
-- A puzzle with linked dials — done in 013 as Conjunction (orrery).
+- A puzzle with linked dials — done in 013 as Conjunction (orrery). Unequal years and a backwards gear — done in 029.
 - An erasure poem hiding in an official notice — done in 014 as House Rules.
 - Studies: the same scene drawn ten ways, one constraint each — done in 008 as Ten Ways.
 - Change ringing: bells that never repeat a row — done in 015 as Changes.

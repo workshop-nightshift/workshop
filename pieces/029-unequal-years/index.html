@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unequal Years</title>
+<style>
+:root{--bg:#f1ede3;--fg:#1e1c18;--mute:#766f63;--line:#d6cfbf;--orbit:#cfc6b2;--brass:#9a7a3a;--face:#e9e3d4;--mark:#b23a2a;
+  --p0:#b5523b;--p1:#3f6f8f;--p2:#6f8a3a;--p3:#8a4f8f;--p4:#c08a1e}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e7e3da;--mute:#9a9488;--line:#2c2d30;--orbit:#3a3b3f;--brass:#c9a861;--face:#18191c;--mark:#e0745f;
+  --p0:#e07a5f;--p1:#7fb0d0;--p2:#a9c46a;--p3:#c48fca;--p4:#e8b84a}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:14px 16px 18px}
+main{width:100%;max-width:560px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 10px;font-style:italic}
+canvas{display:block;width:100%;height:auto;max-width:480px;margin:0 auto}
+#status{display:flex;justify-content:space-between;align-items:baseline;gap:4px 14px;flex-wrap:wrap;margin:6px 0 4px;font-size:14px;color:var(--mute)}
+#levers{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;margin-top:8px}
+.lever{font:inherit;color:var(--fg);background:none;border:1px solid var(--line);border-radius:6px;padding:7px 6px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;touch-action:manipulation}
+.lever:active{background:var(--face)}
+.lever.hint{border-color:var(--mark)}
+.lever b{font-weight:normal;font-size:13px;color:var(--mute);letter-spacing:.08em}
+.pips{display:flex;gap:6px;font-size:13px;align-items:center;flex-wrap:wrap;justify-content:center}
+.pip{display:inline-flex;align-items:center;gap:2px}
+.pip i{display:inline-block;width:10px;height:10px;border-radius:50%}
+.pip.back{color:var(--mark)}
+#log{min-height:2.8em;margin:10px 0 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+.row button:disabled{opacity:.4;cursor:default}
+a{color:inherit}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Unequal Years</h1>
+  <p class="sub" id="sub">A second orrery from the same bad workshop. The worlds' years are different lengths, and one gear was fitted backwards.</p>
+  <canvas id="c" width="560" height="560" role="img" aria-label="An orrery: worlds on concentric orbits of different step counts around a small sun, with a red line pointing straight up."></canvas>
+  <div id="status"><span id="night"></span><span id="count"></span></div>
+  <div id="levers"></div>
+  <p id="log" aria-live="polite"></p>
+  <div class="row">
+    <span><button id="undo">undo</button> <button id="reset">start over</button> <button id="hint">a hint</button> <button id="next" disabled>next orrery</button></span>
+    <span><a href="../../">← shelf</a></span>
+  </div>
+  <details><summary>how it goes</summary>
+    <p>Bring every world up to the red line at the top, all at once.</p>
+    <p>Each orbit has its own number of steps, marked by the ticks along it: the innermost
+    world's year is short, the outer ones longer, and no two are the same. Each lever turns some
+    of the worlds by the steps shown beside each coloured dot. A red number with a minus sign
+    turns that world backwards.</p>
+    <p>Because the years differ, a lever that moves two worlds the same amount doesn't keep them
+    together: pull it often enough and they drift apart and come back on their own schedule.</p>
+    <p>Three orreries a night, each with one more world. Par is the fewest pulls. A hint lights
+    one lever that lies on a shortest way from where you are now, and adds a pull to the count.
+    The night's orreries are the same for everyone; keys 1 to 5 pull the levers.</p>
+  </details>
+</main>
+<script>
+(() => {
+// ---- making an orrery (pure; tested in node) ---------------------------------
+function hash(s){ let h = 2166136261; for (const ch of String(s)){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed){ let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const mod = (a, m) => ((a % m) + m) % m;
+
+// state as mixed-radix integer
+function enc(p, Y){ let s = 0; for (let w = Y.length - 1; w >= 0; w--) s = s * Y[w] + p[w]; return s; }
+function dec(s, Y){ const p = []; for (let w = 0; w < Y.length; w++){ p.push(s % Y[w]); s = Math.floor(s / Y[w]); } return p; }
+
+// distance from every state to the solved one, by BFS out from solved using levers in reverse
+function distances(levers, Y){
+  const N = Y.reduce((a, b) => a * b, 1), dist = new Int16Array(N).fill(-1);
+  dist[0] = 0; let q = [0];
+  while (q.length){
+    const nq = [];
+    for (const s of q){
+      const p = dec(s, Y);
+      for (const l of levers){
+        const t = enc(p.map((v, w) => mod(v - l[w], Y[w])), Y);
+        if (dist[t] < 0){ dist[t] = dist[s] + 1; nq.push(t); }
+      }
+    }
+    q = nq;
+  }
+  return dist;
+}
+
+const WANT = { 3: [6, 10], 4: [8, 13], 5: [9, 14] };
+const POOL = { 3: [5, 6, 7, 8, 9], 4: [5, 6, 7, 8, 9, 10, 11], 5: [5, 6, 7, 8, 9, 10, 11, 12] };
+
+function makeOrrery(seed, n){
+  const r = rng(seed);
+  for (let attempt = 0; attempt < 400; attempt++){
+    const Y = POOL[n].slice().sort(() => r() - 0.5).slice(0, n).sort((a, b) => a - b);
+    const levers = [];
+    for (let j = 0; j < n; j++){
+      const m = new Array(n).fill(0);
+      const touch = 2 + (n > 2 && r() < 0.4 ? 1 : 0);
+      const picks = [...Array(n).keys()].sort(() => r() - 0.5).slice(0, touch);
+      for (const w of picks) m[w] = 1 + Math.floor(r() * 3);
+      levers.push(m);
+    }
+    // the gear fitted backwards: one lever, one of its worlds
+    const bj = Math.floor(r() * n), bw = levers[bj].map((v, w) => v ? w : -1).filter(w => w >= 0);
+    const w0 = bw[Math.floor(r() * bw.length)];
+    levers[bj][w0] = -levers[bj][w0];
+    if (![...Array(n).keys()].every(w => levers.some(l => l[w]))) continue;
+    // no two levers alike
+    if (new Set(levers.map(l => l.join())).size < n) continue;
+    const dist = distances(levers, Y);
+    const [lo, hi] = WANT[n];
+    const cands = [];
+    for (let s = 1; s < dist.length; s++){
+      if (dist[s] < lo || dist[s] > hi) continue;
+      const p = dec(s, Y);
+      if (p.filter(v => v === 0).length > 0) continue;
+      cands.push(s);
+    }
+    if (cands.length < 5) continue;
+    const s = cands[Math.floor(r() * cands.length)];
+    return { n, Y, levers, start: dec(s, Y), par: dist[s], dist };
+  }
+  return null;
+}
+if (typeof window === "undefined"){ module.exports = { makeOrrery, distances, enc, dec, hash, mod }; return; }
+
+// ---- page --------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const c = $("c"), g = c.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const NAMES = ["I","II","III","IV","V"];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const today = new Date();
+const dayKey = today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+let nightSeed = hash("unequal years " + dayKey), extraNights = 0;
+let level = 0, orr, pos, shown, pulls, history, done, hinted;
+
+function load(){
+  const n = 3 + level;
+  let s = hash(nightSeed + ":" + extraNights + ":" + level);
+  orr = null;
+  while (!orr){ orr = makeOrrery(s, n); s = hash("again" + s); }
+  pos = orr.start.slice(); shown = pos.slice(); pulls = 0; history = []; done = false; hinted = 0;
+  buildLevers(); status();
+  $("log").textContent = level === 0
+    ? `Three worlds, with years of ${orr.Y.join(", ")} steps. Pull a lever and watch.`
+    : `${n} worlds, years of ${orr.Y.join(", ")}.`;
+  $("next").disabled = true; $("next").textContent = "next orrery"; draw();
+}
+
+function buildLevers(){
+  const box = $("levers"); box.innerHTML = "";
+  orr.levers.forEach((m, j) => {
+    const b = document.createElement("button");
+    b.className = "lever";
+    const parts = [];
+    m.forEach((v, w) => { if (v) parts.push(`<span class="pip${v < 0 ? " back" : ""}"><i style="background:var(--p${w})"></i>${v > 0 ? "+" + v : "−" + (-v)}</span>`); });
+    b.innerHTML = `<b>LEVER ${NAMES[j]}</b><span class="pips">${parts.join("")}</span>`;
+    b.setAttribute("aria-label", `Lever ${j + 1}: ` + m.map((v, w) => v ? `world ${w + 1} ${v > 0 ? "forward" : "back"} ${Math.abs(v)}` : "").filter(Boolean).join(", "));
+    b.onclick = () => pull(j);
+    box.appendChild(b);
+  });
+}
+
+function status(){
+  $("night").textContent = `Orrery ${level + 1} of 3 · ${orr.n} worlds`;
+  $("count").textContent = `${pulls} pull${pulls === 1 ? "" : "s"}${hinted ? ` (${hinted} hint${hinted === 1 ? "" : "s"})` : ""} · par ${orr.par}`;
+  $("undo").disabled = !history.length || done;
+  $("hint").disabled = done;
+}
+
+function clearHint(){ document.querySelectorAll(".lever.hint").forEach(b => b.classList.remove("hint")); }
+
+function pull(j){
+  if (done) return;
+  clearHint();
+  history.push(pos.slice());
+  orr.levers[j].forEach((v, w) => { pos[w] = mod(pos[w] + v, orr.Y[w]); });
+  pulls++; status(); animate(j); check();
+}
+
+function check(){
+  if (!pos.every(p => p === 0)) {
+    const lined = pos.filter(p => p === 0).length;
+    $("log").textContent = lined ? `${lined} of ${orr.n} on the line.` : "";
+    return;
+  }
+  done = true; status();
+  const total = pulls + hinted, d = total - orr.par;
+  const how = (d <= 0 ? "In par. You read the years right." :
+              d <= 3 ? `${d} over par. The short year forgives a lot.` :
+                       `${d} over par. They got there; the long years hardly noticed.`)
+            + (hinted ? ` Hints counted as pulls: ${hinted}.` : "");
+  if (level < 2){ $("log").textContent = "Conjunction. " + how; $("next").disabled = false; $("next").textContent = "next orrery"; }
+  else { $("log").textContent = "Conjunction, the last of the night. " + how; $("next").disabled = false; $("next").textContent = "another night"; }
+}
+
+$("undo").onclick = () => { if (!history.length || done) return; clearHint(); pos = history.pop(); pulls--; status(); animate(); check(); };
+$("reset").onclick = () => { clearHint(); pos = orr.start.slice(); history = []; done = false; pulls = 0; status(); $("next").disabled = true; animate(); $("log").textContent = "Back to where they started."; };
+$("hint").onclick = () => {
+  if (done) return;
+  const here = orr.dist[enc(pos, orr.Y)];
+  const ok = orr.levers.map((l, j) => orr.dist[enc(pos.map((v, w) => mod(v + l[w], orr.Y[w])), orr.Y)] === here - 1 ? j : -1).filter(j => j >= 0);
+  if (!ok.length) return;
+  clearHint();
+  const j = ok[0];
+  $("levers").children[j].classList.add("hint");
+  hinted++; status();
+  $("log").textContent = `Lever ${NAMES[j]} is on a shortest way. ${here} pull${here === 1 ? "" : "s"} from here, at best.`;
+};
+$("next").onclick = () => { if (level < 2) level++; else { level = 0; extraNights++; $("sub").textContent = "Another night. The workshop has made another one."; } load(); };
+addEventListener("keydown", e => { const k = +e.key; if (k >= 1 && k <= orr.n && !e.metaKey && !e.ctrlKey && !e.altKey) pull(k - 1); });
+
+// ---- drawing -----------------------------------------------------------------
+let anim = null;
+function animate(j){
+  if (reduce){ shown = pos.slice(); draw(); return; }
+  // turn the way the lever turned; undo and reset take the short way round
+  const from = shown.map((f, w) => mod(f, orr.Y[w])), to = pos.map((p, w) => {
+    const Y = orr.Y[w];
+    let d;
+    if (j !== undefined) d = orr.levers[j][w];
+    else { d = mod(p - from[w], Y); if (d > Y / 2) d -= Y; }
+    return from[w] + d;
+  });
+  const t0 = performance.now(), dur = 460;
+  cancelAnimationFrame(anim);
+  const step = now => {
+    const t = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - t, 3);
+    shown = from.map((f, w) => f + (to[w] - f) * e);
+    draw();
+    if (t < 1) anim = requestAnimationFrame(step); else { shown = pos.slice(); draw(); }
+  };
+  anim = requestAnimationFrame(step);
+}
+
+function draw(){
+  const W = c.width, H = c.height, cx = W / 2, cy = H / 2;
+  g.clearRect(0, 0, W, H);
+  const n = orr.n, rMax = W * 0.42, rMin = W * 0.13;
+  const brass = css("--brass"), orbit = css("--orbit"), mark = css("--mark"), face = css("--face"), mute = css("--mute");
+  g.fillStyle = face; g.beginPath(); g.arc(cx, cy, rMax + 24, 0, 7); g.fill();
+  g.strokeStyle = brass; g.lineWidth = 2; g.stroke();
+  // the line
+  g.strokeStyle = mark; g.lineWidth = 2; g.setLineDash([4, 5]);
+  g.beginPath(); g.moveTo(cx, cy - rMin * 0.5); g.lineTo(cx, cy - rMax - 24); g.stroke(); g.setLineDash([]);
+  g.fillStyle = mark; g.beginPath(); g.moveTo(cx, cy - rMax - 12); g.lineTo(cx - 7, cy - rMax - 26); g.lineTo(cx + 7, cy - rMax - 26); g.fill();
+  const radius = w => rMin + (rMax - rMin) * (w + 1) / n;
+  for (let w = 0; w < n; w++){
+    const R = radius(w), Y = orr.Y[w];
+    g.strokeStyle = orbit; g.lineWidth = 1.2;
+    g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke();
+    // a tick per step of this world's year
+    g.strokeStyle = brass; g.globalAlpha = .7;
+    for (let i = 1; i < Y; i++){
+      const a = -Math.PI / 2 + i * 2 * Math.PI / Y;
+      g.lineWidth = 1.4;
+      g.beginPath(); g.moveTo(cx + Math.cos(a) * (R - 4), cy + Math.sin(a) * (R - 4));
+      g.lineTo(cx + Math.cos(a) * (R + 4), cy + Math.sin(a) * (R + 4)); g.stroke();
+    }
+    g.globalAlpha = 1;
+    // the year, written just left of the line
+    g.fillStyle = mute; g.font = "12px Georgia, serif"; g.textAlign = "right"; g.textBaseline = "middle";
+    g.fillText(Y, cx - 8, cy - R);
+  }
+  g.fillStyle = brass; g.beginPath(); g.arc(cx, cy, rMin * 0.3, 0, 7); g.fill();
+  for (let w = 0; w < n; w++){
+    const Y = orr.Y[w], a = -Math.PI / 2 + shown[w] * 2 * Math.PI / Y, R = radius(w);
+    const x = cx + Math.cos(a) * R, y = cy + Math.sin(a) * R;
+    g.strokeStyle = brass; g.globalAlpha = .5; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(cx, cy); g.lineTo(x, y); g.stroke(); g.globalAlpha = 1;
+    g.fillStyle = css("--p" + w);
+    g.beginPath(); g.arc(x, y, 10 + w * 1.2, 0, 7); g.fill();
+    const still = Math.abs(shown[w] - Math.round(shown[w])) < 0.01;
+    if (pos[w] === 0 && still){
+      g.strokeStyle = mark; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 15 + w * 1.2, 0, 7); g.stroke();
+    }
+    if (!done && still && pos[w]){
+      const left = Y - pos[w];
+      g.fillStyle = mute; g.font = "13px Georgia, serif"; g.textAlign = "center"; g.textBaseline = "middle";
+      const ox = Math.cos(a + Math.PI / 2) * 22, oy = Math.sin(a + Math.PI / 2) * 22;
+      g.fillText(left, x + ox, y + oy);
+    }
+  }
+}
+
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", draw);
+load();
+})();
+</script>
+</body>
+</html>

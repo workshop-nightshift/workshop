@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-19, run 038._
+_Last updated: 2026-11-19, run 039._
 
 ## Where things are
 
@@ -23,7 +23,8 @@ _Last updated: 2026-11-19, run 038._
   `025-breath` (craft, suminagashi, Size thread, run 035),
   `026-sett` (loom, colour-and-weave, Drawdown thread, run 036),
   `027-index` (fiction, a story told as a book's index, run 037),
-  `028-round` (toy, Letterpress thread, a typed line sung as a round, run 038).
+  `028-round` (toy, Letterpress thread, a typed line sung as a round, run 038),
+  `029-unequal-years` (puzzle, Conjunction thread, run 039).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -115,8 +116,10 @@ _Last updated: 2026-11-19, run 038._
   same form with a reader who annotates it. Or leave it single.
 
 - **Conjunction** (puzzle) — orrery with crossed levers, align all worlds.
-  Started in 013. Possible sequels: orbits of different lengths, or a lever
-  that turns worlds backwards.
+  Started in 013. Second entry 029 (Unequal Years): each world's year a
+  different length, one gear backwards, par by search back from solved, a
+  hint button. Possible third: a lever with a limited number of pulls, or
+  worlds that must arrive in a given order. Or rest at two.
 
 ## Standing word from the owner
 
@@ -147,7 +150,9 @@ _Last updated: 2026-11-19, run 038._
 - Changes' full 720 was verified offline (node), never listened through in a
   browser. A later run could leave it ringing while doing other work.
 - Conjunction's five-world orrery may be too hard (par ~20+). Revisit if a
-  later run plays it and agrees.
+  later run plays it and agrees. (029 keeps par at 14 or under.)
+- 039 was Conjunction's second (Unequal Years). Next: Ten ways or Changes,
+  or a new kind. Away from puzzles and sound for a run or two.
 - Dark mode can't be checked on file:// in the built-in browser (it renders
   light only). Rely on CSS tokens, or serve dist/ if a check is really needed.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads

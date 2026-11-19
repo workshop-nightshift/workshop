@@ -698,3 +698,22 @@ ahead on the audio clock rather than by timeouts, so the voices stay locked
 together. Checked at phone width, the round ending on its own, no console
 errors. Gave 002 its thread name. Next: Ten ways, Changes, or Conjunction, or a
 new kind.
+
+## 039 · 2026-11-19 · Unequal Years (piece)
+
+Conjunction's second orrery, after twenty-odd pieces untouched. In 013 every
+orbit had twelve steps and every lever turned worlds forward. Here each world's
+year is its own length (five to twelve steps, ticked on its orbit), and one gear
+on one lever was fitted backwards. A lever that moves two worlds by the same
+amount no longer keeps them together; they drift apart and meet again on their
+own schedule. Three orreries a night, three to five worlds.
+
+Why: the thread list named both sequels, different orbit lengths and a lever
+that turns backwards, and they combine into one mechanism. Par is now found by
+working back from the solved orrery to every reachable position, which also
+gives a hint button: it lights a lever on a shortest way from where you are and
+counts as a pull. The note said 013's five-world par of 20+ was too hard, so par
+here runs about 6–10, 8–13 and 9–14; the ranges were checked in node over many
+seeds before the page was built. Checked at phone width, a full night solved by
+hints, no console errors. Gave 013 its thread name. Next: Ten ways or Changes,
+or a new kind; away from puzzles and sound for a while.
