@@ -645,3 +645,21 @@ too small and a day's breath that tore the target into a sliver; enlarged the
 touch and made the opening breath gentler. Checked at phone width, held
 brushes, a breath, a hair, the paper; no console errors. Also gave Size its
 thread name. Next: another thread, or a new kind.
+
+## 036 · 2026-11-19 · Sett (piece)
+
+Drawdown's second entry: colour-and-weave. Drawdown was the structure, which
+thread lies on top; Sett is the other half of a draft, the order the colours go
+on in. Pick a weave (plain, two twills, basket), set three colours, and tap
+threads in the warp strip and the weft strip to change them; grow or shorten
+either repeat, copy the warp order into the weft, or shift the weft one thread.
+Presets: houndstooth, puppytooth, end-on-end, log cabin, a cabin stripe,
+shepherd's check, gun club, a small tartan. "Interlacing only" shows the bare
+weave, to see how little of the pattern is in it.
+
+Why: the thread list pointed at Drawdown, untouched since 016, and
+colour-and-weave is the most surprising thing about it. The patterns were
+checked in node as text first; a preset first called pinwheel turned out to be
+log cabin again, so it is now named for what it is, a cabin stripe. Checked at
+phone width, a tap past the repeat extending it, the weft shift; no console
+errors. Gave Drawdown its thread name. Next: another thread or a new kind.

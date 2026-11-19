@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sett</title>
+<style>
+:root{--bg:#efe9dd;--fg:#1f1c17;--mute:#7a7262;--line:#d4cbb8;--card:#f8f4ea;--grid:#c9bfa9;--accent:#9b3d2a}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--fg:#e8e3d8;--mute:#9a9485;--line:#2e2e33;--card:#1b1b1f;--grid:#3a3a40;--accent:#e08a6c}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:18px 16px 28px;display:flex;justify-content:center}
+main{width:100%;max-width:640px;min-width:0}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 14px;font-style:italic}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.bar button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer;touch-action:manipulation}
+.bar button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.lab{color:var(--mute);font-size:13px;margin-right:2px;min-width:42px}
+.slot{width:30px;height:30px;border-radius:6px;border:2px solid var(--line);padding:0;cursor:pointer;font:12px Georgia,serif;color:#fff;text-shadow:0 0 3px #000}
+.slot[aria-pressed=true]{border-color:var(--fg);outline:2px solid var(--accent);outline-offset:1px}
+.sw{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);padding:0;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);padding:12px;box-shadow:0 8px 22px -14px rgba(0,0,0,.35)}
+#draft{display:block;width:100%;touch-action:manipulation;cursor:pointer}
+#cloth{display:block;width:100%;margin-top:12px;border:1px solid var(--line)}
+.hint{color:var(--mute);font-size:13px;margin:8px 2px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer;touch-action:manipulation}
+.row button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.n{display:inline-block;min-width:1.6em;text-align:center;color:var(--fg)}
+a{color:inherit}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Sett</h1>
+  <p class="sub">The same few interlacings, and the order the colours go on in. Most of what you see is the second.</p>
+  <div class="bar" id="presets" role="group" aria-label="Cloths"></div>
+  <div class="bar" id="weaves" role="group" aria-label="Weave"><span class="lab">weave</span></div>
+  <div class="bar" id="slots"><span class="lab">colours</span></div>
+  <div class="bar" id="palette" style="margin-top:-4px"><span class="lab"></span></div>
+  <div class="card">
+    <canvas id="draft" aria-label="Warp colour order along the top, weft colour order down the side, and the cloth they make"></canvas>
+    <p class="hint">Tap a thread in the top strip (warp) or the side strip (weft) to change its colour to the next one. The marked threads are one repeat; the rest follow.</p>
+    <div class="row">
+      <span>warp <button data-a="w-">−</button><span class="n" id="nw"></span><button data-a="w+">+</button>
+            &nbsp; weft <button data-a="f-">−</button><span class="n" id="nf"></span><button data-a="f+">+</button></span>
+      <span><button data-a="copy">weft as warp</button> <button data-a="shift">shift weft</button></span>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <span><button data-a="struct" id="struct" aria-pressed="false">interlacing only</button></span>
+      <span><button data-a="png">save PNG</button></span>
+    </div>
+  </div>
+  <canvas id="cloth" aria-label="The woven cloth at a distance"></canvas>
+  <div class="row"><span></span><span><a href="../../">← shelf</a></span></div>
+  <details><summary>about this</summary>
+    <p>Drawdown was the loom's structure: which thread lies on top where. This is the other half of a draft, the one weavers call <em>colour-and-weave</em>.
+    Put the warp on in a colour order, throw the weft in a colour order, and weave something plain. The colours fall where the structure lets each thread show,
+    and simple orders make figures the weave itself does not have.</p>
+    <p>Four dark, four light, both ways, in a two-and-two twill: houndstooth. The same order in plain weave: little stepped checks. One dark, one light in plain weave
+    with the weft in step: fine crosswise lines. Shift the weft by one thread and the lines stand up instead. Swap the phase every few threads and you get log cabin,
+    blocks of lines turning. Try <em>interlacing only</em> to see how little of the pattern is in the weave.</p>
+    <p>A <em>sett</em> is the colour order of a check or a tartan, written as thread counts, and also how closely the threads are set. Your cloth is remembered in this browser.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const N = 24, MAXL = 24;
+// weave: rows of the interlacing, "1" = warp on top. Row 0 is the first pick.
+const WEAVES = {
+  "plain":      ["10","01"],
+  "2/2 twill":  ["1100","0110","0011","1001"],
+  "basket":     ["1100","1100","0011","0011"],
+  "3/1 twill":  ["1110","0111","1011","1101"],
+  "2/1 twill":  ["110","011","101"],
+};
+const PALETTE = ["#1d1b18","#efe6d2","#a8432c","#2b3a55","#d9b44a","#3e6b4f","#8a5a8c","#6b8fa8","#7a6248","#c9c2b4"];
+const s = (str) => [...str].map(c=>"ABC".indexOf(c));
+const PRESETS = {
+  "houndstooth":   { weave:"2/2 twill", wa:"AAAABBBB", fa:"AAAABBBB", cols:["#1d1b18","#efe6d2","#a8432c"] },
+  "puppytooth":    { weave:"2/2 twill", wa:"AABB", fa:"AABB", cols:["#2b3a55","#efe6d2","#a8432c"] },
+  "end-on-end":    { weave:"plain", wa:"AB", fa:"AB", cols:["#3e6b4f","#efe6d2","#a8432c"] },
+  "log cabin":     { weave:"plain", wa:"ABABABABBABABABA", fa:"ABABABABBABABABA", cols:["#1d1b18","#d9b44a","#a8432c"] },
+  "cabin stripe":  { weave:"plain", wa:"ABABABABBABABABA", fa:"AB", cols:["#8a5a8c","#efe6d2","#d9b44a"] },
+  "shepherd's":    { weave:"2/2 twill", wa:"AAAAAABBBBBB", fa:"AAAAAABBBBBB", cols:["#1d1b18","#efe6d2","#a8432c"] },
+  "gun club":      { weave:"2/2 twill", wa:"AAAABBBBAAAACCCC", fa:"AAAABBBBAAAACCCC", cols:["#efe6d2","#7a6248","#a8432c"] },
+  "tartan":        { weave:"2/2 twill", wa:"AAAAAAAABBCCCCCCCCBB", fa:"AAAAAAAABBCCCCCCCCBB", cols:["#2b3a55","#d9b44a","#3e6b4f"] },
+};
+const fromPreset = n => { const p=PRESETS[n]; return { name:n, weave:p.weave, wa:s(p.wa), fa:s(p.fa), cols:p.cols.slice(), slot:0 }; };
+function load(){ try{ const v=JSON.parse(localStorage.getItem("sett")); if(v&&WEAVES[v.weave]&&v.wa?.length&&v.fa?.length&&v.cols?.length===3) return v; }catch(e){} return null; }
+function save(){ try{ localStorage.setItem("sett", JSON.stringify(st)); }catch(e){} }
+let st = load() || fromPreset("houndstooth");
+let structOnly = false;
+
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const up = (x,y) => { const w=WEAVES[st.weave], r=w[y % w.length]; return r[x % r.length]==="1"; };
+const warpC = x => st.cols[st.wa[x % st.wa.length]];
+const weftC = y => st.cols[st.fa[y % st.fa.length]];
+const colourAt = (x,y) => structOnly ? (up(x,y)?"#1d1b18":"#efe6d2") : (up(x,y)?warpC(x):weftC(y));
+
+// bars
+const pb=$("presets"), wb=$("weaves"), sb=$("slots"), pl=$("palette");
+for(const n of Object.keys(PRESETS)){ const b=document.createElement("button"); b.textContent=n; b.dataset.n=n; b.onclick=()=>{ st=fromPreset(n); draw(); }; pb.appendChild(b); }
+for(const n of Object.keys(WEAVES)){ const b=document.createElement("button"); b.textContent=n; b.dataset.w=n; b.onclick=()=>{ st.weave=n; st.name=null; draw(); }; wb.appendChild(b); }
+for(let i=0;i<3;i++){ const b=document.createElement("button"); b.className="slot"; b.textContent="ABC"[i]; b.dataset.i=i; b.title="colour "+"ABC"[i]+": choose, then pick from the row below";
+  b.onclick=()=>{ st.slot=i; draw(); }; sb.appendChild(b); }
+for(const c of PALETTE){ const b=document.createElement("button"); b.className="sw"; b.style.background=c; b.title=c; b.onclick=()=>{ st.cols[st.slot]=c; st.name=null; draw(); }; pl.appendChild(b); }
+
+document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>act(b.dataset.a));
+function act(a){
+  const grow = arr => { if(arr.length<MAXL) arr.push(arr[0]); };
+  if(a==="w+") grow(st.wa); else if(a==="w-"){ if(st.wa.length>1) st.wa.pop(); }
+  else if(a==="f+") grow(st.fa); else if(a==="f-"){ if(st.fa.length>1) st.fa.pop(); }
+  else if(a==="copy") st.fa=st.wa.slice();
+  else if(a==="shift") st.fa.unshift(st.fa.pop());
+  else if(a==="struct"){ structOnly=!structOnly; draw(); return; }
+  else if(a==="png"){ savePNG(); return; }
+  st.name=null; draw();
+}
+
+const cv=$("draft"), ctx=cv.getContext("2d");
+const cl=$("cloth"), cx=cl.getContext("2d");
+let geo=null;
+
+// a thread cell with a hint of which way the visible thread runs
+function threadCell(g,x,y,k,fill,isWarp){
+  g.fillStyle=fill; g.fillRect(x,y,k,k);
+  if(k<4) return;
+  g.fillStyle="rgba(0,0,0,.16)";
+  const e=Math.max(1,k*.14);
+  if(isWarp){ g.fillRect(x,y,e,k); g.fillRect(x+k-e,y,e,k); }
+  else { g.fillRect(x,y,k,e); g.fillRect(x,y+k-e,k,e); }
+}
+
+function draw(){
+  for(const b of pb.children) b.setAttribute("aria-pressed", String(b.dataset.n===st.name));
+  for(const b of wb.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.w===st.weave));
+  for(const b of sb.querySelectorAll(".slot")){ b.style.background=st.cols[+b.dataset.i]; b.setAttribute("aria-pressed", String(+b.dataset.i===st.slot)); }
+  $("struct").setAttribute("aria-pressed", String(structOnly));
+  $("nw").textContent=st.wa.length; $("nf").textContent=st.fa.length;
+  const dpr=window.devicePixelRatio||1, wpx=cv.clientWidth;
+  const units=N+1.5;
+  const c=Math.floor(wpx/units), gap=Math.round(c*.5);
+  const ox=Math.floor((wpx-c*units)/2)+c+gap, oy=c+gap;
+  const hpx=oy+N*c+2;
+  geo={c,ox,oy};
+  cv.width=wpx*dpr; cv.height=hpx*dpr; cv.style.height=hpx+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,wpx,hpx);
+  const grid=css("--grid"), fg=css("--fg");
+  // warp strip (top), weft strip (left)
+  for(let x=0;x<N;x++){ ctx.fillStyle=warpC(x); ctx.fillRect(ox+x*c+1,0,c-2,c); }
+  for(let y=0;y<N;y++){ ctx.fillStyle=weftC(y); ctx.fillRect(ox-c-gap,oy+y*c+1,c,c-2); }
+  // dim the repeats beyond the first
+  ctx.fillStyle=css("--card");
+  ctx.globalAlpha=.55;
+  if(st.wa.length<N) ctx.fillRect(ox+st.wa.length*c,0,(N-st.wa.length)*c,c);
+  if(st.fa.length<N) ctx.fillRect(ox-c-gap,oy+st.fa.length*c,c,(N-st.fa.length)*c);
+  ctx.globalAlpha=1;
+  // repeat marks
+  ctx.strokeStyle=fg; ctx.lineWidth=1.5;
+  const mx=Math.min(st.wa.length,N), my=Math.min(st.fa.length,N);
+  ctx.beginPath(); ctx.moveTo(ox,c+3); ctx.lineTo(ox+mx*c,c+3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox-gap+3,oy); ctx.lineTo(ox-gap+3,oy+my*c); ctx.stroke();
+  // field
+  for(let y=0;y<N;y++) for(let x=0;x<N;x++) threadCell(ctx,ox+x*c,oy+y*c,c,colourAt(x,y),up(x,y));
+  ctx.strokeStyle=grid; ctx.lineWidth=1; ctx.strokeRect(ox+.5,oy+.5,N*c-1,N*c-1);
+  drawCloth();
+  save();
+}
+
+function drawCloth(){
+  const dpr=window.devicePixelRatio||1, wpx=cl.clientWidth;
+  const k=Math.max(3,Math.round(wpx/110));
+  const nx=Math.ceil(wpx/k), ny=Math.ceil(Math.min(wpx*.6,320)/k), h=ny*k;
+  cl.width=wpx*dpr; cl.height=h*dpr; cl.style.height=h+"px";
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  for(let y=0;y<ny;y++) for(let x=0;x<nx;x++) threadCell(cx,x*k,y*k,k,colourAt(x,y),up(x,y));
+}
+
+function savePNG(){
+  const k=6, n=Math.max(96, lcm(lcm(st.wa.length,st.fa.length),WEAVES[st.weave].length)*2);
+  const m=Math.min(n,240);
+  const c=document.createElement("canvas"); c.width=m*k; c.height=m*k;
+  const g=c.getContext("2d");
+  for(let y=0;y<m;y++) for(let x=0;x<m;x++) threadCell(g,x*k,y*k,k,colourAt(x,y),up(x,y));
+  const a=document.createElement("a"); a.download="sett.png"; a.href=c.toDataURL("image/png"); a.click();
+}
+function gcd(a,b){ while(b){ [a,b]=[b,a%b]; } return a; }
+function lcm(a,b){ return a*b/gcd(a,b); }
+
+cv.addEventListener("click", ev=>{
+  if(!geo) return;
+  const r=cv.getBoundingClientRect(), px=ev.clientX-r.left, py=ev.clientY-r.top;
+  const {c,ox,oy}=geo;
+  const cyc = v => (v+1)%3;
+  if(py>=0 && py<c+geo.c*.4 && px>=ox){
+    const x=Math.floor((px-ox)/c); if(x<0||x>=N) return;
+    if(x<st.wa.length) st.wa[x]=cyc(st.wa[x]);
+    else { const base=st.wa.slice(); while(st.wa.length<x) st.wa.push(base[st.wa.length % base.length]); st.wa.push(cyc(base[x % base.length])); }
+  } else if(px<ox && py>=oy){
+    const y=Math.floor((py-oy)/c); if(y<0||y>=N) return;
+    if(y<st.fa.length) st.fa[y]=cyc(st.fa[y]);
+    else { const base=st.fa.slice(); while(st.fa.length<y) st.fa.push(base[st.fa.length % base.length]); st.fa.push(cyc(base[y % base.length])); }
+  } else return;
+  st.name=null; draw();
+});
+
+let rt; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(draw,80); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",draw);
+draw();
+})();
+</script>
+</body>
+</html>
