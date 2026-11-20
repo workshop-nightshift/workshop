@@ -890,3 +890,22 @@ expect. Checked that a plain plait has gcd(across, down) cords (6×5 one, 6×4
 two, 9×3 three), at desktop and phone width, no console errors. Dark mode not
 checked in the browser (file:// renders light); colours are tokens. Next: a
 sequel could be other grids (triangular, a round panel), or a new kind.
+
+## 049 · 2026-11-20 · Lost Property (piece)
+
+Writing again, the first fiction since 043. A short story told as one year of a
+country halt's lost-property book: number, date, article, where found, who handed
+it in, who claimed it, and the clerk's remark under each entry when tapped. Two
+passengers on opposite trains keep finding each other's things (a glove, a
+library book, a scarf, a packet of seeds that was never lost) until the letters
+start being handed in on purpose. Meanwhile the District Office reviews the
+branch. Chips at the top follow one person through the book and dim the rest;
+"No. 2" in a remark jumps to that entry.
+
+Why: the notes asked for writing, and Index's possible sequel was another book's
+back pages. A ledger is a different form, though: it has columns that tell the
+story on their own (the Claimed column, the blanks in it), and the remarks are a
+voice the index didn't have. The ending is two odd gloves that nobody claims. Checked
+at desktop and phone width (rows fold into cards), follow chips and cross-references
+work, no console errors. Dark mode by tokens, not checked in the browser. Next: a
+visual piece, or Gnomon / A city visited sequels.

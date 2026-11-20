@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lost Property</title>
+<style>
+:root{--bg:#ece8dc;--paper:#f8f5ea;--fg:#1f1d1a;--mute:#766f61;--rule:#c9d3dc;--red:#a8382a;--redbg:rgba(168,56,42,.09);--ink:#27406b;--dim:.28}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--paper:#1a1b1e;--fg:#e6e2d8;--mute:#958f82;--rule:#2c3440;--red:#e07a66;--redbg:rgba(224,122,102,.12);--ink:#9fb6e0;--dim:.3}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:20px 16px 80px;display:flex;justify-content:center}
+main{width:100%;max-width:880px}
+h1{font-size:23px;font-weight:normal;margin:0;letter-spacing:.03em}
+.sub{color:var(--mute);margin:2px 0 8px;font-style:italic}
+.how{color:var(--mute);font-size:14px;margin:0 0 14px}
+.who{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px;align-items:baseline}
+.who span{color:var(--mute);font-size:13px;margin-right:2px}
+.who button,.tools button{font:inherit;font-size:13.5px;color:var(--fg);background:var(--paper);border:1px solid var(--rule);border-radius:999px;padding:3px 11px;cursor:pointer;touch-action:manipulation}
+.who button[aria-pressed=true]{border-color:var(--red);color:var(--red);background:var(--redbg)}
+.book{background:var(--paper);border:1px solid var(--rule);box-shadow:0 10px 30px -22px rgba(0,0,0,.5);padding:0 0 18px}
+.head{display:grid;grid-template-columns:3em 4.6em 1.6fr 1fr 1fr 1fr;gap:0 10px;padding:14px 16px 6px;border-bottom:2px solid var(--red);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.row{display:grid;grid-template-columns:3em 4.6em 1.6fr 1fr 1fr 1fr;gap:0 10px;padding:7px 16px 6px;border-bottom:1px solid var(--rule);cursor:pointer;transition:opacity .3s,background .6s;scroll-margin:30px;position:relative}
+.row:hover .art{color:var(--red)}
+.row:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+.row.dim{opacity:var(--dim)}
+.row.flash{background:var(--redbg)}
+.row .no{color:var(--red);font-variant-numeric:oldstyle-nums}
+.row .dt,.row .wh,.row .by,.row .cl{font-size:13.5px;color:var(--mute)}
+.row .cl.hand,.row .by.hand{color:var(--ink);font-style:italic}
+.row .art{transition:color .2s}
+.row .rem{grid-column:3/7;display:none;color:var(--ink);font-style:italic;font-size:14.5px;line-height:1.55;padding:6px 0 4px}
+.row.open .rem{display:block}
+.row .rem a{color:inherit;text-decoration:underline;text-decoration-color:var(--rule);text-underline-offset:2px;font-style:normal}
+.row .mark{position:absolute;right:8px;top:8px;width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:.55}
+.row.open .mark{opacity:0}
+.note{padding:10px 16px 10px calc(16px + 3em + 4.6em + 20px);border-bottom:1px solid var(--rule);color:var(--ink);font-style:italic;font-size:14.5px;transition:opacity .3s}
+.note.dim{opacity:var(--dim)}
+.month{padding:12px 16px 2px;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--rule)}
+.tools{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap}
+.foot{color:var(--mute);font-size:13px;font-style:italic;text-align:center;margin:18px 0 0}
+details{margin-top:16px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+@media (max-width:640px){
+  body{font-size:14.5px}
+  .head{display:none}
+  .row{grid-template-columns:2.4em 1fr;padding:9px 12px 8px}
+  .row .dt{grid-column:2;order:-1;font-size:12.5px}
+  .row .no{grid-row:1/3}
+  .row .art{grid-column:2}
+  .row .wh,.row .by,.row .cl{grid-column:2;font-size:13px}
+  .row .wh::before{content:"Found: ";color:var(--mute);font-style:normal}
+  .row .by::before{content:"Handed in by: ";color:var(--mute);font-style:normal}
+  .row .cl::before{content:"Claimed: ";color:var(--mute);font-style:normal}
+  .row .rem{grid-column:2}
+  .note{padding:10px 12px 10px calc(12px + 2.4em + 10px)}
+  .month{padding:12px 12px 2px}
+}
+@media (prefers-reduced-motion:reduce){.row,.note{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Lost Property</h1>
+  <p class="sub">Ashby Parva halt · articles found on the premises or on trains · one year</p>
+  <p class="how">Tap an entry for the clerk's remark. Or choose someone and follow them through the book.</p>
+  <div class="who" id="who"><span>Follow:</span></div>
+  <div class="book" id="book" role="list">
+    <div class="head" aria-hidden="true"><div>No.</div><div>Date</div><div>Article</div><div>Where found</div><div>Handed in by</div><div>Claimed</div></div>
+  </div>
+  <div class="tools">
+    <button id="all">Open every remark</button>
+    <button id="none">Close them</button>
+  </div>
+  <p class="foot">Articles not claimed within three months to be sent to District Office.</p>
+  <details>
+    <summary>About this piece</summary>
+    <p>A short story told only as a lost-property book: what was found, where, by whom, and who came for it, with the clerk's remarks in the margin. It sits on the shelf beside <em>Index</em>, another story told in a book's back pages. The halt, the line and everyone at it are made up.</p>
+  </details>
+</main>
+<script>
+// [no, date, month, article, where, handedBy, claimed, remark, people]
+// people: i = Miss Ingle, t = Mr Tobin, h = Hask (porter), c = the clerk
+const M=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const E=[
+[1,"3 Jan",0,"Umbrella, gent's, black, bone handle","Waiting room","Hask, porter","","Third black umbrella this winter. Shelf 2, with the others. Men do not come back for umbrellas; they buy another and blame the weather.","h"],
+[2,"9 Jan",0,"Glove, lady's, left hand, grey wool","Platform 1, bench","Mr D. Tobin (5.40 down)","R. Ingle, 10 Jan","Claimant came in off the 8.12 up and described it before I'd lifted it down. She asked who had handed it in. I told her. She said she would thank him, and then didn't ask how she would know him, which I noticed.","ti"],
+[3,"14 Jan",0,"Hen, live, brown, in a basket","7.02 down, guard's van","Guard","Mrs Oddy, Fell Farm, same day","Kept in the office till Mrs Oddy came down the hill. Laid while in my care. See No. 4.","c"],
+[4,"14 Jan",0,"Egg, one, brown","Office","The clerk","Mrs Oddy, same day","Found on the premises. Rules are rules.","c"],
+[5,"2 Feb",1,"Library book, A Year in the Garden, County Library","Platform 1, bench","Mr D. Tobin","R. Ingle, 3 Feb","Four days overdue. She works at the library, and said she would fine herself. A bus ticket marking the page on sweet peas. The ticket was still in it when she claimed it, and still at the same page. I looked.","ti"],
+[6,"20 Feb",1,"Teeth, upper set","Gentlemen's","Hask, porter","","Not claimed. Not asked about. Nobody in the village smiling any less than usual.","h"],
+[7,"4 Mar",2,"Scarf, green, hand-knitted","Footbridge","Mr D. Tobin","R. Ingle, 5 Mar","It lay on the footbridge all through the 8.12. Mr Tobin waited until the train had gone before he picked it up and brought it in. He asked whether the owner would be told who found it. I said this office does not tell. (I had told her in January. See No. 2.)","ti"],
+[8,"18 Mar",2,"Cornet, in case","Waiting room","The band","The band, same day","Ashby Parva Silver Band, to the contest at the junction. Fetched back on the 4.15 by the second cornet, running. They came third.",""],
+[9,"1 Apr",3,"Seeds, one packet, sweet pea, Painted Lady","Platform 1, bench","Miss R. Ingle","D. Tobin (did not sign)","Miss Ingle said she had found it on the bench. The packet had Tobin & Sons, Seedsmen stamped on the back, and had not been opened. I put it on the shelf. At twenty to six Mr Tobin came in and asked, not looking at the shelf, whether anything had been handed in. I gave him the seeds. He went out without signing. I entered it as claimed.","it"],
+[10,"22 Apr",3,"Shoe, child's, red, right foot","7.02 down","Guard","Sent on","The left one was handed in at the junction, I'm told. Sent this one down to join it. A pair is a pair.",""],
+[11,"6 May",4,"Gloves, gent's, pigskin, pair","Waiting room","Miss R. Ingle","D. Tobin, 6 May","Both gloves. Mr Tobin told me in March that he does not lose things. I said nothing then and nothing now.","it"],
+[12,"13 May",4,"Letter, sealed, addressed Mr D. Tobin, 5.40","Platform 2, bench","Miss R. Ingle","D. Tobin, 13 May","Not lost. Handed in by the writer, who went pink and caught her train. Not lost property by the rules, but I entered it. Where else was it to go?","itc"],
+[13,"13 May",4,"Letter, sealed, addressed Miss Ingle, 8.12","Platform 1","Mr D. Tobin, the same evening","R. Ingle, 14 May","Crossed in the post, you might say. The post being me.","tic"],
+[14,"30 May",4,"Cake, christening, iced, one tier","4.15 up, luggage rack","Guard","Rev. Arden, 31 May","The christening went ahead without it. Cake eaten at a second tea the day after, which the Rector says was better attended than the first.",""],
+[15,"12 Jun",5,"Letter, District Office, re: review of the branch","In with the post","","Kept","Not lost property. Entered so I'll know where it is.","c"],
+[16,"25 Jun",5,"Hat, lady's, straw","Platform 1","Hask, porter","R. Ingle, 25 Jun","Claimed within the hour, and claimed laughing. Mr Tobin was waiting outside the office. I believe they walked up the hill and missed the 5.40 and the 6.30 both.","hit"],
+"Nothing handed in by either of them, July or August. I find I mind.",
+[17,"11 Jul",6,"Teeth, lower set","Gentlemen's","Hask, porter","","The set is now complete. Shelf 2, with No. 6. Still not asked about.","h"],
+[18,"9 Sep",8,"Kitten, tabby","Lamp room","The clerk","","Not claimed. Kept in the office for the mice. Named Shelf, because that is where she sleeps.","c"],
+[19,"3 Oct",9,"Confetti, a quantity","Platform 1, whole length","The clerk (swept up)","Not claimable","Swept, and entered, because I wanted it written down somewhere official. They went off on the 11.20 to the junction and away, and the whole band came down to play them out. Cornet in tune this time.","itc"],
+[20,"20 Oct",9,"Umbrella, lady's, blue","8.12 up, luggage rack","Guard","R. Tobin, 21 Oct","Now Mrs Tobin. Lost on her first morning back. She said, Some things don't change, and I said no, because the second letter from the District Office was in my pocket and I hadn't shown anybody yet.","ic"],
+[21,"2 Nov",10,"Letter, District Office: closure of the branch, last train 28 December","In with the post","","Kept","Not lost property either. Pinned up in the waiting room as instructed. Mr Hask read it twice and went and oiled the lamp-room door, which didn't need it.","ch"],
+[22,"16 Nov",10,"Satchel, schoolboy's","Footbridge","Hask, porter","T. Oddy, 16 Nov","The Fell children go by bus from January. Forty minutes, the boy says. He said it with some pride.","h"],
+[23,"12 Dec",11,"Glove, lady's, right hand, grey wool","Behind the bench, Platform 1, when the bench was lifted","Hask, porter","","The other of No. 2. Eleven months behind the bench. She only ever came for the left. I suppose she wore the one, or stopped wearing either. I never asked, and now the bench is going to the District Office as well.","hci"],
+"The last week. Very little handed in. People are holding on to things.",
+[24,"28 Dec",11,"Gloves, two, odd: lady's grey wool (right), gent's pigskin (left)","Platform 1, by the last 5.40","Mr and Mrs D. Tobin","","They came down for the last train, though they go by bus now like everyone. She asked for the right glove, No. 23, and signed for it. He took off his own left one. They laid the two together on the bench, where the bench had been, on the boards, and handed them in. For the office, she said. Not claimed. I don't think they are meant to be.","itc"],
+[25,"28 Dec",11,"Ledger, lost property, one","Office","The clerk","E. Pell","Unclaimed articles to District Office as instructed: umbrellas (fourteen), teeth (one set), bench (one). Kitten declined; kept. The gloves (No. 24) I am keeping too, which is against the rules, and so I have entered it. This book is full, or full enough. Claimed by me. E. Pell, clerk.","c"]
+];
+const P={i:"Miss Ingle",t:"Mr Tobin",h:"Hask, porter",c:"The clerk"};
+const book=document.getElementById("book"),who=document.getElementById("who");
+const rows={};let lastM=-1,follow=null;
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+for(const r of E){
+  if(typeof r==="string"){const n=el("div","note",r);n.dataset.p="ict";n.setAttribute("role","listitem");book.appendChild(n);continue}
+  const [no,dt,m,art,wh,by,cl,rem,ppl]=r;
+  if(m!==lastM){lastM=m;const h=el("div","month",M[m]);h.dataset.p="*";book.appendChild(h)}
+  const d=el("div","row");d.id="n"+no;d.dataset.p=ppl;d.tabIndex=0;d.setAttribute("role","listitem");d.setAttribute("aria-expanded","false");
+  d.append(el("div","no",no),el("div","dt",dt),el("div","art",art),el("div","wh",wh||"—"),el("div","by",by||"—"),el("div","cl"+(cl?" hand":""),cl||"—"));
+  const re=el("div","rem");
+  re.innerHTML=rem.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/No\. (\d+)/g,'<a href="#n$1" data-go="$1">No. $1</a>');
+  d.append(re,el("i","mark"));
+  d.addEventListener("click",e=>{const a=e.target.closest("a[data-go]");if(a){e.preventDefault();e.stopPropagation();go(+a.dataset.go);return}toggle(d)});
+  d.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle(d)}});
+  book.appendChild(d);rows[no]=d;
+}
+function toggle(d,v){const o=v??!d.classList.contains("open");d.classList.toggle("open",o);d.setAttribute("aria-expanded",o)}
+function go(n){const d=rows[n];if(!d)return;toggle(d,true);d.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"center"});d.classList.add("flash");setTimeout(()=>d.classList.remove("flash"),1200)}
+const chips=[];
+for(const k of [null,"i","t","h","c"]){
+  const b=el("button","",k?P[k]:"Everyone");b.setAttribute("aria-pressed",k===null);
+  b.onclick=()=>{follow=k;chips.forEach(c=>c.setAttribute("aria-pressed",c===b));apply()};chips.push(b);who.appendChild(b);
+}
+function apply(){
+  for(const n of book.querySelectorAll(".row,.note")){
+    const on=!follow||n.dataset.p.includes(follow);
+    n.classList.toggle("dim",!on);
+  }
+}
+document.getElementById("all").onclick=()=>Object.values(rows).forEach(d=>toggle(d,true));
+document.getElementById("none").onclick=()=>Object.values(rows).forEach(d=>toggle(d,false));
+</script>
+</body>
+</html>
