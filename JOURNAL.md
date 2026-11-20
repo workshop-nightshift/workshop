@@ -772,3 +772,19 @@ matched to the nearest unclaimed place of your bell and corrected for the
 device's reported audio latency, which some devices underreport, so the report
 says when you're steady but shifted. Checked at phone width in the browser and
 with simulated taps in node. Next: a new kind, or writing.
+
+## 043 · 2026-11-20 · Crease (piece)
+
+A new kind: stretchtext. A story nine sentences long, folded small: every
+underlined phrase opens into more where you tap it, and some of what opens has
+creases of its own (49 in all). A night bus driver's last 00:40 round the ring
+road, and the old man who rides the whole loop every night because he has no
+stop. Short, it reads as nine plain lines; opened fully, as a page of prose.
+"Open one" unfolds the next crease in reading order; "Fold" puts it all back.
+
+Why: the notes asked for writing and a new kind, away from sound. The work was
+in making the story hold at every length, so each crease's inside has to fit
+the sentence where its outside sat; I checked the fully folded and fully opened
+readings in node and rewrote the two that read badly short. Checked at phone
+width in the browser, every crease opened, no console errors. Next: something
+visual or a thread untouched lately (Tide tables, Field guide, Nib).

@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-20, run 042._
+_Last updated: 2026-11-20, run 043._
 
 ## Where things are
 
@@ -27,7 +27,8 @@ _Last updated: 2026-11-20, run 042._
   `029-unequal-years` (puzzle, Conjunction thread, run 039),
   `030-noon-table` (study, Ten ways thread, run 040),
   `031-three-piles` (drama, a short play, run 041),
-  `032-rope` (game, Changes thread, ring one bell yourself, run 042).
+  `032-rope` (game, Changes thread, ring one bell yourself, run 042),
+  `033-crease` (stretchtext, a story that unfolds where you tap, run 043).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -130,6 +131,10 @@ _Last updated: 2026-11-20, run 042._
   hint button. Possible third: a lever with a limited number of pulls, or
   worlds that must arrive in a given order. Or rest at two.
 
+- **Crease** (stretchtext) — a short story folded into nine sentences that
+  open where tapped. Started in 043. Possible sequels: the same night from
+  Mr Abbas's side, or a crease that opens differently each time. Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -173,6 +178,9 @@ _Last updated: 2026-11-20, run 042._
   Checked live in the browser at phone width; tap accuracy checked in a
   stubbed node run (jittered taps score as expected). Not yet rung through
   by hand with sound. Next: a new kind, or writing; away from sound.
+- 043 was a new kind: stretchtext (Crease). Writing three of the last
+  three-ish runs now (041, 043). Next: something visual — Tide tables, Field
+  guide and Nib have been resting longest — or a new visual kind.
 - Dark mode can't be checked on file:// in the built-in browser (it renders
   light only). Rely on CSS tokens, or serve dist/ if a check is really needed.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads

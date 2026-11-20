@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crease</title>
+<style>
+:root{--bg:#f3f0ea;--fg:#1c1a17;--mute:#7a7366;--line:#d9d2c4;--fold:#8a5a1c;--fresh:rgba(196,140,40,.22);--card:#fbf9f4}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e9e5dc;--mute:#9a9486;--line:#2e2f33;--fold:#e2b065;--fresh:rgba(226,176,101,.18);--card:#1a1b1e}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:18px/1.65 Georgia,"Iowan Old Style",serif;padding:28px 16px 120px;display:flex;justify-content:center}
+main{width:100%;max-width:620px}
+h1{font-size:26px;font-weight:normal;margin:0;letter-spacing:.03em}
+.sub{color:var(--mute);margin:2px 0 26px;font-style:italic;font-size:16px}
+#story p{margin:0 0 1em;hyphens:auto}
+.f{color:var(--fold);border-bottom:1.5px dotted currentColor;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:2px;transition:background .2s}
+.f:hover,.f:focus-visible{background:var(--fresh);outline:none}
+.o.fresh{animation:fresh 2.4s ease-out}
+@keyframes fresh{from{background:var(--fresh)}to{background:transparent}}
+#bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px;display:flex;justify-content:center}
+#bar .in{width:100%;max-width:620px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--mute)}
+#count{flex:1;min-width:140px}
+#gauge{height:3px;background:var(--line);margin-top:5px;border-radius:2px;overflow:hidden}
+#gauge i{display:block;height:100%;width:0;background:var(--fold);transition:width .4s}
+button{font:inherit;font-size:14px;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:5px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--mute)}
+details{margin-top:34px;color:var(--mute);font-size:15px;line-height:1.55}
+summary{cursor:pointer}
+@media (max-width:420px){body{font-size:17px}}
+@media (prefers-reduced-motion:reduce){.o.fresh{animation:none}#gauge i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Crease</h1>
+<p class="sub">a story folded small. Tap what's underlined.</p>
+<div id="story"></div>
+<details>
+<summary>About this</summary>
+<p>Stretchtext: the story starts nine sentences long, and every underlined phrase is a crease with more folded inside it. Open as many or as few as you like; the story should hold at any length, from the short one to the whole of it. Some creases hold creases of their own.</p>
+<p>The gauge at the bottom counts the creases opened so far, out of all of them. "Fold" closes everything back to the nine sentences.</p>
+</details>
+</main>
+<div id="bar"><div class="in">
+<div id="count"><span id="ctext"></span><div id="gauge"><i></i></div></div>
+<button id="more" type="button">Open one</button>
+<button id="fold" type="button">Fold</button>
+</div></div>
+<script>
+// Markup: {shown|folded-inside}. Inner text can hold more creases.
+const SRC = [
+`{Marta|Marta, who had driven the number 9 for {nineteen years|nineteen years, {first the old single-deckers|first the old single-deckers with the heater that only worked on the left}, then the long bendy ones, then the quiet electric ones that {crept up on people|crept up on people at stops, so that she had learned to tap the horn once, softly, like clearing her throat}},} drove {the last bus|the last bus of the night, {the 00:40|the 00:40 out of Fenn Street depot, round the ring road, past the hospital and the station and back},} {for the last time|for the last time. {Tomorrow there would be a card|Tomorrow there would be a card signed by people from the other shifts {whose names she knew only from the rota|whose names she knew only from the rota, in pencil, next to hers}}, and on Monday nothing at all to get up for}.`,
+`{Three people got on.|Three people got on: {a nurse|a nurse at the hospital stop, {still in her blues|still in her blues under a parka}, who sat behind the cab and was asleep before the lights changed}; {a man with a cello|a man with a cello in a hard case, {who asked to buy it a seat|who asked whether he could buy it a seat, and when she said it was free at this hour, said “then it can have the window”}}; and {Mr Abbas|Mr Abbas, who got on at Kell Road {at 00:52|at 00:52 every night, winter and summer, {with the exact fare|with the exact fare counted out on his glove, long after he could have tapped a card}}}.}`,
+`{The nurse got off.|The nurse woke {at her stop|exactly at her stop, the way they do, {as if the body keeps its own timetable|as if the body keeps its own timetable and only lends it to you}}, and got off without looking back.} {The cello got off.|The cello and its man got off at the station. {He lifted it down the step|He lifted it down the step like someone helping an old relative}, and raised a hand to her through the glass.}`,
+`Mr Abbas went {round|round, as he did every night: {the whole loop|the whole loop, fifty-one minutes, in the second seat on the left, {his hat on his knee|his hat on his knee and his hands on his hat}}, and back at Kell Road he would stand, say {“thank you, driver”|“thank you, driver,” which he had said {every night for six years|every night for six years, and which she had answered every night with “night, Mr Abbas,” and never anything more}}, and get off}.`,
+`{Tonight he stayed on.|Tonight, at Kell Road, he did not stand. {She waited|She waited with the doors open, {the cold coming in|the cold coming in round her ankles}, and he looked at her in the mirror and shook his head}, so she closed the doors and drove on to the depot, {which was not allowed|which was not allowed, and which she did not think about for one second}.}`,
+`At the depot {he came up to the cab|he came up to the cab, with the engine off and the lights still on,} and said {he knew|he knew it was her last night; he had heard it {from the cleaner|from the cleaner at the station, who heard everything}, and he had wanted to ride it to the end, once}.`,
+`{She asked him why he rode.|She asked him, because it was the last night and there was no one to hear, why he rode. {He told her.|He said {he didn't sleep|he didn't sleep, not since his wife, and the flat was very quiet at night}, and the bus was warm, and {it went somewhere and came back|it went somewhere and came back, which was more than he could say for most things}, and he liked {the way she drove|the way she took the corners, {so he never had to hold on|so that in six years he had never once had to hold on}}.}}`,
+`{She left a note.|Before she handed in the key, she left a note {in the cab|taped inside the cab at the height of a driver's eye}, for whoever had the 00:40 on Monday:} {“Second seat on the left has no stop. Let him go round.”|“Kell Road, 00:52, second seat on the left. He has no stop. Let him go round. {He'll say thank you.|He'll say thank you, driver. {Say goodnight back.|Say goodnight back, and use his name. It's Abbas.}}”}`,
+`Then she {walked home|walked home the long way, {by the ring road|by the ring road, under the orange lights, past every one of her stops}, {in no hurry|in no hurry at all, and at Kell Road she stopped for a moment, {the way the bus did|the way the bus would have, long enough for anyone to get on}, and then went on}}.`
+];
+
+function parse(s){
+  let i=0;
+  function seq(stop){
+    const out=[]; let buf='';
+    while(i<s.length){
+      const c=s[i];
+      if(stop.includes(c)) break;
+      if(c==='{'){
+        if(buf){out.push(buf);buf='';}
+        i++;
+        const shown=seq('|'); i++;
+        const inner=seq('}'); i++;
+        out.push({shown,inner});
+      } else {buf+=c;i++;}
+    }
+    if(buf) out.push(buf);
+    return out;
+  }
+  return seq('');
+}
+const TREES=SRC.map(parse);
+function countFolds(nodes){let n=0;for(const x of nodes){if(typeof x!=='string'){n+=1+countFolds(x.inner)+countFolds(x.shown);}}return n;}
+const TOTAL=TREES.reduce((a,t)=>a+countFolds(t),0);
+let opened=0;
+
+const story=document.getElementById('story');
+function render(nodes,parent){
+  for(const x of nodes){
+    if(typeof x==='string'){parent.appendChild(document.createTextNode(x));continue;}
+    const f=document.createElement('span');
+    f.className='f';f.tabIndex=0;f.setAttribute('role','button');
+    f.setAttribute('aria-label','unfold: '+textOf(x.shown));
+    render(x.shown,f);
+    f._node=x;
+    parent.appendChild(f);
+  }
+}
+function textOf(nodes){return nodes.map(x=>typeof x==='string'?x:textOf(x.shown)).join('');}
+function open(f,quiet){
+  const o=document.createElement('span');
+  o.className='o'+(quiet?'':' fresh');
+  render(f._node.inner,o);
+  f.replaceWith(o);
+  opened++; update();
+  if(!quiet){const nf=o.querySelector('.f'); if(document.activeElement===f && nf) nf.focus({preventScroll:true});}
+  return o;
+}
+function update(){
+  document.getElementById('ctext').textContent=opened===TOTAL?`all ${TOTAL} creases open`:`${opened} of ${TOTAL} creases open`;
+  document.querySelector('#gauge i').style.width=(100*opened/TOTAL)+'%';
+  document.getElementById('more').disabled=opened===TOTAL;
+}
+function build(){
+  story.textContent='';opened=0;
+  for(const t of TREES){const p=document.createElement('p');render(t,p);story.appendChild(p);}
+  update();
+}
+story.addEventListener('click',e=>{const f=e.target.closest('.f');if(f)open(f);});
+story.addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('f')){e.preventDefault();open(e.target);}
+});
+document.getElementById('fold').onclick=()=>{build();window.scrollTo({top:0});};
+document.getElementById('more').onclick=()=>{
+  // open the first crease still folded, reading order
+  const f=story.querySelector('.f'); if(!f)return;
+  const o=open(f);
+  const r=o.getBoundingClientRect();
+  if(r.top<0||r.bottom>innerHeight-70) o.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
+};
+build();
+</script>
+</body>
+</html>
