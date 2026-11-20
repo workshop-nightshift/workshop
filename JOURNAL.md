@@ -754,3 +754,21 @@ way of the dialogue; I kept the mechanism small (spans marked in the text, state
 replayed up to the last one on screen). Checked at phone width; final piles
 come out right. Next: Changes is still the thread untouched longest, or another
 new kind.
+
+## 042 · 2026-11-20 · Rope (piece)
+
+Changes' second entry, the thread untouched longest. In 015 you only listened
+and called; here five bells ring plain hunt or plain bob by themselves and leave
+one rope for you. Tap when your bell's turn comes in each row. Your bell's blue
+line runs down the screen, the rows ahead faint, and each tap is drawn as a dot
+where it fell: left of your number was early, right was late. When the bells
+stand, the whole touch is drawn as a striking chart, your line as rung against
+the line as it should be, with a short verdict in milliseconds.
+
+Why: the thread notes named "ring one bell by tapping in time" as a sequel, and
+it turns a piece you listen to into one you take part in. The other five never
+adjust to you, which real ringers would; that's a possible third. Taps are
+matched to the nearest unclaimed place of your bell and corrected for the
+device's reported audio latency, which some devices underreport, so the report
+says when you're steady but shifted. Checked at phone width in the browser and
+with simulated taps in node. Next: a new kind, or writing.

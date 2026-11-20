@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rope</title>
+<style>
+:root{--bg:#eef0f2;--fg:#191c20;--mute:#6c737c;--line:#d2d7dd;--card:#f9fafb;--blue:#2b5fb0;--red:#b2402f;--strike:#d99a2b;--good:#2f8a5b}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1114;--fg:#e4e7ea;--mute:#8d949c;--line:#2a2e34;--card:#171a1e;--blue:#7aa6ec;--red:#e47c69;--strike:#f0b851;--good:#6cc79a}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:18px 16px 28px;display:flex;justify-content:center}
+main{width:100%;max-width:560px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 14px;font-style:italic}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 13px;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.4;cursor:default}
+button[aria-pressed=true]{border-color:var(--blue);color:var(--blue)}
+button.big{font-size:16px;padding:7px 20px;border-color:var(--fg)}
+.row{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin:0 0 10px}
+.lab{color:var(--mute);font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-right:2px}
+.card{background:var(--card);border:1px solid var(--line);padding:6px 8px;position:relative}
+canvas{display:block;width:100%;height:400px}
+#pull{display:block;width:100%;margin:10px 0 0;padding:22px 0;border-radius:10px;font-size:18px;letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--line);background:var(--card);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+#pull.hit{border-color:var(--strike);background:var(--strike);color:#191c20}
+#pull:disabled{opacity:.45}
+#status{min-height:3em;margin:12px 2px 0;font-style:italic}
+#status b{font-style:normal;font-weight:normal;color:var(--blue)}
+input[type=range]{accent-color:var(--blue);width:130px}
+.note{color:var(--mute);font-size:14px;margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+.note p{margin:0 0 .7em}
+</style>
+</head>
+<body>
+<main>
+<h1>Rope</h1>
+<p class="sub">Five ringers and a spare rope. It's yours.</p>
+
+<div class="row">
+  <span class="lab">Ring</span>
+  <button id="mHunt" aria-pressed="true">Plain hunt</button>
+  <button id="mBob" aria-pressed="false">Plain bob</button>
+</div>
+<div class="row">
+  <span class="lab">Your bell</span>
+  <span id="pick"></span>
+</div>
+<div class="row">
+  <button id="go" class="big">Start</button>
+  <button id="stand" disabled>Stand</button>
+  <button id="auto" aria-pressed="false">Ring mine for me</button>
+  <label class="lab" style="margin-left:auto">Pace <input id="pace" type="range" min="220" max="460" value="340"></label>
+</div>
+
+<div class="card"><canvas id="c"></canvas></div>
+<button id="pull" disabled>Pull</button>
+<div id="status">Pick a bell and press start. Sound will play.</div>
+
+<div class="note">
+  <p>In a tower each bell has one ringer, and the band's whole art is to strike evenly:
+  six blows spaced like a ticking clock, a little gap, six more. Here five of the ringers
+  are perfect and never tire. The sixth rope is yours. Tap the button (or the space bar)
+  when your bell's turn comes in each row.</p>
+  <p>The blue line is your bell's path through the rows, the way ringers learn a method:
+  not as a list of numbers but as a shape to follow. Plain hunt takes twelve changes and
+  every bell's line is the same zigzag. In plain bob the treble (red) keeps hunting while
+  the others dodge at each lead end, and it comes round after sixty.</p>
+  <p>Each tap is drawn where it fell: a dot dead on your number is perfect, a dot to the
+  left was early (a <i>clip</i>), to the right was late (a <i>drag</i>). When the bells stand
+  you get the whole touch as a striking chart. Two rounds are rung for you first, to listen.
+  Headphones help; so does the slowest pace.</p>
+</div>
+</main>
+
+<script>
+(()=>{
+const N=6, ROUNDS=[1,2,3,4,5,6];
+const $=id=>document.getElementById(id);
+const cv=$('c'), cx=cv.getContext('2d');
+let method='hunt', my=2, auto=false;
+
+// ---- place notation ----
+function change(row,places){
+  const r=row.slice(); let i=0;
+  while(i<N){
+    if(places.includes(i+1)){i++;continue}
+    if(i+1<N && !places.includes(i+2)){[r[i],r[i+1]]=[r[i+1],r[i]];i+=2}else i++;
+  }
+  return r;
+}
+const X=[], P16=[1,6], P12=[1,2];
+function methodChanges(m){
+  const a=[];
+  if(m==='hunt'){for(let k=0;k<6;k++)a.push(X,P16)}
+  else for(let l=0;l<5;l++){for(let k=0;k<5;k++)a.push(X,P16);a.push(X,P12)}
+  return a;
+}
+
+// ---- ui ----
+const pk=[];
+for(let b=1;b<=N;b++){const btn=document.createElement('button');btn.textContent=b;btn.style.marginRight='6px';btn.setAttribute('aria-pressed',b===my);
+  btn.onclick=()=>{if(running)return;my=b;pk.forEach((x,i)=>x.setAttribute('aria-pressed',i+1===b));if(!rows.length||done)preview()};$('pick').appendChild(btn);pk.push(btn)}
+function setMethod(m){if(running)return;method=m;$('mHunt').setAttribute('aria-pressed',m==='hunt');$('mBob').setAttribute('aria-pressed',m==='bob');preview()}
+$('mHunt').onclick=()=>setMethod('hunt');
+$('mBob').onclick=()=>setMethod('bob');
+$('auto').onclick=()=>{if(running)return;auto=!auto;$('auto').setAttribute('aria-pressed',auto)};
+
+// ---- audio ----
+let ac=null, master=null, comp=null, lat=0;
+const steps=[9,7,5,4,2,0], TENOR=233.08;
+const freq=b=>TENOR*Math.pow(2,steps[b-1]/12);
+const PART=[[.5,.5,3.2],[1,.55,2.2],[1.2,.35,1.7],[1.5,.18,1.3],[2,.7,1.4],[2.5,.22,.8],[3,.18,.55],[4.2,.08,.35]];
+function strike(b,t,vol){
+  const f=freq(b), g=ac.createGain(); g.gain.value=.16*(vol||1);
+  let out=g;
+  if(ac.createStereoPanner){const pan=ac.createStereoPanner();pan.pan.value=(b-3.5)/6;g.connect(pan);out=pan}
+  out.connect(master);
+  for(const [m,a,d] of PART){
+    const o=ac.createOscillator(), e=ac.createGain();
+    o.type='sine'; o.frequency.value=f*m*(1+(Math.random()-.5)*.002);
+    e.gain.setValueAtTime(0,t); e.gain.linearRampToValueAtTime(a,t+.004);
+    e.gain.exponentialRampToValueAtTime(.0005,t+d*(1.4-b*.06));
+    o.connect(e); e.connect(g); o.start(t); o.stop(t+d*1.5+.1);
+  }
+}
+
+// ---- the touch ----
+// rows: {r, t0, tag}; events: {t,row,pos,bell,mine,err,missed,sched}
+let running=false, done=false, rows=[], events=[], iv=.34, schedIdx=0, strays=0, lastMsg='';
+const LISTEN=2;
+function build(t){
+  rows=[]; events=[];
+  const seq=[ROUNDS,ROUNDS,ROUNDS,ROUNDS]; let cur=ROUNDS.slice();
+  for(const p of methodChanges(method)){cur=change(cur,p);seq.push(cur)}
+  seq.push(ROUNDS,ROUNDS);
+  seq.forEach((r,i)=>{
+    if(i>0&&i%2===0)t+=iv;
+    const tag=i===0?'listen':i===LISTEN?'yours':i===3?(method==='hunt'?'go hunt':'go bob'):i===seq.length-2?"that's all":i===seq.length-1?'stand':'';
+    rows.push({r,t0:t,tag});
+    for(let p=0;p<N;p++){events.push({t,row:i,pos:p,bell:r[p],mine:r[p]===my&&i>=LISTEN&&!auto,err:null,missed:false});t+=iv}
+  });
+}
+function preview(){done=false;iv=+$('pace').value/1000;build(0);viewT=-1}
+let viewT=-1;
+function start(){
+  if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();comp=ac.createDynamicsCompressor();comp.connect(ac.destination)}
+  ac.resume();
+  master=ac.createGain();master.gain.value=.9;master.connect(comp);
+  lat=(ac.outputLatency||0)+(ac.baseLatency||0);
+  iv=+$('pace').value/1000;
+  build(ac.currentTime+.6);
+  schedIdx=0; strays=0; running=true; done=false;
+  $('go').disabled=true; $('stand').disabled=false; $('pull').disabled=auto;
+  ['mHunt','mBob','auto','pace'].forEach(id=>$(id).disabled=true); pk.forEach(b=>b.disabled=true);
+  say(auto?`Listen. The ${my} is rung for you, the blue line.`:`Rounds, rung for you twice. Listen for the ${ordinal(my)} stroke in each row, then it's yours.`);
+}
+function ordinal(n){return n+(n===1?'st':n===2?'nd':n===3?'rd':'th')}
+function stop(early){
+  running=false; done=true;
+  if(master){const t=ac.currentTime,m=master;m.gain.setTargetAtTime(0,t,early?.2:.8);setTimeout(()=>m.disconnect(),3000)}
+  const cut=ac?ac.currentTime-lat:0;
+  if(early){events.forEach(e=>{if(e.t>cut)e.cut=true});}
+  $('go').disabled=false; $('go').textContent='Again'; $('stand').disabled=true; $('pull').disabled=true;
+  ['mHunt','mBob','auto','pace'].forEach(id=>$(id).disabled=false); pk.forEach(b=>b.disabled=false);
+  report(early);
+}
+function report(early){
+  const mine=events.filter(e=>e.mine&&!e.cut);
+  if(auto){say(early?'Stood.':'Stood. Now try it yourself: switch off <i>ring mine for me</i>.');return}
+  const hit=mine.filter(e=>e.err!==null), miss=mine.length-hit.length;
+  if(!mine.length){say('Stood before your bell was yours.');return}
+  if(!hit.length){say(strays?`Stood. You pulled ${strays} time${strays===1?'':'s'}, but never near your place; ${miss} blow${miss===1?'':'s'} missed. Watch the ring on the next row, and pull one beat after the bell before yours.`:`Stood. Your bell never sounded: ${miss} blow${miss===1?'':'s'} missed.`);return}
+  const ms=hit.map(e=>e.err*1000), mean=ms.reduce((a,b)=>a+b,0)/ms.length;
+  const rms=Math.sqrt(ms.reduce((a,b)=>a+b*b,0)/ms.length);
+  const sd=Math.sqrt(ms.reduce((a,b)=>a+(b-mean)**2,0)/ms.length);
+  const good=ms.filter(x=>Math.abs(x)<=40).length;
+  let word=rms<=25?'Fine striking. The captain nods.':rms<=45?'Good striking, a little ragged at the edges.':rms<=80?'Lumpy. The others are leaving room for you.':'Clipping and dragging. Try the slowest pace, and listen to the bell before yours.';
+  const bias=Math.abs(mean)<12?'no lean either way':`leaning ${Math.round(Math.abs(mean))} ms ${mean<0?'early':'late'}`;
+  let s=`${early?'Stood. ':''}${hit.length} of ${mine.length} blows struck${miss?`, ${miss} missed`:''}${strays?`, ${strays} stray`:''}. `+
+    `${good} within 40 ms. Typical error ${Math.round(rms)} ms, ${bias}. <b>${word}</b>`;
+  if(Math.abs(mean)>30&&sd<Math.abs(mean)*.7)s+=` Steady but shifted: your device may add delay; the steadiness is what counts.`;
+  say(s);
+}
+function say(h){$('status').innerHTML=h;lastMsg=h}
+
+// ---- pulling ----
+let flash=0;
+function pull(){
+  if(!running||auto)return;
+  const t=ac.currentTime;
+  strike(my,t);
+  flash=performance.now();
+  let best=null,bd=1e9;
+  for(const e of events){
+    if(!e.mine||e.err!==null||e.missed)continue;
+    const d=t-(e.t+lat);
+    if(d<-iv*.9)break;
+    if(Math.abs(d)<bd){bd=Math.abs(d);best=e}
+  }
+  if(best&&bd<iv*.9)best.err=t-(best.t+lat); else strays++;
+}
+$('pull').addEventListener('pointerdown',e=>{e.preventDefault();pull()});
+$('pull').addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  if(e.repeat)return;
+  if(e.key===' '||e.key==='j'||e.key==='f'||e.key==='Enter'&&document.activeElement===$('pull')){if(running){e.preventDefault();pull()}}
+});
+$('go').onclick=start;
+$('stand').onclick=()=>stop(true);
+
+// ---- loop: scheduling, misses, drawing ----
+let W=0,H=0,dpr=1;
+function size(){dpr=window.devicePixelRatio||1;const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr}
+window.addEventListener('resize',size); size();
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const RH=24;
+function tick(){
+  requestAnimationFrame(tick);
+  if(running){
+    const now=ac.currentTime;
+    while(schedIdx<events.length&&events[schedIdx].t<now+.4){
+      const e=events[schedIdx++]; if(!e.mine)strike(e.bell,Math.max(e.t,now));
+    }
+    for(const e of events){if(e.mine&&e.err===null&&!e.missed&&now>e.t+lat+iv*.9)e.missed=true}
+    const vt=now-lat;
+    const last=events[events.length-1];
+    if(vt>last.t+1.2)stop(false);
+    else{
+      const r=rowAt(vt);
+      if(!auto&&r>=LISTEN&&r<LISTEN+2&&!say.took){say(`Yours now. Pull on the ${ordinal(my)} stroke.`);say.took=1}
+      if(r<LISTEN)say.took=0;
+    }
+  }
+  $('pull').classList.toggle('hit',performance.now()-flash<110);
+  draw();
+}
+function rowAt(t){let r=0;while(r+1<rows.length&&rows[r+1].t0<=t)r++;return r}
+function draw(){
+  cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,W,H);
+  const col={fg:css('--fg'),mute:css('--mute'),blue:css('--blue'),red:css('--red'),strike:css('--strike'),line:css('--line'),card:css('--card'),good:css('--good')};
+  if(!rows.length)preview();
+  if(done&&!auto)return chart(col);
+  const vt=running?ac.currentTime-lat:viewT;
+  // continuous position in rows
+  let r=rowAt(vt), frac=0;
+  if(vt<rows[0].t0){r=0;frac=0}
+  else if(r+1<rows.length)frac=Math.min(1,(vt-rows[r].t0)/(rows[r+1].t0-rows[r].t0));
+  const left=44, colW=(W-left-56)/N;
+  const X_=p=>left+colW*(p+.5);
+  const baseY=H*.36-(r+frac)*RH, Y_=i=>baseY+i*RH;
+  // which event is sounding
+  let ce=-1; for(let k=0;k<events.length;k++){if(events[k].t<=vt)ce=k;else break}
+  const first=Math.max(0,Math.floor(-baseY/RH)-1), lastV=Math.min(rows.length-1,Math.ceil((H-baseY)/RH)+1);
+  // now line
+  cx.strokeStyle=col.line;cx.lineWidth=1;cx.setLineDash([3,4]);cx.beginPath();cx.moveTo(left-10,H*.36+RH*.5);cx.lineTo(W-48,H*.36+RH*.5);cx.stroke();cx.setLineDash([]);
+  // lines: past solid, ahead faint
+  function path(b,c,w,alpha){
+    cx.strokeStyle=c;cx.lineWidth=w;cx.lineJoin='round';
+    for(let i=first+1;i<=lastV;i++){
+      cx.globalAlpha=alpha*(i<=r+1?1:Math.max(.12,.6-(i-r)*.07));
+      cx.beginPath();cx.moveTo(X_(rows[i-1].r.indexOf(b)),Y_(i-1));cx.lineTo(X_(rows[i].r.indexOf(b)),Y_(i));cx.stroke();
+    }
+    cx.globalAlpha=1;
+  }
+  path(1,col.red,1.3,my===1?0:.5);
+  path(my,col.blue,2.5,.9);
+  // fade rows far ahead
+  cx.textAlign='center';
+  for(let i=first;i<=lastV;i++){
+    const y=Y_(i), row=rows[i].r;
+    const ahead=i>r;
+    cx.globalAlpha=ahead?Math.max(.15,.75-(i-r)*.08):1;
+    if(rows[i].tag){cx.fillStyle=col.mute;cx.font='italic 13px Georgia,serif';cx.textAlign='right';cx.fillText(rows[i].tag,W-2,y+4);cx.textAlign='center'}
+    const chNo=i-3; if(chNo>0&&chNo%6===0&&chNo<rows.length-5){cx.fillStyle=col.mute;cx.font='11px "Courier New",monospace';cx.textAlign='right';cx.fillText(chNo,left-14,y+4);cx.textAlign='center'}
+    for(let p=0;p<N;p++){
+      const k=i*N+p, e=events[k], b=row[p], x=X_(p);
+      const hot=k===ce&&vt-e.t<.22;
+      if(b===my||b===1||hot){const ga=cx.globalAlpha;cx.globalAlpha=1;cx.beginPath();cx.arc(x,y,9,0,7);cx.fillStyle=col.card;cx.fill();cx.globalAlpha=ga}
+      if(e.mine&&!ahead||e.mine&&i===r+1){cx.beginPath();cx.arc(x,y,10,0,7);cx.strokeStyle=col.blue;cx.lineWidth=1;cx.stroke()}
+      cx.font='15px "Courier New",monospace';
+      cx.fillStyle=hot?col.strike:b===my?col.blue:b===1?col.red:col.fg;
+      cx.fillText(b,x,y+5);
+      if(e.err!==null)dot(x+e.err/iv*colW,y,e.err,col);
+      if(e.missed){cx.strokeStyle=col.red;cx.lineWidth=1.5;cx.beginPath();cx.moveTo(x-6,y+11);cx.lineTo(x+6,y+11);cx.stroke()}
+    }
+    cx.globalAlpha=1;
+  }
+}
+function dot(x,y,err,col){
+  const a=Math.abs(err)*1000;
+  cx.beginPath();cx.arc(x,y+12,3.2,0,7);cx.fillStyle=a<=40?col.good:a<=80?col.strike:col.red;cx.fill();
+}
+// after: striking chart of everything rung
+function chart(col){
+  const used=rows.map((_,i)=>i).filter(i=>i>=LISTEN&&!events[i*N].cut);
+  if(!used.length)return;
+  const top=26, bot=14, rh=Math.min(RH,(H-top-bot)/used.length);
+  const left=44, colW=(W-left-56)/N, X_=p=>left+colW*(p+.5);
+  cx.fillStyle=col.mute;cx.font='italic 13px Georgia,serif';cx.textAlign='left';
+  cx.fillText('striking chart: every blow, by when it fell',left-30,16);
+  // ideal line faint
+  cx.strokeStyle=col.blue;cx.globalAlpha=.25;cx.lineWidth=1;cx.beginPath();
+  used.forEach((i,j)=>{const p=rows[i].r.indexOf(my),x=X_(p),y=top+j*rh+rh/2;j?cx.lineTo(x,y):cx.moveTo(x,y)});cx.stroke();cx.globalAlpha=1;
+  // as rung
+  cx.strokeStyle=col.blue;cx.lineWidth=2;cx.beginPath();let st=false;
+  used.forEach((i,j)=>{const p=rows[i].r.indexOf(my),e=events[i*N+p],y=top+j*rh+rh/2;
+    if(e.err===null){st=false;return}const x=X_(p)+e.err/iv*colW;st?cx.lineTo(x,y):cx.moveTo(x,y);st=true});
+  cx.stroke();
+  used.forEach((i,j)=>{
+    const y=top+j*rh+rh/2;
+    for(let p=0;p<N;p++){
+      const e=events[i*N+p],x=X_(p);
+      if(e.mine){
+        if(e.err!==null){const a=Math.abs(e.err)*1000;cx.beginPath();cx.arc(x+e.err/iv*colW,y,Math.max(2,Math.min(4,rh*.3)),0,7);cx.fillStyle=a<=40?col.good:a<=80?col.strike:col.red;cx.fill()}
+        else{cx.strokeStyle=col.red;cx.lineWidth=1.2;const s=Math.max(2,Math.min(4,rh*.3));cx.beginPath();cx.moveTo(x-s,y-s);cx.lineTo(x+s,y+s);cx.moveTo(x+s,y-s);cx.lineTo(x-s,y+s);cx.stroke()}
+      }else{cx.beginPath();cx.arc(x,y,Math.max(1,Math.min(2,rh*.15)),0,7);cx.fillStyle=e.bell===1?col.red:col.mute;cx.fill()}
+    }
+  });
+  // scale
+  cx.fillStyle=col.mute;cx.font='11px "Courier New",monospace';cx.textAlign='center';
+  cx.fillText('← early',left+colW*.5,H-2);cx.fillText('late →',W-56-colW*.5,H-2);
+}
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

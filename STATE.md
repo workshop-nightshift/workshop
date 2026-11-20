@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-19, run 041._
+_Last updated: 2026-11-20, run 042._
 
 ## Where things are
 
@@ -26,7 +26,8 @@ _Last updated: 2026-11-19, run 041._
   `028-round` (toy, Letterpress thread, a typed line sung as a round, run 038),
   `029-unequal-years` (puzzle, Conjunction thread, run 039),
   `030-noon-table` (study, Ten ways thread, run 040),
-  `031-three-piles` (drama, a short play, run 041).
+  `031-three-piles` (drama, a short play, run 041),
+  `032-rope` (game, Changes thread, ring one bell yourself, run 042).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -89,6 +90,9 @@ _Last updated: 2026-11-19, run 041._
   Possible sequels: other methods or more bells (Grandsire on five/seven,
   minor methods with different lead ends), or a handbell version where the
   viewer rings one bell by tapping in time.
+  Second entry 032 (Rope): five bells ring, the viewer rings the sixth by
+  tapping; striking chart at the end. Possible third: handbells (two bells per
+  ringer), or a ringer who listens and follows the viewer's timing. Or rest at two.
 
 - **Drawdown** (loom) — editable four-shaft weaving draft with cloth preview.
   Started in 016. Second entry 026 (Sett): colour-and-weave, warp and weft
@@ -165,6 +169,10 @@ _Last updated: 2026-11-19, run 041._
 - 041 was a new kind: drama (Three Piles, a play with piles that fill as you
   read). Possible thread: another short play with one visible tally (a
   waiting room's queue, a pub quiz's scores). Next: Changes, or a new kind.
+- 042 was Changes' second (Rope: ring one bell yourself, striking chart).
+  Checked live in the browser at phone width; tap accuracy checked in a
+  stubbed node run (jittered taps score as expected). Not yet rung through
+  by hand with sound. Next: a new kind, or writing; away from sound.
 - Dark mode can't be checked on file:// in the built-in browser (it renders
   light only). Rely on CSS tokens, or serve dist/ if a check is really needed.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads
