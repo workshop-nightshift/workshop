@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interlace</title>
+<style>
+:root{--bg:#efeadf;--fg:#1d1b18;--mute:#776f5f;--line:#d6cdb9;--paper:#f8f3e7;--ink:#2a2119;--dot:#b9ad94;--wall:#a8361f;--open:#3f6f8a;
+--c0:#c9a04a;--c1:#a8492f;--c2:#4f7a5a;--c3:#3f6487;--c4:#8a5a86;--c5:#b07c3a;--c6:#5d8a8a;--c7:#7a6a3a}
+@media (prefers-color-scheme:dark){:root{--bg:#131210;--fg:#e8e3d8;--mute:#998f7c;--line:#2f2b24;--paper:#1b1916;--ink:#0b0a08;--dot:#4a4337;--wall:#e2765c;--open:#7fb0cc;
+--c0:#d9b35e;--c1:#d0694a;--c2:#73a67e;--c3:#6f93ba;--c4:#b483b0;--c5:#d39c55;--c6:#7fb3b3;--c7:#aa9a62}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:700px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em;font-style:italic}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+canvas{display:block;width:100%;background:var(--paper);border:1px solid var(--line);touch-action:manipulation;cursor:pointer}
+#count{text-align:center;color:var(--mute);font-style:italic;margin:8px 0 0;min-height:1.5em}
+#count b{color:var(--fg);font-weight:normal}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px 16px;margin-top:12px}
+.ctl label{display:flex;flex-direction:column;color:var(--mute);font-size:14px}
+.ctl label span{display:flex;justify-content:space-between}
+.ctl output{color:var(--fg);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--wall)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--paper);border-color:var(--mute)}
+a{color:inherit}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+.prose{max-width:36em}
+p{margin:.6em 0}
+.key{color:var(--mute);font-size:14px}
+.key i{display:inline-block;width:16px;height:3px;vertical-align:middle;margin:0 4px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Interlace</h1>
+  <p class="sub">a plait ruled on a grid, and the breaks that turn it into a knot</p>
+
+  <canvas id="c" aria-label="a knotwork panel; tap between two dots to place or change a break"></canvas>
+  <p id="count"></p>
+
+  <div class="ctl">
+    <label><span>across <output id="ow"></output></span><input type="range" id="w" min="2" max="12" value="6"></label>
+    <label><span>down <output id="oh"></output></span><input type="range" id="h" min="2" max="12" value="5"></label>
+    <label><span>cord <output id="oc"></output></span><input type="range" id="cw" min="20" max="80" value="52"></label>
+  </div>
+
+  <div class="row">
+    <span><button id="rand">another</button><button id="plain">plain plait</button><button id="grid" aria-pressed="true">show grid</button><button id="cols" aria-pressed="true">colour each cord</button></span>
+    <span><button id="save">save picture</button><a href="../../">← shelf</a></span>
+  </div>
+  <p class="key">Tap between two dots: <i style="background:var(--wall)"></i>a break along the line, then <i style="background:var(--open)"></i>a break across it, then back to a crossing.</p>
+
+  <h2>How it works</h2>
+  <div class="prose">
+    <p>Start with a plain plait: cords running on the diagonals of a grid, crossing at the midpoint of every
+    line between two dots, over, under, over, all the way along. A plait is not yet a knot. It becomes one
+    where it is <em>broken</em>: at a break the two cords that would have crossed turn back instead, one on each side.
+    A break can lie along the line (the cords bend round and run beside it) or across it (they bend away and
+    run beside the other line). The edge of the panel is a break all the way round, which is what turns the
+    plait back on itself and closes it up.</p>
+    <p>Every break changes how the loops connect, so the count under the panel changes too. A plain plait,
+    with no breaks inside, has as many cords as the largest number that divides both its sides: six by five
+    is one cord, six by four is two, nine by three is three. Old work prized the panels made of one. Over and under still alternate
+    wherever you put the breaks; that follows from the grid, not from any bookkeeping. "Another" scatters
+    breaks with mirror symmetry both ways, the way panels on stones and in manuscripts tend to be.</p>
+  </div>
+</main>
+<script>
+(()=>{
+const cv=document.getElementById('c'),cx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+let W=6,H=5,cord=.52,showGrid=true,colourEach=true;
+// state per interior edge midpoint key "x,y" in doubled coords: 0 cross, 1 wall (along), 2 open (across)
+let st=new Map();
+const key=(x,y)=>x+','+y;
+const isMid=(x,y)=>((x+y)&1)===1;
+const onBoundary=(x,y)=>x===0||y===0||x===2*W||y===2*H;
+function state(x,y){return onBoundary(x,y)?1:(st.get(key(x,y))||0)}
+function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+
+// endpoints and faces of the edge at midpoint m
+function ends(m){return (m[0]&1)?[[m[0]-1,m[1]],[m[0]+1,m[1]]]:[[m[0],m[1]-1],[m[0],m[1]+1]]}
+function faces(m){return (m[0]&1)?[[m[0],m[1]-1],[m[0],m[1]+1]]:[[m[0]-1,m[1]],[m[0]+1,m[1]]]}
+function other2(v,f,m){ // the corner's other midpoint
+  const a=[f[0],v[1]],b=[v[0],f[1]];
+  return (a[0]===m[0]&&a[1]===m[1])?b:a;
+}
+const norm=(x,y)=>{const l=Math.hypot(x,y)||1;return[x/l,y/l]};
+
+// trace all cords. A corner is (vertex v, face f); every interior corner is used exactly once.
+function trace(){
+  const seen=new Set(),cords=[];
+  const ck=(v,f)=>v+'|'+f;
+  for(let fx=1;fx<2*W;fx+=2)for(let fy=1;fy<2*H;fy+=2)for(const dv of[[-1,-1],[1,-1],[1,1],[-1,1]]){
+    let v=[fx+dv[0],fy+dv[1]],f=[fx,fy];
+    if(seen.has(ck(v,f)))continue;
+    // start: travel from midpoint a to midpoint b inside this corner
+    let m1=[f[0],v[1]],m2=[v[0],f[1]];
+    const pts=[],cross=[];
+    let guard=0;
+    const start=ck(v,f);
+    while(guard++<5000){
+      seen.add(ck(v,f));
+      // entry point info at m1 (computed when we arrived) is pushed by previous step; for the first, compute below
+      pts.push({v,f,m1,m2});
+      // move on across m2
+      const s=state(m2[0],m2[1]);
+      const w=[2*m2[0]-v[0],2*m2[1]-v[1]],f2=[2*m2[0]-f[0],2*m2[1]-f[1]];
+      let nv,nf;
+      if(s===0){nv=w;nf=f2}else if(s===1){nv=w;nf=f}else{nv=v;nf=f2}
+      const nm2=other2(nv,nf,m2);
+      v=nv;f=nf;m1=m2;m2=nm2;
+      if(ck(v,f)===start)break;
+    }
+    cords.push(pts);
+  }
+  return cords;
+}
+
+// geometry: where the cord passes an edge midpoint m, seen from corner (v,f), travelling from c toward m
+function endInfo(m,v,f,into){ // into: true if the cord arrives at m (exit of corner); false if leaves m (entry)
+  const s=state(m[0],m[1]);
+  const c=[(v[0]+f[0])/2,(v[1]+f[1])/2];
+  if(s===0){
+    let t=norm(m[0]-c[0],m[1]-c[1]); if(!into)t=[-t[0],-t[1]];
+    return{p:m,t,cross:true};
+  }
+  const [a,b]=ends(m),[fa,fb]=faces(m);
+  let off,t;
+  if(s===1){ // stays on f's side, runs along the edge
+    off=norm(f[0]-m[0],f[1]-m[1]);
+    const w=(a[0]===v[0]&&a[1]===v[1])?b:a;
+    t=norm(w[0]-v[0],w[1]-v[1]);
+  }else{ // stays on v's side, runs across the edge
+    off=norm(v[0]-m[0],v[1]-m[1]);
+    const g=(fa[0]===f[0]&&fa[1]===f[1])?fb:fa;
+    t=norm(g[0]-f[0],g[1]-f[1]);
+  }
+  if(!into)t=[-t[0],-t[1]];
+  const k=.36;
+  return{p:[m[0]+off[0]*k,m[1]+off[1]*k],t,cross:false};
+}
+
+let cords=[],layout={s:1,ox:0,oy:0};
+function rebuild(){cords=trace();draw()}
+
+function draw(){
+  const r=cv.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+  const cw=Math.max(240,r.width),pad=1.4;
+  const s=cw/(2*W+2*pad);
+  const ch=s*(2*H+2*pad);
+  cv.style.height=ch+'px';
+  cv.width=Math.round(cw*dpr);cv.height=Math.round(ch*dpr);
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  layout={s,ox:pad*s,oy:pad*s};
+  const X=x=>layout.ox+x*s,Y=y=>layout.oy+y*s;
+  cx.fillStyle=tok('--paper');cx.fillRect(0,0,cw,ch);
+  const ink=tok('--ink'),cols=[0,1,2,3,4,5,6,7].map(i=>tok('--c'+i));
+  const wid=cord*s*1.05,edge=Math.max(1.6,wid*.16);
+
+  // grid underlay
+  if(showGrid){
+    cx.fillStyle=tok('--dot');
+    for(let x=0;x<=2*W;x+=2)for(let y=0;y<=2*H;y+=2){cx.beginPath();cx.arc(X(x),Y(y),Math.max(1.5,s*.07),0,7);cx.fill()}
+  }
+
+  // build each cord's path and crossings
+  const paths=[],patches=[];
+  cords.forEach((pts,ci)=>{
+    const p=new Path2D();
+    pts.forEach((q,i)=>{
+      const A=endInfo(q.m1,q.v,q.f,false),B=endInfo(q.m2,q.v,q.f,true);
+      const L=Math.hypot(B.p[0]-A.p[0],B.p[1]-A.p[1])*.42;
+      if(i===0)p.moveTo(X(A.p[0]),Y(A.p[1]));
+      p.bezierCurveTo(X(A.p[0]+A.t[0]*L),Y(A.p[1]+A.t[1]*L),X(B.p[0]-B.t[0]*L),Y(B.p[1]-B.t[1]*L),X(B.p[0]),Y(B.p[1]));
+      if(B.cross){
+        // over or under? on horizontal-edge midpoints "/" is over, on vertical ones "\" is over.
+        const slash=(B.t[0]*B.t[1])<0; // screen y down: "/" goes right and up
+        const horiz=(q.m2[0]&1)===1;
+        if(slash===horiz)patches.push({m:q.m2,t:B.t,ci});
+      }
+    });
+    p.closePath();
+    paths.push(p);
+  });
+  const colour=i=>colourEach?cols[i%cols.length]:cols[0];
+  cx.lineJoin='round';cx.lineCap='round';
+  cx.strokeStyle=ink;cx.lineWidth=wid+2*edge;
+  paths.forEach(p=>cx.stroke(p));
+  paths.forEach((p,i)=>{cx.strokeStyle=colour(i);cx.lineWidth=wid;cx.stroke(p)});
+  // a faint centre line for the cord's sheen
+  cx.globalAlpha=.22;cx.strokeStyle=tok('--paper');cx.lineWidth=Math.max(1,wid*.14);
+  paths.forEach(p=>cx.stroke(p));cx.globalAlpha=1;
+  // over-crossings redrawn on top
+  cx.lineCap='butt';
+  const h=.5;
+  for(const c of patches){
+    const a=[X(c.m[0]-c.t[0]*h),Y(c.m[1]-c.t[1]*h)],b=[X(c.m[0]+c.t[0]*h),Y(c.m[1]+c.t[1]*h)];
+    cx.beginPath();cx.moveTo(a[0],a[1]);cx.lineTo(b[0],b[1]);
+    cx.strokeStyle=ink;cx.lineWidth=wid+2*edge;cx.stroke();
+    cx.strokeStyle=colour(c.ci);cx.lineWidth=wid;cx.stroke();
+    cx.globalAlpha=.22;cx.strokeStyle=tok('--paper');cx.lineWidth=Math.max(1,wid*.14);cx.stroke();cx.globalAlpha=1;
+  }
+  // break marks
+  if(showGrid){
+    cx.lineCap='round';cx.lineWidth=Math.max(2,s*.09);
+    st.forEach((v,k)=>{
+      if(!v)return;const[x,y]=k.split(',').map(Number);
+      cx.strokeStyle=tok(v===1?'--wall':'--open');
+      let d=(x&1)?[1,0]:[0,1]; if(v===2)d=[d[1],d[0]];
+      const e=.55;
+      cx.beginPath();cx.moveTo(X(x-d[0]*e),Y(y-d[1]*e));cx.lineTo(X(x+d[0]*e),Y(y+d[1]*e));cx.stroke();
+    });
+  }
+  const n=cords.length;
+  $('count').innerHTML=n===1?'<b>one cord</b>: a true knot, made from a single thread':'<b>'+words(n)+' cords</b>, separate loops woven through each other';
+}
+function words(n){return['no','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'][n]||String(n)}
+
+// tap: find nearest interior edge midpoint
+cv.addEventListener('click',e=>{
+  const r=cv.getBoundingClientRect();
+  const gx=(e.clientX-r.left-layout.ox)/layout.s,gy=(e.clientY-r.top-layout.oy)/layout.s;
+  let best=null,bd=.75;
+  for(let x=Math.floor(gx)-1;x<=Math.ceil(gx)+1;x++)for(let y=Math.floor(gy)-1;y<=Math.ceil(gy)+1;y++){
+    if(!isMid(x,y)||x<=0||y<=0||x>=2*W||y>=2*H)continue;
+    const d=Math.hypot(gx-x,gy-y);if(d<bd){bd=d;best=[x,y]}
+  }
+  if(!best)return;
+  const k=key(best[0],best[1]),v=((st.get(k)||0)+1)%3;
+  if(v)st.set(k,v);else st.delete(k);
+  rebuild();
+});
+
+function randomise(){
+  st=new Map();
+  // choose for one quarter, mirror both ways
+  for(let x=1;x<=W;x++)for(let y=1;y<=H;y++){
+    if(!isMid(x,y)||x>=2*W||y>=2*H)continue;
+    const r=Math.random();
+    const v=r<.62?0:r<.88?1:2;
+    if(!v)continue;
+    for(const[mx,my]of[[x,y],[2*W-x,y],[x,2*H-y],[2*W-x,2*H-y]])st.set(key(mx,my),v);
+  }
+}
+function clampStates(){for(const k of[...st.keys()]){const[x,y]=k.split(',').map(Number);if(x<=0||y<=0||x>=2*W||y>=2*H)st.delete(k)}}
+
+function sync(){
+  $('ow').textContent=W;$('oh').textContent=H;$('oc').textContent=Math.round(cord*100)+'%';
+}
+$('w').oninput=e=>{W=+e.target.value;clampStates();sync();rebuild()};
+$('h').oninput=e=>{H=+e.target.value;clampStates();sync();rebuild()};
+$('cw').oninput=e=>{cord=e.target.value/100;sync();draw()};
+$('rand').onclick=()=>{randomise();rebuild()};
+$('plain').onclick=()=>{st=new Map();rebuild()};
+function tog(id,f){$(id).onclick=()=>{const b=$(id),v=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',v);f(v);draw()}}
+tog('grid',v=>showGrid=v);
+tog('cols',v=>colourEach=v);
+$('save').onclick=()=>{
+  const g=showGrid;showGrid=false;draw();
+  const a=document.createElement('a');a.download='interlace.png';a.href=cv.toDataURL('image/png');a.click();
+  showGrid=g;draw();
+};
+addEventListener('resize',draw);
+matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',draw);
+
+// a first panel worth looking at: a known single-cord pattern is nicer than chance
+randomise();
+let tries=0;
+while(trace().length!==1&&tries++<200)randomise();
+sync();rebuild();
+})();
+</script>
+</body>
+</html>

@@ -870,3 +870,23 @@ last warm one only appears after five cold ones have gone by. The green-hour
 plate was too faint at first (dusk didn't read on the light plate); darkened
 the sky and lit the canopies from below. Checked at phone and desktop width in
 the browser, no console errors. Next: a new kind, or a thread untouched lately.
+
+## 048 · 2026-11-20 · Interlace (piece)
+
+A new kind: pattern. Knotwork ruled on a grid. The panel starts as a plain plait,
+cords on the diagonals crossing at the midpoint of every line between two dots;
+tap a line to break it, along or across, and the two cords that would have
+crossed turn back instead. The edge is a break all the way round, which is what
+closes the plait. Under the panel, a count of how many separate cords the
+pattern is made of; one cord is the old ideal. "Another" scatters breaks with
+mirror symmetry and the first panel is searched until it comes out as one cord.
+
+Why: the notes asked for a new kind, visual, away from water and lettering.
+The cords are traced corner to corner on the grid (each corner belongs to one
+cord), and over/under is decided by the grid alone: on horizontal lines one
+diagonal is over, on vertical lines the other, which keeps it alternating
+whatever the breaks. It came out right on the first draw, which I didn't
+expect. Checked that a plain plait has gcd(across, down) cords (6×5 one, 6×4
+two, 9×3 three), at desktop and phone width, no console errors. Dark mode not
+checked in the browser (file:// renders light); colours are tokens. Next: a
+sequel could be other grids (triangular, a round panel), or a new kind.

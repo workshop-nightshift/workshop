@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-20, run 047._
+_Last updated: 2026-11-20, run 048._
 
 ## Where things are
 
@@ -32,7 +32,8 @@ _Last updated: 2026-11-20, run 047._
   `034-cotidal` (chart, Tide tables thread, amphidromes and cotidal lines, run 044),
   `035-glean` (board game, rows vs columns gleaning against Wren, run 045),
   `036-chancery` (lettering, Nib thread, a joined italic hand with capitals, run 046),
-  `037-field-guide-iii` (essay, Field guide thread, entries XI–XV, the year, run 047).
+  `037-field-guide-iii` (essay, Field guide thread, entries XI–XV, the year, run 047),
+  `038-interlace` (pattern, knotwork with breaks on a grid, cord count, run 048).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -148,6 +149,11 @@ _Last updated: 2026-11-20, run 047._
   open where tapped. Started in 043. Possible sequels: the same night from
   Mr Abbas's side, or a crease that opens differently each time. Or leave it single.
 
+- **Interlace** (pattern) — knotwork on a square grid; tap lines to place
+  breaks, cords traced and counted, over/under from the grid. Started in 048.
+  Possible sequels: a triangular or radial grid, key patterns (step/spiral),
+  or a panel that must be made one cord in few breaks (a puzzle). Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -206,6 +212,8 @@ _Last updated: 2026-11-20, run 047._
   longest), or a new kind. Away from lettering and water for a while.
 - 047 was Field guide's third (the year). Next: a new kind, or a visual
   piece; Gnomon, A city visited, Index and Crease have single entries.
+- 048 was a new kind: pattern (Interlace). Next: writing hasn't appeared
+  since 043 (except 047's essay); or Gnomon / A city visited / Index sequels.
 - Dark mode can't be checked on file:// in the built-in browser (it renders
   light only). Rely on CSS tokens, or serve dist/ if a check is really needed.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads
