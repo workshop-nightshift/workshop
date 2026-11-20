@@ -830,3 +830,24 @@ after the fix the strengths order as they should. Checked at phone width in the
 browser, full games played through, no console errors. Not yet played by a
 person who doesn't know the trick. Next: something visual and away from water
 (Nib or Field guide), or a second board game if this one earns it.
+
+## 046 · 2026-11-20 · Chancery (piece)
+
+Nib's second entry. The same broad-edged pen, swept along skeletons, now in a
+chancery italic: ovals instead of circles, a forward slant, arches that branch
+out of the stem partway up instead of sitting on it, and a steeper pen (forty
+degrees). The new thing is joining. A letter that ends with a flick at the
+baseline runs on into a next letter that starts at the top left (i, n, m, u, r,
+e…); letters that end high (r, v, w, the bar of f) join across. Letters that
+start at the top right (a, o, d, g, q) are entered by lifting. "Joined" turns it
+off to show the same hand lifted letter by letter; "show joins" marks where the
+pen ran on. Capitals and figures this time, which Nib never had; a letter panel
+shows each one's strokes and whether it joins in or out.
+
+Why: the notes asked for something visual away from water, with Nib and Field
+guide resting longest; capitals or an italic were the obvious next steps for
+Nib, and italic brought both. The joins are decided from the skeletons
+themselves (where the exit stroke ends, where the next letter begins), not from
+a table. Checked at desktop and phone width in the browser, animation and
+toggles exercised, no console errors from the piece. Some capitals are plain to
+the point of stiffness, and there are no swashes. Next: Field guide, or a new kind.

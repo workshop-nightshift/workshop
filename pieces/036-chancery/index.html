@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chancery</title>
+<style>
+:root{--bg:#f2eee4;--fg:#1d1b18;--mute:#77705f;--line:#d9d1c0;--paper:#fbf8f0;--rule:#e2d9c5;--ink:#2a1d14;--red:#a8361f;--join:#b3672e}
+@media (prefers-color-scheme:dark){:root{--bg:#141311;--fg:#e8e3d8;--mute:#9a927f;--line:#2e2b25;--paper:#1c1a17;--rule:#302b24;--ink:#efe7d4;--red:#e2765c;--join:#e0a368}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:700px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em;font-style:italic}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+label{color:var(--mute);font-size:14px}
+textarea{display:block;font:16px/1.4 Georgia,serif;width:100%;padding:7px 9px;margin-top:3px;color:var(--fg);background:var(--paper);border:1px solid var(--line);border-radius:4px;resize:vertical;min-height:2.6em}
+canvas{display:block;width:100%;background:var(--paper);border:1px solid var(--line)}
+#c{margin-top:12px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 16px;margin-top:12px}
+.ctl label{display:flex;flex-direction:column}
+.ctl label span{display:flex;justify-content:space-between}
+.ctl output{color:var(--fg);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--red)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--paper);border-color:var(--mute)}
+a{color:inherit}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+.abc{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.abc button{font:italic 17px/1 Georgia,serif;width:32px;height:32px;padding:0}
+#duct{max-width:340px;margin:8px auto 0}
+#dnote{color:var(--mute);font-size:14px;text-align:center;margin:6px 0 0;min-height:1.5em}
+p{margin:.6em 0}
+.prose{color:var(--fg);max-width:36em}
+.key{color:var(--mute);font-size:13px;margin:6px 0 0}
+.key i{display:inline-block;width:18px;height:2px;vertical-align:middle;background:var(--join);margin-right:4px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Chancery</h1>
+  <p class="sub">the same broad pen, written faster: an italic hand that leans, narrows, and joins</p>
+
+  <label for="t">Write</label>
+  <textarea id="t" rows="2" maxlength="220" spellcheck="false">Written in a hurry, the round hand leans and narrows, and the letters begin to run into each other</textarea>
+
+  <canvas id="c" aria-label="the text written in an italic hand with a broad-edged pen"></canvas>
+
+  <div class="ctl">
+    <label><span>pen angle <output id="oa"></output></span><input type="range" id="ang" min="0" max="90" value="40"></label>
+    <label><span>nib width <output id="ow"></output></span><input type="range" id="nw" min="15" max="180" value="100"></label>
+    <label><span>slant <output id="ol"></output></span><input type="range" id="sl" min="-4" max="20" value="8"></label>
+    <label><span>size <output id="os"></output></span><input type="range" id="sz" min="12" max="48" value="22"></label>
+  </div>
+
+  <div class="row">
+    <span><button id="write">write it out</button><button id="joined" aria-pressed="true">joined</button><button id="showj" aria-pressed="false">show joins</button><button id="lines" aria-pressed="true">ruled lines</button><button id="bones" aria-pressed="false">skeleton</button></span>
+    <span><button id="save">save picture</button><a href="../../">← shelf</a></span>
+  </div>
+  <p class="key" id="jkey" hidden><i></i>joins: where the pen ran on to the next letter instead of lifting</p>
+
+  <h2>the hand, letter by letter</h2>
+  <div class="abc" id="abc"></div>
+  <div class="abc" id="ABC"></div>
+  <div class="abc" id="num"></div>
+  <canvas id="duct" aria-label="one letter, large, with the order of its strokes"></canvas>
+  <p id="dnote"></p>
+
+  <h2>about</h2>
+  <div class="prose">
+    <p>Nib wrote a plain round hand: every bowl a circle, every arch a half of one, the pen lifted between letters. Chancery is what happens to that hand when it has to be written all day, quickly. The circles squeeze into ovals, the letters lean forward in the direction the hand is already travelling, and the arches stop sitting on top of their stems and spring out of them partway up, the pen climbing back up the stem it just came down before it turns away. That branching is most of what makes it look italic.</p>
+    <p>And the letters join. A pen that ends a letter with a small upward flick at the baseline is already heading for the next one; if the next one begins at the top left, as <i>i</i>, <i>n</i>, <i>m</i>, <i>u</i> and <i>r</i> do, it may as well keep going. The join is a hairline, because the pen is travelling nearly along its own edge. Letters that end at the top, like <i>r</i>, <i>v</i>, <i>w</i> and the bar of <i>f</i>, join across instead. Letters that begin at the top right, like <i>a</i>, <i>o</i> and <i>d</i>, are entered by lifting, as most scribes do. Turn the joins off to see the same skeletons lifted letter by letter, or show them to see where the pen ran on.</p>
+    <p>The hand was cut for the papal chancery in Rome and printed as a copybook in the 1520s; this is a loose version of it, drawn as skeletons and given to the same swept pen as Nib. The pen angle starts steeper here, about forty degrees, which is what puts the weight on the diagonals and keeps the joins fine. The capitals are plain, leaning, unflourished; the figures sit at a little under capital height.</p>
+  </div>
+</main>
+<script>
+(function(){
+'use strict';
+// ---------- skeleton helpers (units: baseline 0, x-height 5, ascender 8.5, capitals 7, descender -3.5) ----------
+function S(p){ // a smooth curve through the points
+  var o=[];
+  for(var i=0;i<p.length-1;i++){
+    var p0=p[Math.max(0,i-1)],p1=p[i],p2=p[i+1],p3=p[Math.min(p.length-1,i+2)];
+    for(var k=0;k<10;k++){
+      var t=k/10,t2=t*t,t3=t2*t,q=[];
+      for(var c=0;c<2;c++)q.push(0.5*(2*p1[c]+(-p0[c]+p2[c])*t+(2*p0[c]-5*p1[c]+4*p2[c]-p3[c])*t2+(-p0[c]+3*p1[c]-3*p2[c]+p3[c])*t3));
+      o.push(q);
+    }
+  }
+  o.push(p[p.length-1].slice());
+  return o;
+}
+function A(cx,cy,rx,ry,a0,a1){
+  var n=Math.max(2,Math.ceil(Math.abs(a1-a0)/5)+1),p=[];
+  for(var i=0;i<n;i++){var a=(a0+(a1-a0)*i/(n-1))*Math.PI/180;p.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a)]);}
+  return p;
+}
+function J(){var o=[];for(var i=0;i<arguments.length;i++)o=o.concat(arguments[i]);return o;}
+function DOT(x,y){return [[x-0.12,y-0.12],[x+0.16,y+0.18]];}
+function exit(x){return S([[x,0.9],[x+0.25,0.15],[x+0.7,0],[x+1.2,0.6]]);}
+function stem(x,top){return [[x-0.5,top-0.5],[x,top]];}       // a small entry serif
+var bowl=J(S([[3.1,4.5],[2.1,5],[0.8,4.4],[0.15,2.3],[0.5,0.3],[1.3,0],[2.5,1.2],[3.1,3.2]]),[[3.1,5]]);
+var tail=S([[3.1,-1.8],[2.6,-3.3],[1.3,-3.5],[0.2,-2.7]]);
+function arch(x0,x1){var m=(x0+x1)/2;return S([[x0,2.6],[x0+(x1-x0)*0.3,4.5],[m+0.1,5],[x1-0.1,4.3],[x1,3]]);}
+var cbody=[[3.0,4.6],[2.2,5],[0.9,4.4],[0.2,2.3],[0.6,0.4],[1.6,0],[2.6,0.3],[3.2,0.9]];
+var G={
+  // lowercase
+  a:{w:4.3,s:[J(bowl,[[3.1,0.9]],exit(3.1))]},
+  b:{w:3.3,s:[J(stem(0.6,8.5),[[0.6,0.6]],S([[0.6,0.6],[1.2,0],[2.6,0.4],[3.2,2.6],[2.7,4.6],[1.8,5],[0.6,3.5]]))]},
+  c:{w:3.2,s:[S(cbody)]},
+  d:{w:4.3,s:[bowl,J([[3.1,8.5],[3.1,0.9]],exit(3.1))]},
+  e:{w:3.2,s:[S([[0.5,2.2],[2.2,3.0],[2.9,4.2],[2.2,5],[1,4.5],[0.2,2.4],[0.6,0.4],[1.6,0],[2.6,0.3],[3.2,0.9]])]},
+  f:{w:3.2,s:[S([[3.2,7.9],[2.6,8.5],[1.8,8.2],[1.4,6.5],[1.3,2],[1.2,-2],[0.8,-3.3],[0,-3.2]]),[[0.3,5],[2.8,5]]]},
+  g:{w:3.3,s:[J(bowl,[[3.1,-1.8]],tail)]},
+  h:{w:4.4,s:[J(stem(0.6,8.5),[[0.6,0]]),J(arch(0.6,3.2),[[3.2,0.9]],exit(3.2))]},
+  i:{w:1.7,s:[J(stem(0.5,5),[[0.5,0.9]],exit(0.5)),DOT(0.6,6.6)],x:0},
+  j:{w:1.0,s:[J(stem(0.5,5),[[0.5,-1.8]],S([[0.5,-1.8],[0,-3.3],[-1.2,-3.4],[-1.8,-2.6]])),DOT(0.6,6.6)],x:0},
+  k:{w:3.8,s:[J(stem(0.6,8.5),[[0.6,0]]),S([[0.6,2],[1.6,4.4],[2.5,5],[3.1,4.4],[2.5,3.1],[1,2.5]]),J([[1.6,2.5],[2.6,0.9]],exit(2.6))]},
+  l:{w:1.8,s:[J(stem(0.6,8.5),[[0.6,0.9]],exit(0.6))]},
+  m:{w:5.7,s:[J(stem(0.5,5),[[0.5,0]]),J(arch(0.5,2.5),[[2.5,0]]),J(arch(2.5,4.5),[[4.5,0.9]],exit(4.5))]},
+  n:{w:4.3,s:[J(stem(0.5,5),[[0.5,0]]),J(arch(0.5,3.1),[[3.1,0.9]],exit(3.1))]},
+  o:{w:3.2,s:[A(1.6,2.5,1.6,2.5,80,440)]},
+  p:{w:3.3,s:[J(stem(0.5,5),[[0.5,-3.5]]),S([[0.5,2.6],[1.3,4.5],[2.2,5],[3.1,4.2],[3.2,2.2],[2.6,0.3],[1.6,0],[0.6,0.6]])]},
+  q:{w:3.3,s:[J(bowl,[[3.1,-3.5]])]},
+  r:{w:3.0,s:[J(stem(0.5,5),[[0.5,0]]),S([[0.5,2.6],[1.2,4.4],[2.1,5],[2.9,4.6]])]},
+  s:{w:2.6,s:[S([[2.6,4.6],[1.7,5],[0.6,4.6],[0.5,3.6],[1.5,2.6],[2.4,1.7],[2.4,0.6],[1.4,0],[0.3,0.2],[-0.1,0.6]])]},
+  t:{w:2.4,s:[J([[0.9,7],[0.9,0.9]],exit(0.9)),[[0.1,5],[2.4,5]]],x:0},
+  u:{w:4.3,s:[J(stem(0.5,5),[[0.5,1.6]],S([[0.5,1.6],[0.9,0.2],[1.8,0],[2.6,0.7],[3.1,2.6]]),[[3.1,5],[3.1,0.9]],exit(3.1))]},
+  v:{w:3.2,s:[[[0,4.6],[0.4,5],[1.8,0],[3.2,5]]]},
+  w:{w:4.6,s:[[[0,4.6],[0.4,5],[1.4,0],[2.5,5],[3.6,0],[4.6,5]]]},
+  x:{w:3.5,s:[[[0,4.6],[0.4,5],[3,0],[3.5,0.4]],[[3.2,5],[0.2,0]]],x:0},
+  y:{w:3.3,s:[J(stem(0.5,5),[[0.5,1.6]],S([[0.5,1.6],[0.9,0.2],[1.8,0],[2.6,0.7],[3.1,2.6]]),[[3.1,5],[3.1,-1.8]],tail)]},
+  z:{w:3.2,s:[[[0.2,5],[3,5],[0,0],[2.9,0],[3.2,0.4]]]},
+  // capitals
+  A:{w:4.6,s:[[[0,0],[2.3,7],[4.6,0]],[[1,2.4],[3.6,2.4]]]},
+  B:{w:3.8,s:[[[0.4,7],[0.4,0]],J([[0.4,7],[2.4,7]],S([[2.4,7],[3.4,6.4],[3.4,4.6],[2.4,3.8]]),[[0.4,3.8]]),J([[0.4,3.8],[2.6,3.8]],S([[2.6,3.8],[3.8,3],[3.8,0.8],[2.6,0]]),[[0.4,0]])]},
+  C:{w:4.0,s:[S([[4,6.2],[3,7],[1.6,6.7],[0.3,4.6],[0.2,2],[1.2,0.2],[2.6,0],[4,0.8]])]},
+  D:{w:4.2,s:[[[0.4,7],[0.4,0]],J([[0.4,7],[1.8,7]],S([[1.8,7],[3.6,6],[4.2,3.5],[3.6,1],[1.8,0]]),[[0.4,0]])]},
+  E:{w:3.6,s:[[[0.4,7],[0.4,0]],[[0.4,7],[3.4,7]],[[0.4,3.6],[2.8,3.6]],[[0.4,0],[3.6,0]]]},
+  F:{w:3.4,s:[[[0.4,7],[0.4,0]],[[0.4,7],[3.4,7]],[[0.4,3.6],[2.8,3.6]]]},
+  G:{w:4.4,s:[J(S([[4,6.2],[3,7],[1.6,6.7],[0.3,4.6],[0.2,2],[1.2,0.2],[2.6,0],[4,1]]),[[4,3]]),[[2.8,3],[4.4,3]]]},
+  H:{w:4.4,s:[[[0.4,7],[0.4,0]],[[4,7],[4,0]],[[0.4,3.6],[4,3.6]]]},
+  I:{w:0.8,s:[[[0.4,7],[0.4,0]]]},
+  J:{w:2.4,s:[J([[2.2,7],[2.2,-1]],S([[2.2,-1],[1.6,-2.6],[0.4,-2.7],[-0.4,-2]]))]},
+  K:{w:4.0,s:[[[0.4,7],[0.4,0]],[[3.8,7],[0.4,2.6]],[[1.8,4],[4,0]]]},
+  L:{w:3.4,s:[[[0.4,7],[0.4,0],[3.4,0]]]},
+  M:{w:5.4,s:[[[0,0],[0.7,7],[2.7,0],[4.7,7],[5.4,0]]]},
+  N:{w:4.4,s:[[[0.4,0],[0.4,7],[4,0],[4,7]]]},
+  O:{w:4.6,s:[A(2.3,3.5,2.3,3.5,100,460)]},
+  P:{w:3.7,s:[[[0.4,7],[0.4,0]],J([[0.4,7],[2.4,7]],S([[2.4,7],[3.7,6.2],[3.7,4],[2.4,3.2]]),[[0.4,3.2]])]},
+  Q:{w:4.6,s:[A(2.3,3.5,2.3,3.5,100,460),[[2.4,0.6],[4.6,-1.6]]]},
+  R:{w:4.0,s:[[[0.4,7],[0.4,0]],J([[0.4,7],[2.4,7]],S([[2.4,7],[3.7,6.2],[3.7,4],[2.4,3.2]]),[[0.4,3.2]]),[[1.8,3.2],[4,0]]]},
+  S:{w:3.7,s:[S([[3.6,6.4],[2.6,7],[1.2,6.9],[0.4,5.8],[0.8,4.4],[2,3.6],[3.4,2.6],[3.7,1.2],[2.8,0.1],[1.2,0],[0,0.7]])]},
+  T:{w:4.0,s:[[[2,7],[2,0]],[[0,7],[4,7]]]},
+  U:{w:4.4,s:[J([[0.4,7],[0.4,2]],S([[0.4,2],[1,0.3],[2.2,0],[3.4,0.4],[4,2]]),[[4,7]])]},
+  V:{w:4.4,s:[[[0,7],[2.2,0],[4.4,7]]]},
+  W:{w:6.0,s:[[[0,7],[1.5,0],[3,7],[4.5,0],[6,7]]]},
+  X:{w:4.0,s:[[[0,7],[4,0]],[[4,7],[0,0]]]},
+  Y:{w:4.0,s:[[[0,7],[2,3.6],[4,7]],[[2,3.6],[2,0]]]},
+  Z:{w:4.0,s:[[[0.2,7],[3.8,7],[0,0],[4,0]]]},
+  // figures
+  '0':{w:3.2,s:[A(1.6,3.25,1.6,3.25,90,450)]},
+  '1':{w:1.6,s:[[[0.2,5.6],[1.2,6.5],[1.2,0]]]},
+  '2':{w:3.2,s:[J(S([[0.2,5.4],[1.2,6.5],[2.5,6.3],[2.9,4.9],[2.2,3.2],[0,0]]),[[3.2,0]])]},
+  '3':{w:3.1,s:[J(S([[0.3,5.8],[1.4,6.5],[2.6,6.2],[2.8,4.8],[1.6,3.6],[1.2,3.6]]),S([[1.2,3.6],[2.8,3.1],[3.1,1.4],[2.2,0.1],[0.9,0],[0,0.7]]))]},
+  '4':{w:3.4,s:[[[2.4,0],[2.4,6.5],[0,2],[3.4,2]]]},
+  '5':{w:3.0,s:[J([[2.9,6.5],[0.7,6.5],[0.4,3.8]],S([[0.4,3.8],[1.6,4.2],[2.8,3.4],[3,1.4],[2,0.1],[0.8,0],[0,0.7]]))]},
+  '6':{w:3.0,s:[S([[2.8,6.2],[1.8,6.5],[0.6,5.4],[0.1,2.8],[0.5,0.6],[1.6,0],[2.7,0.5],[3,1.8],[2.4,3.4],[1.3,3.6],[0.2,2.6]])]},
+  '7':{w:3.2,s:[[[0,6.5],[3.2,6.5],[1,0]]]},
+  '8':{w:3.2,s:[S([[1.6,3.6],[0.6,4.4],[0.6,5.8],[1.6,6.5],[2.6,5.8],[2.6,4.4],[1.6,3.6],[0.2,2.6],[0.2,0.8],[1.6,0],[3,0.8],[3,2.6],[1.6,3.6]])]},
+  '9':{w:3.0,s:[S([[2.9,4],[1.8,3],[0.6,3.4],[0.1,4.8],[0.7,6.3],[1.8,6.5],[2.8,5.8],[3,3.6],[2.4,0.8],[1.3,0],[0.3,0.4]])]},
+  // marks
+  '.':{w:0.3,s:[DOT(0.1,0.2)]},
+  ',':{w:0.4,s:[[[0.3,0.4],[0,-1.2]]]},
+  "'":{w:0.3,s:[[[0.3,8],[0,6.4]]]},
+  '-':{w:2.2,s:[[[0,2.8],[2.2,2.8]]]},
+  '!':{w:0.3,s:[[[0.4,7.2],[0.15,2.4]],DOT(0.1,0.2)]},
+  '?':{w:2.8,s:[J(S([[0.2,5.8],[1.2,7],[2.5,6.6],[2.6,5.2],[1.4,4.2],[1.2,2.6]])),DOT(1.2,0.2)]},
+  ':':{w:0.3,s:[DOT(0.1,4.6),DOT(0.1,0.2)]},
+  ';':{w:0.4,s:[DOT(0.2,4.6),[[0.3,0.4],[0,-1.2]]]}
+};
+G['’']=G["'"];G['–']=G['—']=G['-'];
+var SPACE=3.6, GAP=1.0;
+function resample(pts,step){
+  var o=[pts[0]];
+  for(var i=1;i<pts.length;i++){
+    var a=pts[i-1],b=pts[i],dx=b[0]-a[0],dy=b[1]-a[1],d=Math.hypot(dx,dy);
+    if(d<1e-6)continue;
+    var n=Math.max(1,Math.ceil(d/step));
+    for(var k=1;k<=n;k++)o.push([a[0]+dx*k/n,a[1]+dy*k/n]);
+  }
+  return o;
+}
+var LOWER='abcdefghijklmnopqrstuvwxyz';
+for(var ch in G){
+  var g=G[ch];g.s=g.s.map(function(s){return resample(s,0.12);});
+  g.lower=LOWER.indexOf(ch)>=0;
+  if(g.x==null)g.x=g.s.length-1;           // which stroke carries the exit
+  var f=g.s[0][0],e=g.s[g.x][g.s[g.x].length-1];
+  g.joinIn=g.lower&&f[0]<1.2&&f[1]>1.5&&f[1]<=5.2;
+  g.outLow=g.lower&&e[0]>=g.w-0.6&&e[1]<1.6;
+  g.outHigh=g.lower&&e[0]>=g.w-0.6&&e[1]>4;
+}
+function joins(a,b){return b.joinIn&&(a.outLow||(a.outHigh&&b.s[0][0][1]>4));}
+
+// ---------- state ----------
+var $=function(id){return document.getElementById(id);};
+var cv=$('c'),cx=cv.getContext('2d'),dv=$('duct'),dx=dv.getContext('2d');
+var st={ang:40,nw:1,sl:8,sz:22,lines:true,bones:false,joined:true,showj:false};
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+function readCtl(){
+  st.ang=+$('ang').value; st.nw=+$('nw').value/100; st.sl=+$('sl').value; st.sz=+$('sz').value;
+  $('oa').textContent=st.ang+'°';
+  $('ow').textContent=(5/st.nw).toFixed(1)+' to x';
+  $('ol').textContent=st.sl+'°';
+  $('os').textContent=st.sz+'px';
+}
+
+// lay text into lines of glyph placements (units); words carry their own index so joins stay inside a word
+function layout(text,maxW){
+  var words=[];
+  text.replace(/\s+/g,' ').trim().split(' ').forEach(function(w){
+    var part='',pw=0;
+    for(var i=0;i<w.length;i++){var g=G[w[i]];if(!g)continue;if(part&&pw+g.w>maxW){words.push(part);part='';pw=0;}part+=w[i];pw+=g.w+GAP;}
+    if(part)words.push(part);
+  });
+  var lines=[],cur=[],x=0;
+  words.forEach(function(w,wi){
+    var glyphs=[],gx=0;
+    for(var i=0;i<w.length;i++){var g=G[w[i]];glyphs.push({g:g,x:gx,w:wi});gx+=g.w+GAP+(g.lower?0:0.5);}
+    var ww=gx-GAP;
+    if(cur.length&&x+SPACE+ww>maxW){lines.push(cur);cur=[];x=0;}
+    if(cur.length)x+=SPACE;
+    glyphs.forEach(function(p){cur.push({g:p.g,x:x+p.x,w:p.w});});
+    x+=ww;
+  });
+  if(cur.length)lines.push(cur);
+  return lines;
+}
+
+// strokes in units for one line, with joins merged in; each stroke is {p:[...], j:[[from,to],...]} (j marks join spans by point index)
+function lineStrokes(line){
+  var out=[],prev=null,prevStroke=null;
+  line.forEach(function(pl){
+    var g=pl.g,mine=g.s.map(function(s){return {p:s.map(function(q){return [q[0]+pl.x,q[1]];}),j:[]};});
+    var first=0;
+    if(st.joined&&prev&&prev.w===pl.w&&joins(prev.g,g)){
+      var ps=prevStroke,a=ps.p[ps.p.length-1],b=mine[0].p[0];
+      var bridge=resample([a,b],0.12).slice(1);
+      var i0=ps.p.length-1;
+      ps.p=ps.p.concat(bridge);ps.j.push([i0,ps.p.length-1]);
+      var off=ps.p.length-1;
+      ps.p=ps.p.concat(mine[0].p.slice(1));
+      mine[0].j.forEach(function(r){ps.j.push([r[0]+off,r[1]+off]);});
+      first=1;
+    }
+    for(var k=first;k<mine.length;k++)out.push(mine[k]);
+    // the stroke this letter leaves from: its own exit stroke, or the run-on stroke it was merged into
+    if(!(g.x===0&&first===1))prevStroke=mine[g.x];
+    prev=pl;
+  });
+  return out;
+}
+function toPx(strokes,s,ox,oy){
+  var sh=Math.tan(st.sl*Math.PI/180);
+  return strokes.map(function(k){return {p:k.p.map(function(q){return [ox+(q[0]+q[1]*sh)*s, oy-q[1]*s];}),j:k.j};});
+}
+
+// the pen: a straight edge swept along each stroke
+function inkStrokes(ctx,strokes,s,limit,col){
+  var half=st.nw*s/2,a=st.ang*Math.PI/180,vx=Math.cos(a)*half,vy=-Math.sin(a)*half;
+  var left=limit==null?Infinity:limit,hair=[];
+  ctx.fillStyle=col;ctx.beginPath();
+  for(var k=0;k<strokes.length&&left>0;k++){
+    var p=strokes[k].p,h=[p[0]];
+    for(var i=1;i<p.length&&left>0;i++){
+      var a0=p[i-1],a1=p[i],ex=a1[0]-a0[0],ey=a1[1]-a0[1],d=Math.hypot(ex,ey);
+      if(d>left){var f=left/d;a1=[a0[0]+ex*f,a0[1]+ey*f];ex*=f;ey*=f;}
+      left-=d;
+      var ux=vx,uy=vy; if(ex*uy-ey*ux<0){ux=-ux;uy=-uy;}
+      ctx.moveTo(a0[0]-ux,a0[1]-uy);ctx.lineTo(a0[0]+ux,a0[1]+uy);ctx.lineTo(a1[0]+ux,a1[1]+uy);ctx.lineTo(a1[0]-ux,a1[1]-uy);ctx.closePath();
+      h.push(a1);
+    }
+    left-=s*1.2; // a pen-lift costs a little time
+    hair.push(h);
+  }
+  ctx.fill();
+  ctx.strokeStyle=col;ctx.lineWidth=Math.max(0.8,s*0.05);ctx.lineCap='round';ctx.lineJoin='round';
+  hair.forEach(function(h){ctx.beginPath();ctx.moveTo(h[0][0],h[0][1]);for(var i=1;i<h.length;i++)ctx.lineTo(h[i][0],h[i][1]);ctx.stroke();});
+}
+function totalLen(strokes,s){
+  var L=0;strokes.forEach(function(k){var p=k.p;for(var i=1;i<p.length;i++)L+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);L+=s*1.2;});return L;
+}
+function drawBones(ctx,strokes,col,lw){
+  ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';ctx.lineJoin='round';
+  strokes.forEach(function(k){var p=k.p;ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(var i=1;i<p.length;i++)ctx.lineTo(p[i][0],p[i][1]);ctx.stroke();});
+}
+function drawJoins(ctx,strokes,col,lw){
+  ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.lineCap='round';
+  strokes.forEach(function(k){k.j.forEach(function(r){
+    ctx.beginPath();ctx.moveTo(k.p[r[0]][0],k.p[r[0]][1]);for(var i=r[0]+1;i<=r[1];i++)ctx.lineTo(k.p[i][0],k.p[i][1]);ctx.stroke();
+  });});
+}
+function rules(ctx,W,lines,s,oy,lh,col){
+  ctx.strokeStyle=col;ctx.lineWidth=1;
+  for(var li=0;li<lines;li++){
+    var by=oy+li*lh;
+    [0,5,8.5,-3.5].forEach(function(u,j){
+      var y=Math.round(by-u*s)+0.5;
+      ctx.setLineDash(j>1?[3,4]:[]);
+      ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    });
+  }
+  ctx.setLineDash([]);
+}
+
+// ---------- main sheet ----------
+var sheet=null,anim=null;
+function build(){
+  var dpr=window.devicePixelRatio||1,W=cv.clientWidth||cv.parentNode.clientWidth;
+  var s=st.sz/5, pad=Math.max(16,s*2.4), lh=s*13;
+  var maxW=(W-pad*2)/s - 8.5*Math.max(0,Math.tan(st.sl*Math.PI/180)) - st.nw;
+  var lines=layout($('t').value,Math.max(8,maxW));
+  var nl=Math.max(1,lines.length), top=pad*0.6+s*8.5, H=Math.ceil(top+(nl-1)*lh+s*3.5+pad*0.9);
+  cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.height=H+'px';
+  var strokes=[];
+  lines.forEach(function(line,li){strokes=strokes.concat(toPx(lineStrokes(line),s*dpr,pad*dpr,(top+li*lh)*dpr));});
+  sheet={W:W,H:H,dpr:dpr,s:s,lh:lh,nl:nl,oy:top,strokes:strokes};
+  sheet.total=totalLen(strokes,s*dpr);
+}
+function paint(limit){
+  var c=cx,dpr=sheet.dpr;
+  c.setTransform(1,0,0,1,0,0);
+  c.fillStyle=css('--paper');c.fillRect(0,0,cv.width,cv.height);
+  if(st.lines)rules(c,cv.width,sheet.nl,sheet.s*dpr,sheet.oy*dpr,sheet.lh*dpr,css('--rule'));
+  if(st.bones)drawBones(c,sheet.strokes,css('--rule'),Math.max(1,dpr));
+  inkStrokes(c,sheet.strokes,sheet.s*dpr,limit,css('--ink'));
+  if(st.bones)drawBones(c,sheet.strokes,css('--red'),Math.max(1,dpr*0.8));
+  if(st.showj&&limit==null){c.globalAlpha=0.75;drawJoins(c,sheet.strokes,css('--join'),Math.max(2,sheet.s*dpr*0.35));c.globalAlpha=1;}
+}
+function redraw(){stop();build();paint(null);}
+function stop(){if(anim){cancelAnimationFrame(anim);anim=null;$('write').textContent='write it out';}}
+function writeOut(){
+  if(anim){stop();paint(null);return;}
+  build();
+  var t0=null,speed=sheet.s*sheet.dpr*60; // faster than Nib's round hand: sixty units a second
+  $('write').textContent='stop';
+  function f(t){
+    if(t0==null)t0=t;
+    var L=(t-t0)/1000*speed;
+    if(L<sheet.total){paint(L);anim=requestAnimationFrame(f);}else{paint(null);anim=null;$('write').textContent='write it out';}
+  }
+  anim=requestAnimationFrame(f);
+}
+
+// ---------- one letter, large ----------
+var dAnim=null,dCh='a';
+function ductus(ch,animate){
+  dCh=ch;
+  [].forEach.call(document.querySelectorAll('.abc button'),function(b){b.setAttribute('aria-pressed',b.dataset.c===ch?'true':'false');});
+  var g=G[ch],dpr=window.devicePixelRatio||1,W=dv.clientWidth||300,H=Math.round(W*0.95);
+  dv.width=Math.round(W*dpr);dv.height=Math.round(H*dpr);dv.style.height=H+'px';
+  var s=H/14.5,sh=Math.tan(st.sl*Math.PI/180),gw=g.w+5*sh;
+  var ox=(W/s-gw)/2,oy=s*10.3;
+  var strokes=g.s.map(function(stroke){return {p:stroke.map(function(q){return [(ox+q[0]+q[1]*sh)*s*dpr,oy*dpr-q[1]*s*dpr];}),j:[]};});
+  var total=totalLen(strokes,s*dpr);
+  if(dAnim){cancelAnimationFrame(dAnim);dAnim=null;}
+  function draw(limit){
+    dx.setTransform(1,0,0,1,0,0);
+    dx.fillStyle=css('--paper');dx.fillRect(0,0,dv.width,dv.height);
+    rules(dx,dv.width,1,s*dpr,oy*dpr,0,css('--rule'));
+    drawBones(dx,strokes,css('--rule'),Math.max(1,dpr));
+    inkStrokes(dx,strokes,s*dpr,limit,css('--ink'));
+    dx.font=(13*dpr)+'px Georgia,serif';dx.textAlign='center';dx.textBaseline='middle';dx.fillStyle=css('--red');
+    strokes.forEach(function(k,i){
+      var p=k.p,a=p[0],b=p[Math.min(p.length-1,6)],ux=b[0]-a[0],uy=b[1]-a[1],d=Math.hypot(ux,uy)||1;
+      var nx=-uy/d,ny=ux/d,off=(st.nw*s*0.7+14)*dpr;
+      dx.fillText(String(i+1),a[0]-ux/d*off*0.6+nx*off*0.6,a[1]-uy/d*off*0.6+ny*off*0.6);
+    });
+  }
+  var n=g.s.length,how=n===1?'one stroke':n+' strokes';
+  var note=ch+' — '+how+'.';
+  if(g.lower){
+    var into=g.joinIn,out=g.outLow?'from its baseline flick':g.outHigh?'across from the top':'';
+    note+=into&&out?' Joins in, and out '+out+'.':into?' Joins in from the letter before.':out?' Joins out '+out+'.':' Stands alone: the pen lifts either side.';
+  }
+  $('dnote').textContent=note;
+  if(!animate){draw(null);return;}
+  var t0=null,speed=s*dpr*9;
+  function f(t){if(t0==null)t0=t;var L=(t-t0)/1000*speed;draw(L);if(L<total)dAnim=requestAnimationFrame(f);else{dAnim=null;draw(null);}}
+  dAnim=requestAnimationFrame(f);
+}
+function keys(id,set){
+  set.split('').forEach(function(ch){
+    var b=document.createElement('button');b.textContent=ch;b.dataset.c=ch;b.setAttribute('aria-pressed','false');
+    b.addEventListener('click',function(){ductus(ch,true);});
+    $(id).appendChild(b);
+  });
+}
+keys('abc',LOWER);keys('ABC','ABCDEFGHIJKLMNOPQRSTUVWXYZ');keys('num','0123456789');
+
+// ---------- wiring ----------
+['ang','nw','sl','sz'].forEach(function(id){$(id).addEventListener('input',function(){readCtl();redraw();ductus(dCh,false);});});
+$('t').addEventListener('input',redraw);
+$('write').addEventListener('click',writeOut);
+function toggle(id,key,rebuild){$(id).addEventListener('click',function(){
+  st[key]=!st[key];this.setAttribute('aria-pressed',st[key]);
+  if(key==='showj')$('jkey').hidden=!st.showj;
+  if(rebuild)redraw();else if(!anim)paint(null);
+});}
+toggle('lines','lines');toggle('bones','bones');toggle('joined','joined',true);toggle('showj','showj');
+$('save').addEventListener('click',function(){
+  stop();paint(null);
+  var a=document.createElement('a');a.download='chancery.png';a.href=cv.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();
+});
+var rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){redraw();ductus(dCh,false);},120);});
+if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){redraw();ductus(dCh,false);});
+readCtl();redraw();ductus('a',false);
+$('dnote').textContent='Tap a letter to watch it written.';
+})();
+</script>
+</body>
+</html>
