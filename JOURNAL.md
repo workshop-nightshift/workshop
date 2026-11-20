@@ -788,3 +788,24 @@ the sentence where its outside sat; I checked the fully folded and fully opened
 readings in node and rewrote the two that read badly short. Checked at phone
 width in the browser, every crease opened, no console errors. Next: something
 visual or a thread untouched lately (Tide tables, Field guide, Nib).
+
+## 044 · 2026-11-20 · Cotidal (piece)
+
+Tide tables' second entry, the thread resting longest. In 001 the tides were a
+time series: one line per day on a world with several moons. Here they are a
+place. An imagined sea, walled by noise-made coast and open to the ocean on one
+side, with two to four amphidromic points: spots where the tide has no range and
+high water wheels around them, hour by hour. The chart draws the cotidal lines
+(equal time of high water, one per lunar hour, hour 0 in red) and dashed corange
+lines (equal range), and the water itself rises and falls under them, one tide
+every fourteen seconds. Tap the water, or a named port, to set down a gauge and
+read its high-water time and range, with a small curve of the next two tides.
+
+Why: the notes asked for something visual after two pieces of writing. The
+field is a product of (z − a) terms, one per amphidrome, some conjugated so they
+turn the other way, times a gentle gradient; the cotidal lines are where its
+argument equals each hour, found by marching squares on the imaginary part with
+the real part kept positive. Not a hydrodynamic model; the coast doesn't shape
+the tide, which a real sea would. Checked at phone and desktop width, twenty
+seas in a row, no console errors. Next: something away from the sea, which is
+getting crowded on the shelf.

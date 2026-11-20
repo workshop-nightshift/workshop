@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cotidal</title>
+<style>
+:root{--bg:#f6f3ec;--fg:#1d1b18;--mute:#6f6a60;--land:#e4dccb;--coast:#8c826f;--low:#dfe6e4;--high:#7fa3a8;--line:29,27,24;--accent:#b4472b}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e9e6df;--mute:#9a958b;--land:#26262a;--coast:#77736b;--low:#16201f;--high:#3d6a70;--line:233,230,223;--accent:#e58a63}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
+body{display:flex;flex-direction:column;font:14px/1.5 ui-monospace,Menlo,monospace}
+#wrap{flex:1;min-height:0;position:relative}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:manipulation}
+#panel{padding:10px 16px 0;min-height:4.6em;display:flex;gap:14px;align-items:center}
+#spark{flex:0 0 120px;height:44px}
+#ptext{flex:1;min-width:0}
+#ptext b{font-weight:600}
+#ptext span{color:var(--mute)}
+footer{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;padding:8px 16px 16px;color:var(--mute)}
+footer b{color:var(--fg);font-weight:600}
+button{font:inherit;color:var(--fg);background:none;border:1px solid var(--mute);border-radius:3px;padding:2px 10px;cursor:pointer}
+a{color:inherit}
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="c" aria-label="A chart of an imagined sea: lines of equal tide time wheel around points where there is no tide, and the water rises and falls around them"></canvas></div>
+<div id="panel"><canvas id="spark" aria-hidden="true" style="position:static"></canvas><div id="ptext"></div></div>
+<footer>
+  <span id="cap"></span>
+  <span><button id="again">another sea</button> · <a href="../../">← shelf</a></span>
+</footer>
+<script>
+const c = document.getElementById("c"), x = c.getContext("2d");
+const sp = document.getElementById("spark"), sx = sp.getContext("2d");
+const cap = document.getElementById("cap"), ptext = document.getElementById("ptext");
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hex = h => { h = h.replace("#",""); return [0,2,4].map(i => parseInt(h.slice(i,i+2),16)); };
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function rng(seed){ return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2**32; }
+const syl = ["ka","ve","lo","mir","tha","sun","ord","ae","pel","rin","ost","ul","eth","ca","hav","ness","by","wick"];
+const PERIOD = 12.42;            // hours, a semidiurnal tide
+const G = 4;                      // field grid spacing, css px
+
+let sea, W, H, gw, gh, field, staticLayer, shadeCv, shadeImg, gauge = null, colors;
+
+function noise2(r){
+  // value noise, a few octaves, on a coarse lattice
+  const octs = [3,6,12].map(n => ({ n, v: Array.from({length:(n+1)*(n+1)}, r) }));
+  return (u, v) => {
+    let s = 0, wsum = 0, w = 1;
+    for (const o of octs){
+      const fx = u*o.n, fy = v*o.n, ix = Math.min(o.n-1, fx|0), iy = Math.min(o.n-1, fy|0);
+      let tx = fx-ix, ty = fy-iy; tx = tx*tx*(3-2*tx); ty = ty*ty*(3-2*ty);
+      const a = o.v[iy*(o.n+1)+ix], b = o.v[iy*(o.n+1)+ix+1], cc = o.v[(iy+1)*(o.n+1)+ix], d = o.v[(iy+1)*(o.n+1)+ix+1];
+      s += w*((a*(1-tx)+b*tx)*(1-ty) + (cc*(1-tx)+d*tx)*ty); wsum += w; w *= 0.5;
+    }
+    return s/wsum;
+  };
+}
+
+function name(r){
+  const n = Array.from({length: 2 + (r()*2|0)}, () => syl[r()*syl.length|0]).join("");
+  return n[0].toUpperCase() + n.slice(1);
+}
+
+function newSea(seed){
+  const r = rng(seed);
+  sea = {
+    seed, name: name(r) + " Sea",
+    noise: noise2(r),
+    openSide: r()*4|0,                      // one edge stays open to the ocean
+    nAmph: 2 + (r()*3|0),
+    drift: [ (r()-.5)*3, (r()-.5)*3 ],      // phase/amplitude gradient across the sea
+    range: 1.5 + r()*5,                     // metres at the loudest water
+    r
+  };
+  gauge = null;
+  layout();
+}
+
+function layout(){
+  const dpr = devicePixelRatio || 1;
+  W = c.clientWidth; H = c.clientHeight;
+  c.width = W*dpr; c.height = H*dpr; x.setTransform(dpr,0,0,dpr,0,0);
+  gw = Math.ceil(W/G); gh = Math.ceil(H/G);
+  const S = Math.min(W, H), r = rng(sea.seed ^ 0x9e3779b9);
+  const N = (gw+1)*(gh+1);
+  const land = new Float32Array(N), re = new Float32Array(N), im = new Float32Array(N);
+  const amp = new Float32Array(N), ph = new Float32Array(N);
+
+  // land: noise plus a rim, except along the open side
+  for (let j = 0; j <= gh; j++) for (let i = 0; i <= gw; i++){
+    const u = i*G/W, v = j*G/H;
+    const edges = [v, 1-u, 1-v, u];            // top, right, bottom, left
+    let rim = 0;
+    edges.forEach((d, k) => { if (k !== sea.openSide) rim = Math.max(rim, Math.max(0, 1 - d/0.22)); });
+    land[j*(gw+1)+i] = sea.noise(u, v)*0.9 + rim*0.55;
+  }
+  const sorted = Array.from(land).sort((a,b)=>a-b);
+  const thr = sorted[(sorted.length*0.62)|0];          // ~62% water
+  for (let k = 0; k < N; k++) land[k] -= thr;          // >0 is land
+
+  const isWater = (i, j) => land[j*(gw+1)+i] < -0.02;
+  const waterPts = [];
+  for (let j = 2; j < gh-1; j++) for (let i = 2; i < gw-1; i++) if (land[j*(gw+1)+i] < -0.06) waterPts.push([i,j]);
+
+  // amphidromic points, spread out, in water
+  const amph = [];
+  for (let tries = 0; amph.length < sea.nAmph && tries < 400; tries++){
+    const [i, j] = waterPts[r()*waterPts.length|0] || [gw/2|0, gh/2|0];
+    const px = i*G, py = j*G;
+    if (amph.every(a => Math.hypot(a.x-px, a.y-py) > S*0.28 - tries*0.3)) amph.push({ x: px, y: py, sense: r() < 0.7 ? 1 : -1 });
+  }
+
+  // tidal field H(z) = exp(drift·z) · Π (z - a)  (or its conjugate, for the other turning)
+  let maxA = 0;
+  for (let j = 0; j <= gh; j++) for (let i = 0; i <= gw; i++){
+    const zx = i*G/S, zy = j*G/S;
+    let pr = Math.exp(sea.drift[0]*zx*0.5), pi = 0;
+    const th = sea.drift[1]*zy;
+    pr = pr*Math.cos(th); pi = Math.exp(sea.drift[0]*zx*0.5)*Math.sin(th);
+    for (const a of amph){
+      const dx = zx - a.x/S, dy = (zy - a.y/S) * a.sense;
+      const nr = pr*dx - pi*dy, ni = pr*dy + pi*dx;
+      pr = nr; pi = ni;
+    }
+    const k = j*(gw+1)+i;
+    re[k] = pr; im[k] = pi;
+    amp[k] = Math.hypot(pr, pi);
+    ph[k] = Math.atan2(pi, pr);
+    if (land[k] < 0) maxA = Math.max(maxA, amp[k]);
+  }
+  for (let k = 0; k < N; k++){ re[k] /= maxA; im[k] /= maxA; amp[k] /= maxA; }
+
+  // ports: coastal water, spread out
+  const coastal = [];
+  for (let j = 2; j < gh-1; j++) for (let i = 2; i < gw-1; i++){
+    if (!isWater(i,j)) continue;
+    const nb = [[2,0],[-2,0],[0,2],[0,-2]].some(([a,b]) => land[(j+b)*(gw+1)+i+a] > 0);
+    if (nb) coastal.push([i,j]);
+  }
+  const ports = [];
+  for (let tries = 0; ports.length < 4 && tries < 600 && coastal.length; tries++){
+    const [i, j] = coastal[r()*coastal.length|0];
+    const px = i*G, py = j*G;
+    if (px < 40 || px > W-90 || py < 20 || py > H-20) continue;
+    if (amp[j*(gw+1)+i] < 0.12) continue;
+    if (ports.every(p => Math.hypot(p.x-px, p.y-py) > S*0.3)) ports.push({ x: px, y: py, name: name(r) });
+  }
+
+  field = { land, re, im, amp, ph, amph, ports, S };
+  colors = {
+    land: css("--land"), coast: css("--coast"), line: css("--line"), fg: css("--fg"),
+    mute: css("--mute"), bg: css("--bg"), accent: css("--accent"),
+    low: hex(css("--low")), high: hex(css("--high"))
+  };
+  buildStatic(dpr);
+  shadeCv = document.createElement("canvas"); shadeCv.width = gw+1; shadeCv.height = gh+1;
+  shadeImg = shadeCv.getContext("2d").createImageData(gw+1, gh+1);
+
+  const turning = amph.filter(a => a.sense > 0).length;
+  cap.innerHTML = `<b>${sea.name}</b> · ${amph.length} amphidromes · spring range ${sea.range.toFixed(1)} m`;
+  if (!gauge && ports.length) gauge = { x: ports[0].x, y: ports[0].y, name: ports[0].name };
+  showGauge();
+}
+
+// marching squares over a grid function; calls seg(x1,y1,x2,y2,t1,t2) with t = grid coords for sampling
+function march(f, level, seg){
+  const w = gw+1;
+  for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++){
+    const k = j*w+i;
+    const v = [f(k)-level, f(k+1)-level, f(k+w+1)-level, f(k+w)-level];
+    const pts = [];
+    const corners = [[i,j],[i+1,j],[i+1,j+1],[i,j+1]];
+    for (let e = 0; e < 4; e++){
+      const a = v[e], b = v[(e+1)%4];
+      if ((a < 0) !== (b < 0)){
+        const t = a/(a-b), p = corners[e], q = corners[(e+1)%4];
+        pts.push([p[0]+(q[0]-p[0])*t, p[1]+(q[1]-p[1])*t]);
+      }
+    }
+    if (pts.length === 2) seg(pts[0], pts[1]);
+    else if (pts.length === 4){ seg(pts[0], pts[1]); seg(pts[2], pts[3]); }
+  }
+}
+
+function sample(arr, gx, gy){
+  const i = Math.max(0, Math.min(gw-1, gx|0)), j = Math.max(0, Math.min(gh-1, gy|0));
+  const tx = gx-i, ty = gy-j, w = gw+1, k = j*w+i;
+  return (arr[k]*(1-tx)+arr[k+1]*tx)*(1-ty) + (arr[k+w]*(1-tx)+arr[k+w+1]*tx)*ty;
+}
+
+function buildStatic(dpr){
+  staticLayer = document.createElement("canvas");
+  staticLayer.width = W*dpr; staticLayer.height = H*dpr;
+  const s = staticLayer.getContext("2d");
+  s.setTransform(dpr,0,0,dpr,0,0);
+  const { land, re, im, amp, amph, ports } = field;
+  const L = colors.line;
+
+  // corange lines: equal range, dashed
+  s.setLineDash([2,3]); s.lineWidth = 0.8; s.strokeStyle = `rgba(${L},0.45)`;
+  s.beginPath();
+  for (const lev of [0.2, 0.4, 0.6, 0.8]) march(k => amp[k], lev, (p, q) => { s.moveTo(p[0]*G, p[1]*G); s.lineTo(q[0]*G, q[1]*G); });
+  s.stroke(); s.setLineDash([]);
+
+  // cotidal lines: equal time of high water, one per lunar hour
+  const labels = [];
+  for (let hr = 0; hr < 12; hr++){
+    const th = hr/12*Math.PI*2, cs = Math.cos(th), sn = Math.sin(th);
+    // arg H = th  <=>  Im(H e^{-i th}) = 0 and Re(H e^{-i th}) > 0
+    const fIm = k => im[k]*cs - re[k]*sn;
+    const fRe = new Float32Array(re.length); for (let k = 0; k < re.length; k++) fRe[k] = re[k]*cs + im[k]*sn;
+    s.beginPath();
+    s.lineWidth = hr === 0 ? 1.6 : 0.9;
+    s.strokeStyle = hr === 0 ? colors.accent : `rgba(${L},0.75)`;
+    let best = null;
+    march(fIm, 0, (p, q) => {
+      const mx = (p[0]+q[0])/2, my = (p[1]+q[1])/2;
+      if (sample(fRe, mx, my) <= 0) return;
+      s.moveTo(p[0]*G, p[1]*G); s.lineTo(q[0]*G, q[1]*G);
+      const px = mx*G, py = my*G;
+      if (sample(land, mx, my) < -0.04 && px > 16 && px < W-16 && py > 14 && py < H-14){
+        const a = sample(amp, mx, my);
+        // prefer a spot moderately far out on the line, clear of other labels
+        const score = -Math.abs(a - 0.55) - (labels.some(l => Math.hypot(l.x-px, l.y-py) < 26) ? 9 : 0);
+        if (!best || score > best.score) best = { x: px, y: py, score, hr };
+      }
+    });
+    s.stroke();
+    if (best && best.score > -5) labels.push(best);
+  }
+
+  // land, soft-edged, then the coastline
+  const lc = document.createElement("canvas"); lc.width = gw+1; lc.height = gh+1;
+  const lx = lc.getContext("2d"), li = lx.createImageData(gw+1, gh+1), lcol = hex(colors.land);
+  for (let k = 0; k < land.length; k++){
+    const a = Math.max(0, Math.min(1, (land[k] + 0.01) / 0.03));
+    li.data[k*4] = lcol[0]; li.data[k*4+1] = lcol[1]; li.data[k*4+2] = lcol[2]; li.data[k*4+3] = a*255;
+  }
+  lx.putImageData(li, 0, 0);
+  s.imageSmoothingEnabled = true;
+  s.drawImage(lc, 0, 0, gw+1, gh+1, 0, 0, (gw+1)*G, (gh+1)*G);
+  s.beginPath(); s.lineWidth = 1; s.strokeStyle = colors.coast;
+  march(k => land[k], 0, (p, q) => { s.moveTo(p[0]*G, p[1]*G); s.lineTo(q[0]*G, q[1]*G); });
+  s.stroke();
+
+  // land hatching, sparse, to read as a chart
+  s.save();
+  s.beginPath();
+  s.strokeStyle = `rgba(${L},0.12)`; s.lineWidth = 0.6;
+  for (let d = -H; d < W; d += 7){
+    for (let t = 0; t < H; t += 3){
+      const px = d + t, py = t;
+      if (px < 0 || px > W) continue;
+      if (sample(land, px/G, py/G) > 0.03){ s.moveTo(px, py); s.lineTo(px+3, py+3); }
+    }
+  }
+  s.stroke(); s.restore();
+
+  // hour labels
+  s.font = "11px ui-monospace,Menlo,monospace"; s.textAlign = "center"; s.textBaseline = "middle";
+  for (const l of labels){
+    const t = String(l.hr);
+    s.fillStyle = colors.bg; s.beginPath(); s.arc(l.x, l.y, 7.5, 0, Math.PI*2); s.fill();
+    s.fillStyle = l.hr === 0 ? colors.accent : colors.fg; s.fillText(t, l.x, l.y+0.5);
+  }
+
+  // amphidromes: no tide here
+  for (const a of amph){
+    s.strokeStyle = colors.fg; s.lineWidth = 1.2;
+    s.beginPath(); s.arc(a.x, a.y, 5, 0, Math.PI*2); s.stroke();
+    s.beginPath(); s.moveTo(a.x-2.5, a.y); s.lineTo(a.x+2.5, a.y); s.moveTo(a.x, a.y-2.5); s.lineTo(a.x, a.y+2.5); s.stroke();
+  }
+
+  // ports
+  s.textAlign = "left";
+  for (const p of ports){
+    s.fillStyle = colors.fg; s.beginPath(); s.arc(p.x, p.y, 2.5, 0, Math.PI*2); s.fill();
+    s.lineWidth = 3; s.strokeStyle = colors.bg; s.strokeText(p.name, p.x+6, p.y-7);
+    s.fillStyle = colors.fg; s.fillText(p.name, p.x+6, p.y-7);
+  }
+}
+
+let t0 = performance.now();
+function frame(now){
+  const hours = reduce ? 0 : ((now - t0) / 1000 / 14 * PERIOD) % PERIOD;  // one tide every 14 s
+  const w = 2*Math.PI*hours/PERIOD;
+  const { land, amp, ph } = field, d = shadeImg.data, lo = colors.low, hi = colors.high;
+  for (let k = 0; k < amp.length; k++){
+    // height: 0 low water, 1 high water at the loudest point
+    const h = 0.5 + 0.5*amp[k]*Math.cos(w - ph[k]);
+    d[k*4] = lo[0] + (hi[0]-lo[0])*h; d[k*4+1] = lo[1] + (hi[1]-lo[1])*h; d[k*4+2] = lo[2] + (hi[2]-lo[2])*h;
+    d[k*4+3] = land[k] > 0.02 ? 0 : 255;
+  }
+  shadeCv.getContext("2d").putImageData(shadeImg, 0, 0);
+  x.clearRect(0, 0, W, H);
+  x.imageSmoothingEnabled = true;
+  x.drawImage(shadeCv, 0, 0, gw+1, gh+1, 0, 0, (gw+1)*G, (gh+1)*G);
+  x.drawImage(staticLayer, 0, 0, W, H);
+
+  // the moon's hour, top corner
+  x.font = "11px ui-monospace,Menlo,monospace"; x.textAlign = "right"; x.textBaseline = "top";
+  const lbl = reduce ? "lunar hour 0" : `lunar hour ${(hours/PERIOD*12).toFixed(1)}`;
+  x.lineWidth = 3; x.strokeStyle = colors.bg; x.strokeText(lbl, W-10, 8);
+  x.fillStyle = colors.mute; x.fillText(lbl, W-10, 8);
+
+  if (gauge){
+    x.strokeStyle = colors.accent; x.lineWidth = 1.5;
+    x.beginPath(); x.arc(gauge.x, gauge.y, 8, 0, Math.PI*2); x.stroke();
+    drawSpark(hours);
+  }
+  if (!reduce) requestAnimationFrame(frame);
+}
+
+function gaugeAt(px, py){
+  const gx = px/G, gy = py/G;
+  return { a: Math.max(0, sample(field.amp, gx, gy)), re: sample(field.re, gx, gy), im: sample(field.im, gx, gy), land: sample(field.land, gx, gy) };
+}
+
+function fmtHours(h){ const hh = Math.floor(h), mm = Math.round((h-hh)*60); return mm === 60 ? `${hh+1}h 00m` : `${hh}h ${String(mm).padStart(2,"0")}m`; }
+
+function showGauge(){
+  if (!gauge){ ptext.innerHTML = "<span>Tap the water to set down a tide gauge.</span>"; sx.clearRect(0,0,sp.width,sp.height); return; }
+  const g = gaugeAt(gauge.x, gauge.y);
+  gauge.g = g;
+  const where = gauge.name ? `<b>${gauge.name}</b>` : "<b>Your gauge</b>";
+  if (g.a < 0.04){
+    ptext.innerHTML = `${where} · <span>almost no tide here. The water turns about this spot without rising.</span>`;
+    return;
+  }
+  let phase = Math.atan2(g.im, g.re); if (phase < 0) phase += Math.PI*2;
+  const hw = phase/(Math.PI*2)*PERIOD;
+  const lw = (hw + PERIOD/2) % PERIOD;
+  ptext.innerHTML = `${where} · range <b>${(g.a*sea.range).toFixed(1)} m</b><br>` +
+    `<span>high water ${fmtHours(hw)} after the moon, low ${fmtHours(lw)}</span>`;
+}
+
+function drawSpark(hours){
+  const dpr = devicePixelRatio || 1, Wd = sp.clientWidth, Hd = sp.clientHeight;
+  if (sp.width !== Wd*dpr){ sp.width = Wd*dpr; sp.height = Hd*dpr; }
+  sx.setTransform(dpr,0,0,dpr,0,0); sx.clearRect(0,0,Wd,Hd);
+  const g = gauge.g; if (!g || g.a < 0.04) return;
+  const ph = Math.atan2(g.im, g.re), span = 25;   // about two tides
+  sx.strokeStyle = `rgba(${colors.line},0.25)`; sx.lineWidth = 1;
+  sx.beginPath(); sx.moveTo(0, Hd/2); sx.lineTo(Wd, Hd/2); sx.stroke();
+  sx.strokeStyle = colors.fg; sx.lineWidth = 1.2; sx.beginPath();
+  for (let i = 0; i <= Wd; i++){
+    const tt = i/Wd*span, y = Hd/2 - g.a*(Hd/2-4)*Math.cos(2*Math.PI*tt/PERIOD - ph);
+    i ? sx.lineTo(i, y) : sx.moveTo(i, y);
+  }
+  sx.stroke();
+  const nx = (hours % PERIOD)/span*Wd, ny = Hd/2 - g.a*(Hd/2-4)*Math.cos(2*Math.PI*hours/PERIOD - ph);
+  sx.fillStyle = colors.accent; sx.beginPath(); sx.arc(nx, ny, 3, 0, Math.PI*2); sx.fill();
+}
+
+c.addEventListener("click", e => {
+  const b = c.getBoundingClientRect(), px = e.clientX - b.left, py = e.clientY - b.top;
+  const port = field.ports.find(p => Math.hypot(p.x-px, p.y-py) < 18);
+  if (port){ gauge = { x: port.x, y: port.y, name: port.name }; }
+  else if (gaugeAt(px, py).land < 0){ gauge = { x: px, y: py }; }
+  else return;
+  showGauge();
+  if (reduce) frame(0);
+});
+document.getElementById("again").addEventListener("click", () => { newSea((Math.random()*2**32)>>>0); if (reduce) frame(0); });
+
+let rt;
+addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => {
+  // the chart is redrawn for the new shape, so ports move: start again at the first
+  gauge = null; layout(); if (reduce) frame(0);
+}, 150); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { gauge = null; layout(); if (reduce) frame(0); });
+
+newSea(Number(new URLSearchParams(location.search).get("seed")) || 0x5ea + (Date.now()/864e5|0));
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 
 Loose pile. Take from it, add to it, cross things out. No obligation.
 
+- A chart of an imagined sea's tides, amphidromes and all — done in 034 as Cotidal.
 - A field guide to fictional weather — started in 003 (entries I–V), vol. II in 011 (VI–X).
 - An instrument that only plays what you type, one key per letter — done in 002 as Letterpress; sung as a round in 028.
 - Cellular automata where the rules drift a little every generation — done in 004; 1-D scroll in 017.
