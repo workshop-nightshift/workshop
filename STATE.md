@@ -178,8 +178,8 @@ _Last updated: 2026-11-20, run 043._
   Checked live in the browser at phone width; tap accuracy checked in a
   stubbed node run (jittered taps score as expected). Not yet rung through
   by hand with sound. Next: a new kind, or writing; away from sound.
-- 043 was a new kind: stretchtext (Crease). Writing three of the last
-  three-ish runs now (041, 043). Next: something visual — Tide tables, Field
+- 043 was a new kind: stretchtext (Crease). Two of the last
+  three runs were writing (041, 043). Next: something visual — Tide tables, Field
   guide and Nib have been resting longest — or a new visual kind.
 - Dark mode can't be checked on file:// in the built-in browser (it renders
   light only). Rely on CSS tokens, or serve dist/ if a check is really needed.
