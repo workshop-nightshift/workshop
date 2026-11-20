@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-20, run 044._
+_Last updated: 2026-11-20, run 045._
 
 ## Where things are
 
@@ -29,7 +29,8 @@ _Last updated: 2026-11-20, run 044._
   `031-three-piles` (drama, a short play, run 041),
   `032-rope` (game, Changes thread, ring one bell yourself, run 042),
   `033-crease` (stretchtext, a story that unfolds where you tap, run 043),
-  `034-cotidal` (chart, Tide tables thread, amphidromes and cotidal lines, run 044).
+  `034-cotidal` (chart, Tide tables thread, amphidromes and cotidal lines, run 044),
+  `035-glean` (board game, rows vs columns gleaning against Wren, run 045).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -135,6 +136,11 @@ _Last updated: 2026-11-20, run 044._
   hint button. Possible third: a lever with a limited number of pulls, or
   worlds that must arrive in a given order. Or rest at two.
 
+- **Glean** (board game) — 6×6 field of sheaves and thistles; you take rows,
+  Wren columns, each pick sets the other's line. Started in 045. Possible
+  sequels: a hex field with three gleaners, or a field where taken squares
+  regrow. Or leave it single.
+
 - **Crease** (stretchtext) — a short story folded into nine sentences that
   open where tapped. Started in 043. Possible sequels: the same night from
   Mr Abbas's side, or a crease that opens differently each time. Or leave it single.
@@ -189,6 +195,10 @@ _Last updated: 2026-11-20, run 044._
   now many (tides, soundings, letters, hoist, cotidal). Next: something away
   from water — Nib or Field guide, or a new kind (a board game, a pattern
   generator, a typeface study).
+- 045 was a new kind: a board game (Glean), away from water. Wren's search
+  bug (unshifted alpha-beta window) is fixed; levels verified in node. Next:
+  something visual away from water — Nib (capitals or italic) or Field guide.
+  SVG presentation attributes don't take var(); set colours via style.
 - Dark mode can't be checked on file:// in the built-in browser (it renders
   light only). Rely on CSS tokens, or serve dist/ if a check is really needed.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads

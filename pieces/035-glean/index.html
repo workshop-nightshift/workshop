@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Glean</title>
+<style>
+:root{--bg:#f4efe3;--fg:#211d17;--mute:#776f60;--soil:#e3d6bb;--soil2:#d8c8a6;--stub:#a88f5f;--thistle:#7b4f86;--you:#b5651d;--her:#3f5f7a;--line:rgba(33,29,23,.10);--gate:#211d17}
+@media (prefers-color-scheme:dark){:root{--bg:#15130f;--fg:#ebe4d6;--mute:#9b9282;--soil:#2a251c;--soil2:#332c20;--stub:#a88f5f;--thistle:#b58cc2;--you:#e0924a;--her:#86a9c9;--line:rgba(235,228,214,.10);--gate:#ebe4d6}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;max-width:640px;margin:0 auto;padding:16px}
+h1{font-weight:normal;font-size:1.6em;margin:.2em 0 .1em;letter-spacing:.02em}
+.sub{color:var(--mute);margin:0 0 12px}
+#score{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:4px 0 8px;font-variant-numeric:lining-nums tabular-nums}
+#score .p{display:flex;align-items:baseline;gap:8px}
+#score .n{font-size:1.7em;font-family:Baskerville,"Times New Roman",serif}
+#score .you{color:var(--you)} #score .her{color:var(--her)}
+#score .p.turn .who::after{content:" ·";}
+#score .who{font-style:italic}
+svg{display:block;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.cell rect.bed{fill:var(--soil)}
+.cell.alt rect.bed{fill:var(--soil2)}
+.cell text{font:600 25px Georgia,serif;text-anchor:middle;dominant-baseline:central;fill:var(--fg)}
+.cell.th text{fill:var(--thistle)}
+.cell .stub{stroke:var(--stub);stroke-width:2;stroke-linecap:round}
+.cell.th .stub{stroke:var(--thistle)}
+.cell.legal{cursor:pointer}
+.cell.taken text,.cell.taken .stub{opacity:0}
+.cell .mark{opacity:0;transition:opacity .35s}
+.cell.taken .mark{opacity:1}
+.band{fill:none;stroke-width:3}
+.cell.legal:hover rect.bed,.cell.focus rect.bed{filter:brightness(1.06)}
+#path{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.45}
+#msg{min-height:3em;margin:10px 0 6px}
+#msg b{font-weight:600}
+.ctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;color:var(--mute);margin:6px 0}
+button,select{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--mute);border-radius:3px;padding:3px 10px;cursor:pointer}
+details{margin:14px 0;color:var(--fg)}
+summary{cursor:pointer;color:var(--mute)}
+details p{margin:.5em 0}
+footer{color:var(--mute);margin-top:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<h1>Glean</h1>
+<p class="sub">After the harvest, two gleaners in one field. You walk the rows; Wren walks the columns. Each must glean on the line through the last sheaf taken.</p>
+
+<div id="score">
+  <div class="p you" id="pyou"><span class="who">you</span><span class="n" id="syou">0</span></div>
+  <div class="p her" id="pher"><span class="n" id="sher">0</span><span class="who">Wren</span></div>
+</div>
+
+<svg id="board" viewBox="0 0 600 600" role="grid" aria-label="The field: a six by six grid of sheaves"></svg>
+
+<div id="msg" aria-live="polite"></div>
+
+<div class="ctl">
+  <button id="again">another field</button>
+  <label>Wren <select id="level"><option value="0">is new to it</option><option value="1" selected>knows the field</option><option value="2">has gleaned for years</option></select></label>
+  <label>you walk <select id="side"><option value="row" selected>rows, first</option><option value="col">columns, second</option></select></label>
+</div>
+
+<details>
+  <summary>how it's played</summary>
+  <p>Every square holds a sheaf (its number is what it's worth) or a thistle (it costs you). The black stone is the gate, where the walk begins.</p>
+  <p>The row-walker goes first and takes any square in the gate's row. Then the column-walker must take a square in the column of that sheaf. Then the row-walker again, in the row of <i>that</i> one, and so on: each pick sets the line the other must glean along.</p>
+  <p>When the one whose turn it is finds their line bare, the gleaning is over. Whatever stands is left for the birds. Most gleaned wins.</p>
+  <p>Taking the best sheaf is rarely the best move: look at what it opens for the other.</p>
+</details>
+
+<footer><span id="cap"></span><a href="../../">← shelf</a></footer>
+
+<script>
+// LOGIC START
+const N = 6;
+function rng(seed){ return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2**32; }
+function makeField(seed){
+  const r = rng(seed);
+  for (let i = 0; i < 5; i++) r();
+  const vals = [];
+  const nTh = 5 + Math.floor(r()*3);              // five to seven thistles
+  for (let i = 0; i < N*N; i++) vals.push(i < nTh ? -(2 + Math.floor(r()*5)) : 1 + Math.floor(r()*r()*9 + r()*2));
+  for (let i = vals.length-1; i > 0; i--){ const j = Math.floor(r()*(i+1)); [vals[i],vals[j]] = [vals[j],vals[i]]; }
+  for (let i = 0; i < vals.length; i++) if (vals[i] > 9) vals[i] = 9;
+  const gate = Math.floor(r()*N*N);
+  vals[gate] = 0;
+  return { vals, gate };
+}
+// moves for the player whose axis is `row` (true) or column, from last pick `at`
+function moves(taken, at, row){
+  const out = [], r0 = (at/N)|0, c0 = at%N;
+  for (let k = 0; k < N; k++){ const i = row ? r0*N+k : k*N+c0; if (!taken[i]) out.push(i); }
+  return out;
+}
+class Abort extends Error {}
+function search(vals, taken, at, row, maxDepth, deadline){
+  let nodes = 0;
+  function nm(at, row, d, a, b){
+    if ((++nodes & 4095) === 0 && deadline && Date.now() > deadline) throw new Abort();
+    const ms = moves(taken, at, row);
+    if (!ms.length) return 0;
+    if (d === 0){ let m = -99; for (const i of ms) if (vals[i] > m) m = vals[i]; return 0.4*m; }
+    ms.sort((p, q) => vals[q] - vals[p]);
+    let best = -1e9;
+    for (const i of ms){
+      taken[i] = 1;
+      const v = vals[i] - nm(i, !row, d-1, vals[i]-b, vals[i]-a);   // window shifted by the gain
+      taken[i] = 0;
+      if (v > best) best = v;
+      if (v > a) a = v;
+      if (a >= b) break;
+    }
+    return best;
+  }
+  const ms = moves(taken, at, row).sort((p, q) => vals[q] - vals[p]);
+  let bestMove = ms[0], bestVal = -1e9, depthDone = 0;
+  for (let d = 1; d <= maxDepth; d++){
+    let bm = null, bv = -1e9, a = -1e9;
+    try {
+      // search last best first
+      const order = [bestMove, ...ms.filter(i => i !== bestMove)];
+      for (const i of order){
+        taken[i] = 1;
+        const v = vals[i] - nm(i, !row, d-1, -1e9, vals[i]-a);
+        taken[i] = 0;
+        if (v > bv){ bv = v; bm = i; }
+        if (v > a) a = v;
+      }
+    } catch (e){ if (e instanceof Abort) break; throw e; }   // caller passes a copy of `taken`
+    bestMove = bm; bestVal = bv; depthDone = d;
+    const left = taken.reduce((s, t) => s + (t ? 0 : 1), 0);
+    if (d >= left) break;
+  }
+  return { move: bestMove, value: bestVal, depth: depthDone };
+}
+function wrenMove(vals, taken, at, row, level, r){
+  const ms = moves(taken, at, row);
+  if (level === 0){
+    // greedy, with a wandering eye
+    const sorted = ms.slice().sort((p, q) => vals[q] - vals[p]);
+    if (r() < 0.35 && sorted.length > 1){
+      const ok = sorted.filter(i => vals[i] > 0);
+      if (ok.length > 1) return ok[1 + Math.floor(r()*(ok.length-1))];
+    }
+    return sorted[0];
+  }
+  if (level === 1) return search(vals, taken, at, row, 3).move;
+  return search(vals, taken, at, row, 40, Date.now() + 700).move;
+}
+// LOGIC END
+
+const svg = document.getElementById("board"), NS = "http://www.w3.org/2000/svg";
+const msg = document.getElementById("msg"), cap = document.getElementById("cap");
+const S = 600/N, PAD = 4;
+let G, cells = [], busy = false;
+
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+
+function stubs(g, v, cx, cy){
+  // short strokes of stubble: one per point, in a little sheaf below the number
+  const n = Math.abs(v);
+  for (let k = 0; k < n; k++){
+    const t = n === 1 ? 0 : k/(n-1) - 0.5;
+    const x0 = cx + t*30, lean = t*10;
+    el("line", { class:"stub", x1:x0, y1:cy+33, x2:x0+lean, y2:cy+22 }, g);
+  }
+}
+
+function newGame(seed){
+  seed = seed ?? (Math.random()*1e9)>>>0;
+  const f = makeField(seed);
+  const youRow = document.getElementById("side").value === "row";
+  G = { seed, vals:f.vals, taken:new Array(N*N).fill(0), at:f.gate, row:true, youRow,
+        score:{you:0, her:0}, path:[f.gate], level:+document.getElementById("level").value, r:rng(seed ^ 0x9e37) };
+  G.taken[f.gate] = 1;
+  draw();
+  cap.textContent = "field no. " + seed.toString(36);
+  step();
+}
+
+function draw(){
+  svg.textContent = "";
+  cells = [];
+  for (let i = 0; i < N*N; i++){
+    const r = (i/N)|0, c = i%N, x = c*S, y = r*S, v = G.vals[i];
+    const g = el("g", { class:"cell" + ((r+c)%2 ? " alt" : "") + (v < 0 ? " th" : ""), role:"gridcell", "data-i":i }, svg);
+    el("rect", { class:"bed", x:x+PAD/2, y:y+PAD/2, width:S-PAD, height:S-PAD, rx:6 }, g);
+    if (i === G.path[0]){
+      el("circle", { cx:x+S/2, cy:y+S/2, r:S*0.22, style:"fill:var(--gate)" }, g);
+      g.setAttribute("aria-label", "the gate");
+    } else {
+      el("text", { x:x+S/2, y:y+S/2-8 }, g).textContent = v < 0 ? "−" + (-v) : v;
+      stubs(g, v < 0 ? Math.min(-v, 6) : v, x+S/2, y+S/2);
+      el("circle", { class:"mark", cx:x+S/2, cy:y+S/2, r:S*0.2, style:"fill:var(--bg)", "stroke-width":5 }, g);
+      el("text", { class:"mark", x:x+S/2, y:y+S/2, style:"font-size:15px;font-weight:normal;fill:var(--mute)" }, g);
+      g.setAttribute("aria-label", v < 0 ? "thistle, minus " + (-v) : "sheaf, " + v);
+    }
+    g.addEventListener("click", () => tap(i));
+    cells.push(g);
+  }
+  el("polyline", { id:"path" }, svg);
+  el("g", { id:"marks" }, svg);
+  el("rect", { id:"band", class:"band", x:0, y:0, width:0, height:0, rx:8 }, svg);
+}
+
+function youToMove(){ return G.row === G.youRow; }
+
+function refresh(){
+  const ms = G.over ? [] : moves(G.taken, G.at, G.row);
+  const mine = youToMove() && !busy && !G.over;
+  cells.forEach((g, i) => {
+    g.classList.toggle("legal", mine && ms.includes(i));
+    g.classList.toggle("taken", !!G.taken[i] && i !== G.path[0]);
+    g.setAttribute("tabindex", mine && ms.includes(i) ? 0 : -1);
+  });
+  const band = document.getElementById("band");
+  const r = (G.at/N)|0, c = G.at%N;
+  if (G.over){ band.setAttribute("width", 0); }
+  else if (G.row){ Object.entries({x:2, y:r*S+1, width:600-4, height:S-2}).forEach(([k,v]) => band.setAttribute(k, v)); }
+  else { Object.entries({x:c*S+1, y:2, width:S-2, height:600-4}).forEach(([k,v]) => band.setAttribute(k, v)); }
+  band.style.stroke = youToMove() ? "var(--you)" : "var(--her)";
+  const pts = G.path.map(i => ((i%N)*S+S/2) + "," + (((i/N)|0)*S+S/2)).join(" ");
+  const pl = document.getElementById("path");
+  pl.setAttribute("points", pts); pl.style.stroke = "var(--mute)";
+  document.getElementById("syou").textContent = G.score.you;
+  document.getElementById("sher").textContent = G.score.her;
+  document.getElementById("pyou").classList.toggle("turn", !G.over && youToMove());
+  document.getElementById("pher").classList.toggle("turn", !G.over && !youToMove());
+}
+
+function take(i, who){
+  G.taken[i] = 1;
+  G.score[who] += G.vals[i];
+  G.path.push(i);
+  const g = cells[i], m = g.querySelectorAll(".mark");
+  m[0].style.stroke = who === "you" ? "var(--you)" : "var(--her)";
+  m[1].textContent = G.vals[i] < 0 ? "−" + (-G.vals[i]) : G.vals[i];
+  const top = document.getElementById("marks");
+  m.forEach(e => { e.style.opacity = 1; top.appendChild(e); });   // above the walk line
+  G.at = i; G.row = !G.row;
+  G.last = { who, v:G.vals[i] };
+}
+
+function step(){
+  const ms = moves(G.taken, G.at, G.row);
+  if (!ms.length){ finish(); return; }
+  refresh();
+  const line = G.row ? "row" : "column";
+  if (youToMove()){
+    const prev = G.last && G.last.who === "her" ? `Wren took ${fmt(G.last.v)}. ` : "";
+    msg.innerHTML = prev + `Your turn: glean anywhere along the lit ${line}.`;
+  } else {
+    busy = true; refresh();
+    msg.innerHTML = `Wren walks her ${line}…`;
+    setTimeout(() => {
+      const t = G.taken.slice();
+      const i = wrenMove(G.vals, t, G.at, G.row, G.level, G.r);
+      take(i, "her"); busy = false; step();
+    }, 650);
+  }
+}
+
+function fmt(v){ return v < 0 ? `a thistle (−${-v})` : v === 1 ? "a single sheaf" : `${v} sheaves`; }
+
+function finish(){
+  G.over = true; refresh();
+  let left = 0, lost = 0;
+  G.vals.forEach((v, i) => { if (!G.taken[i]){ if (v > 0) left += v; else lost++; } });
+  const stuck = youToMove() ? "Your row is bare" : "Wren's column is bare";
+  const a = G.score.you, b = G.score.her;
+  const verdict = a > b ? `<b>You glean more, ${a} to ${b}.</b>` : a < b ? `<b>Wren gleans more, ${b} to ${a}.</b>` : `<b>Even, ${a} each.</b>`;
+  msg.innerHTML = `${stuck}; the gleaning's over. ${verdict} ${left} sheaves left standing for the birds` + (lost ? `, and ${lost} thistle${lost>1?"s":""}.` : ".");
+}
+
+function tap(i){
+  if (busy || G.over || !youToMove()) return;
+  if (!moves(G.taken, G.at, G.row).includes(i)) return;
+  take(i, "you"); step();
+}
+
+svg.addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const i = +(e.target.closest(".cell")?.dataset.i ?? -1);
+  if (i >= 0){ e.preventDefault(); tap(i); }
+});
+document.getElementById("again").onclick = () => newGame();
+document.getElementById("level").onchange = () => newGame(G.seed);
+document.getElementById("side").onchange = () => newGame(G.seed);
+newGame();
+</script>
+</body>
+</html>

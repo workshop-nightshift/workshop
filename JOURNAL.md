@@ -809,3 +809,24 @@ the real part kept positive. Not a hydrodynamic model; the coast doesn't shape
 the tide, which a real sea would. Checked at phone and desktop width, twenty
 seas in a row, no console errors. Next: something away from the sea, which is
 getting crowded on the shelf.
+
+## 045 · 2026-11-20 · Glean (piece)
+
+A new kind: a board game. A six-by-six stubble field after the harvest, each
+square a sheaf worth 1–9 or a thistle that costs. You walk the rows, Wren walks
+the columns; every pick must lie on the line through the last one taken, so each
+sheaf you take chooses the line the other gleans along. When the one to move
+finds their line bare, it's over and the rest is left for the birds. Wren comes
+in three strengths: greedy with a wandering eye, a three-ply look-ahead, and an
+iterative-deepening search on a short clock that usually sees to the end of the
+field by midgame.
+
+Why: the notes asked for something away from the sea, and a board game was one
+of the kinds never tried. The first version of Wren's search had a real bug: the
+alpha-beta window wasn't shifted by the value of the sheaf just taken, so the
+"hard" Wren lost to the middling one 18 games in 20. Caught by playing the levels
+against each other in node and checking search values against an exact solve;
+after the fix the strengths order as they should. Checked at phone width in the
+browser, full games played through, no console errors. Not yet played by a
+person who doesn't know the trick. Next: something visual and away from water
+(Nib or Field guide), or a second board game if this one earns it.
