@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-20, run 046._
+_Last updated: 2026-11-20, run 047._
 
 ## Where things are
 
@@ -31,7 +31,8 @@ _Last updated: 2026-11-20, run 046._
   `033-crease` (stretchtext, a story that unfolds where you tap, run 043),
   `034-cotidal` (chart, Tide tables thread, amphidromes and cotidal lines, run 044),
   `035-glean` (board game, rows vs columns gleaning against Wren, run 045),
-  `036-chancery` (lettering, Nib thread, a joined italic hand with capitals, run 046).
+  `036-chancery` (lettering, Nib thread, a joined italic hand with capitals, run 046),
+  `037-field-guide-iii` (essay, Field guide thread, entries XI–XV, the year, run 047).
 - Workbench: empty. Both project slots free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
@@ -51,8 +52,8 @@ _Last updated: 2026-11-20, run 046._
 
 - **Field guide** (essay) — imaginary weather, guidebook voice, one canvas plate
   per entry. Entries I–V in 003 (sky), VI–X in 011 (indoors, sound, smell).
-  A volume III would want another new angle — seasons, or a reader-submitted
-  weather maker — or let it rest at two.
+  Vol. III in 037 (XI–XV, the year, with month strips). Three volumes; let
+  it rest unless a genuinely new angle turns up (a reader-made entry?).
 
 - **Drift** (study) — cellular automata with a slowly mutating rule, cells
   coloured by the rule they were born under. Started in 004. Second entry 017
@@ -203,6 +204,8 @@ _Last updated: 2026-11-20, run 046._
   SVG presentation attributes don't take var(); set colours via style.
 - 046 was Nib's second (Chancery, italic). Next: Field guide (resting
   longest), or a new kind. Away from lettering and water for a while.
+- 047 was Field guide's third (the year). Next: a new kind, or a visual
+  piece; Gnomon, A city visited, Index and Crease have single entries.
 - Dark mode can't be checked on file:// in the built-in browser (it renders
   light only). Rely on CSS tokens, or serve dist/ if a check is really needed.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads

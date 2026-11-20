@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A field guide to weather that doesn't happen, vol. III</title>
+<style>
+:root{--bg:#f4f1e8;--fg:#1f1d19;--mute:#6f6a5f;--line:#d8d1c1;--plate:#ebe6d8;--ink:31,29,25;--warm:196,120,58;--cool:70,102,140;--leaf:86,134,66}
+@media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#e8e4da;--mute:#9a9589;--line:#2c2d31;--plate:#1b1c1f;--ink:232,228,218;--warm:236,170,104;--cool:132,168,210;--leaf:146,198,118}}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 Georgia,"Iowan Old Style",serif}
+main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
+header h1{font-weight:normal;font-size:30px;line-height:1.2;margin:0 0 8px}
+header p{color:var(--mute);margin:0 0 8px;font-style:italic}
+.entry{border-top:1px solid var(--line);margin-top:48px;padding-top:28px}
+.no{font:13px/1 ui-monospace,Menlo,monospace;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.entry h2{font-weight:normal;font-size:24px;margin:6px 0 2px}
+.latin{color:var(--mute);font-style:italic;margin:0 0 12px}
+.year{display:grid;grid-template-columns:repeat(12,1fr);gap:3px;margin:0 0 14px;max-width:360px}
+.year span{font:11px/20px ui-monospace,Menlo,monospace;text-align:center;color:var(--mute);border:1px solid var(--line);border-radius:2px}
+.year span.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.year span.half{border-color:var(--fg);color:var(--fg)}
+canvas{display:block;width:100%;height:180px;background:var(--plate);border-radius:3px}
+.cap{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--mute);margin:6px 0 18px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:18px 0 0;font-size:15px}
+dt{font:12px/1.9 ui-monospace,Menlo,monospace;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+dd{margin:0}
+@media (max-width:420px){dl{grid-template-columns:1fr}dd{margin-bottom:8px}}
+footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>A field guide to weather that doesn't happen</h1>
+  <p>Volume III, entries XI–XV. Weather of the year, one for each turning, in order from midwinter. Volume I covered the sky and volume II came indoors; this one keeps time.</p>
+</header>
+
+<section class="entry">
+  <div class="no">Entry XI</div>
+  <h2>The thin day</h2>
+  <p class="latin">dies tenuis</p>
+  <div class="year" data-on="11" aria-label="Occurs in December"></div>
+  <canvas data-plate="thin" aria-label="A low sun crossing a short arc over hedges, with stars faintly showing through the daylight"></canvas>
+  <div class="cap">Plate XI. Noon at the solstice, a field edge facing south.</div>
+  <p>The shortest day of the year is, in some years, short enough to see through. The sun comes up late and low, barely clears the hedges, and goes down again not long after lunch; and all the while, if you look straight up, the stars are faintly there, as though the day hadn't been laid on thickly enough to cover them.</p>
+  <p>It isn't dark, exactly. People get on with things. But they stand at windows more than usual, and children are allowed to stay out until it's over, which isn't long.</p>
+  <dl>
+    <dt>Season</dt><dd>The solstice, or a day either side of it. Not every year.</dd>
+    <dt>Signs</dt><dd>A cat on the step at noon, looking up instead of out.</dd>
+    <dt>Folklore</dt><dd>A wish made on a noon star counts double, because nobody else saw it.</dd>
+    <dt>Dress</dt><dd>Something warm, and something bright enough to be found in.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry XII</div>
+  <h2>The borrowed day</h2>
+  <p class="latin">dies mutuus</p>
+  <div class="year" data-on="1" data-half="4" aria-label="Occurs in February, repaid in May"></div>
+  <canvas data-plate="borrowed" aria-label="Two rows of calendar days, February above and May below; one warm day in February is joined by a thread to one cold day in May"></canvas>
+  <div class="cap">Plate XII. A loan and its repayment, from a gardener's diary.</div>
+  <p>One day of spring that turns up in the middle of February, entire: soft air, birdsong, a smell of cut grass with no grass cut. People take their coats off in the street and look at one another as if they've been let in on something.</p>
+  <p>It is a loan. Some day in May, usually just after the blossom has come out, there will be one day of February to pay it back: a hard frost, a sky the colour of slate, and gardeners laying newspaper over everything and saying they knew.</p>
+  <dl>
+    <dt>Season</dt><dd>February. Repaid in May, without interest but on time.</dd>
+    <dt>Signs</dt><dd>A bee at the window, looking as surprised as you are.</dd>
+    <dt>Folklore</dt><dd>Don't plant anything on it. It isn't yours.</dd>
+    <dt>Dress</dt><dd>Short sleeves, with the coat over your arm.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry XIII</div>
+  <h2>The green hour</h2>
+  <p class="latin">hora viridis</p>
+  <div class="year" data-on="3" data-half="4" aria-label="Occurs in April and early May"></div>
+  <canvas data-plate="green" aria-label="A dim blue dusk over new grass; the light rises from the grass and lights the undersides of trees"></canvas>
+  <div class="cap">Plate XIII. A meadow at dusk, lit from below.</div>
+  <p>For about an hour in April, around dusk, the light comes from the ground. The sky has gone dim and bluish, but the new grass and the first leaves have kept the day's light and are giving it back, so that faces are lit from underneath, like faces leaning over a pond.</p>
+  <p>It isn't dramatic. Most people take it for the time of day. But photographs taken in it never look right afterwards: the colours are all there and the light isn't.</p>
+  <dl>
+    <dt>Season</dt><dd>April and early May, the weeks the leaves are newest.</dd>
+    <dt>Signs</dt><dd>Seeing the underside of a bird.</dd>
+    <dt>Folklore</dt><dd>Anything lost in the green hour turns up by next spring, in the grass.</dd>
+    <dt>Dress</dt><dd>Something pale, to catch it.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry XIV</div>
+  <h2>Held noon</h2>
+  <p class="latin">meridies retenta</p>
+  <div class="year" data-on="5" aria-label="Occurs in June"></div>
+  <canvas data-plate="held" aria-label="A row of fence posts whose shadows shorten, stop at noon for a while, then lengthen again, while a clock keeps going"></canvas>
+  <div class="cap">Plate XIV. Fence posts and a church clock, midsummer.</div>
+  <p>Around midsummer, on a still day, noon can stick. Shadows shorten through the morning as they should, reach their least, and then stay there, for twenty minutes, sometimes most of an hour, while the clocks go on without them.</p>
+  <p>Nobody comes to any harm. Lunches run long. Sundial makers dislike it, and the better ones carve a small blank space at the noon line, which they will explain, if asked, as a decoration.</p>
+  <dl>
+    <dt>Season</dt><dd>The longest days, when the sun seems reluctant to start down.</dd>
+    <dt>Signs</dt><dd>The church clock and your shadow disagreeing, politely.</dd>
+    <dt>Folklore</dt><dd>Time spent in a held noon is not counted against you.</dd>
+    <dt>Dress</dt><dd>A hat. It is noon for a long while.</dd>
+  </dl>
+</section>
+
+<section class="entry">
+  <div class="no">Entry XV</div>
+  <h2>The last warm evening</h2>
+  <p class="latin">vesper ultimus tepidus</p>
+  <div class="year" data-on="8,9" data-half="10" aria-label="Occurs in September or October, confirmed in November"></div>
+  <canvas data-plate="last" aria-label="A run of evenings, each a coloured band, cooling day by day; only after several cold ones does a mark appear over the last warm one"></canvas>
+  <div class="cap">Plate XV. Evenings at the back door, read left to right.</div>
+  <p>The last evening of the year warm enough to sit out in. It is the only weather in this guide that can be identified only afterwards. At the time it seems like any of the evenings before it: the chairs out, the light going amber, someone saying it's turned out nice.</p>
+  <p>Only a week or so later, coats on, does it become clear which one it was. People often disagree. Most households settle on one in the end, and remember it more clearly than it deserves.</p>
+  <dl>
+    <dt>Season</dt><dd>September or October; confirmed in November.</dd>
+    <dt>Signs</dt><dd>None at the time. That is rather the point.</dd>
+    <dt>Folklore</dt><dd>Leave one chair out and it will come again. It doesn't, but the chair is nice to see.</dd>
+    <dt>Dress</dt><dd>Shirtsleeves, and a jumper you didn't need on the back of the chair.</dd>
+  </dl>
+</section>
+
+<footer>
+  Volume I, entries I–V: <a href="../003-field-guide/">lantern fog, counted rain, backwind, return snow, quiet front</a>.
+  Volume II, entries VI–X: <a href="../011-field-guide-ii/">hallway drizzle, late thunder, forescent, closed-room weather, listening calm</a>.
+  <a href="../../">← shelf</a>
+</footer>
+</main>
+
+<script>
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function rng(s){ return () => (s = (s * 1664525 + 1013904223) >>> 0) / 2**32; }
+const ease = (k) => k*k*(3 - 2*k);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// Month strips
+document.querySelectorAll(".year").forEach(y => {
+  const on = (y.dataset.on || "").split(",").filter(Boolean).map(Number);
+  const half = (y.dataset.half || "").split(",").filter(Boolean).map(Number);
+  "JFMAMJJASOND".split("").forEach((m, i) => {
+    const s = document.createElement("span"); s.textContent = m;
+    if (on.includes(i)) s.className = "on"; else if (half.includes(i)) s.className = "half";
+    y.appendChild(s);
+  });
+});
+
+function hedges(x, W, base, r, ink, alpha){
+  x.fillStyle = `rgba(${ink},${alpha})`;
+  x.beginPath(); x.moveTo(0, base);
+  for (let i = 0; i <= 40; i++){
+    const px = W*i/40, h = 6 + 5*Math.sin(i*1.7 + r) + 4*Math.sin(i*0.6 + 2*r);
+    x.lineTo(px, base - h);
+  }
+  x.lineTo(W, base + 60); x.lineTo(0, base + 60); x.closePath(); x.fill();
+}
+
+const plates = {
+  thin(r){
+    const stars = Array.from({length: 70}, () => ({x: r(), y: r()*0.75, s: 0.6 + r()*1.2, p: r()*6.28}));
+    const seed = r()*10;
+    return (x, W, H, t) => {
+      const ink = css("--ink"), warm = css("--warm"), cool = css("--cool");
+      const P = 16000, k = (t % P) / P;             // one day per 16 s
+      const day = k > 0.32 && k < 0.68;             // a short day
+      const d = clamp((k - 0.32) / 0.36, 0, 1);     // 0..1 across daylight
+      const lift = day ? Math.sin(d*Math.PI) : 0;   // sun height, 0..1
+      const ground = H - 34;
+      // sky: barely brightens
+      const g = x.createLinearGradient(0, 0, 0, ground);
+      g.addColorStop(0, `rgba(${cool},${0.10 + 0.08*lift})`);
+      g.addColorStop(1, `rgba(${warm},${0.04 + 0.16*lift})`);
+      x.fillStyle = g; x.fillRect(0, 0, W, ground);
+      // stars show through even at noon
+      for (const s of stars){
+        const tw = 0.75 + 0.25*Math.sin(t*0.002 + s.p);
+        const a = (0.55 - 0.33*lift) * tw;
+        x.fillStyle = `rgba(${ink},${a})`;
+        x.beginPath(); x.arc(s.x*W, s.y*ground, s.s, 0, 6.28); x.fill();
+      }
+      // the arc it will travel, dotted
+      const x0 = W*0.22, x1 = W*0.78, top = 46;
+      x.strokeStyle = `rgba(${ink},0.18)`; x.setLineDash([2, 5]); x.lineWidth = 1;
+      x.beginPath();
+      for (let i = 0; i <= 40; i++){ const u = i/40; const px = x0 + (x1 - x0)*u, py = ground - top*Math.sin(u*Math.PI); i ? x.lineTo(px, py) : x.moveTo(px, py); }
+      x.stroke(); x.setLineDash([]);
+      // the sun
+      if (day){
+        const sx = x0 + (x1 - x0)*d, sy = ground - top*lift;
+        const halo = x.createRadialGradient(sx, sy, 0, sx, sy, 40);
+        halo.addColorStop(0, `rgba(${warm},0.45)`); halo.addColorStop(1, `rgba(${warm},0)`);
+        x.fillStyle = halo; x.fillRect(sx - 40, sy - 40, 80, 80);
+        x.fillStyle = `rgba(${warm},0.95)`;
+        x.beginPath(); x.arc(sx, sy, 7, 0, 6.28); x.fill();
+      }
+      hedges(x, W, ground + 6, seed, ink, 0.5);
+      x.fillStyle = `rgba(${ink},0.08)`; x.fillRect(0, ground + 6, W, H);
+      x.fillStyle = `rgba(${ink},0.55)`; x.font = "11px ui-monospace,Menlo,monospace";
+      x.textAlign = "left"; x.fillText("S", W/2 - 3, H - 8);
+    };
+  },
+
+  borrowed(r){
+    const lent = 9 + Math.floor(r()*10);      // a day in February
+    const paid = 6 + Math.floor(r()*16);      // a day in May
+    const temp = (row, i) => { const b = row ? 0.45 : 0.12; return b + 0.12*Math.sin(i*1.3 + row*4) + 0.05*Math.sin(i*3.1); };
+    return (x, W, H, t) => {
+      const ink = css("--ink"), warm = css("--warm"), cool = css("--cool");
+      const rows = [{n: 28, label: "FEB"}, {n: 31, label: "MAY"}];
+      const left = 38, right = 10, cw = (W - left - right) / 31, ch = Math.min(26, cw*1.8);
+      const ys = [H*0.24, H*0.66];
+      const P = 15000, k = (t % P) / P;
+      // a cursor walks Feb, then May, then rests
+      const total = 59, pos = Math.floor(clamp(k/0.85, 0, 0.9999)*total);
+      const at = (row, i) => [left + i*cw + cw/2, ys[row]];
+      x.font = "11px ui-monospace,Menlo,monospace"; x.textBaseline = "middle"; x.textAlign = "left";
+      rows.forEach((R, row) => {
+        x.fillStyle = `rgba(${ink},0.55)`; x.fillText(R.label, 4, ys[row]);
+        for (let i = 0; i < R.n; i++){
+          const idx = row ? 28 + i : i, seen = idx <= pos;
+          const [cx, cy] = at(row, i);
+          let fill;
+          if (row === 0 && i === lent) fill = `rgba(${warm},${seen ? 0.9 : 0.25})`;
+          else if (row === 1 && i === paid) fill = `rgba(${cool},${seen ? 0.95 : 0.25})`;
+          else {
+            const w = temp(row, i);
+            fill = `rgba(${row ? warm : cool},${(seen ? 0.12 : 0.05) + 0.25*w})`;
+          }
+          x.fillStyle = fill;
+          x.fillRect(cx - cw/2 + 1, cy - ch/2, cw - 2, ch);
+          if (idx === pos){ x.strokeStyle = `rgba(${ink},0.7)`; x.lineWidth = 1; x.strokeRect(cx - cw/2 + 0.5, cy - ch/2 - 2.5, cw - 1, ch + 5); }
+        }
+      });
+      // the thread: drawn out once the loan is taken, pulled tight when repaid
+      const lentIdx = lent, paidIdx = 28 + paid;
+      if (pos >= lentIdx){
+        const [ax, ay] = at(0, lent), [bx, by] = at(1, paid);
+        const span = paidIdx - lentIdx;
+        const u = clamp((pos - lentIdx) / span, 0, 1);
+        const sag = 30*(1 - ease(u));
+        const mx = (ax + bx)/2 + (bx > ax ? 1 : -1)*sag, my = (ay + by)/2;
+        x.strokeStyle = `rgba(${ink},0.5)`; x.lineWidth = 1;
+        x.setLineDash(u < 1 ? [3, 3] : []);
+        x.beginPath(); x.moveTo(ax, ay + ch/2);
+        const n = 30, mU = Math.max(u, 0.12);
+        for (let i = 1; i <= n; i++){
+          const s = i/n*mU, q = 1 - s;
+          const px = q*q*ax + 2*q*s*mx + s*s*bx, py = q*q*(ay + ch/2) + 2*q*s*my + s*s*(by - ch/2);
+          x.lineTo(px, py);
+        }
+        x.stroke(); x.setLineDash([]);
+        if (u >= 1){
+          x.fillStyle = `rgba(${ink},0.6)`; x.textAlign = "center";
+          x.fillText("repaid", bx, by + ch/2 + 12);
+        }
+        x.fillStyle = `rgba(${ink},0.6)`; x.textAlign = "center";
+        x.fillText("lent", ax, ay - ch/2 - 10);
+      }
+    };
+  },
+
+  green(r){
+    const blades = Array.from({length: 220}, () => ({x: r(), h: 0.35 + r()*0.65, p: r()*6.28, l: r()}));
+    const trees = Array.from({length: 3}, (_, i) => ({x: 0.18 + i*0.32 + (r() - 0.5)*0.08, s: 0.8 + r()*0.4}));
+    return (x, W, H, t) => {
+      const ink = css("--ink"), leaf = css("--leaf"), cool = css("--cool");
+      const P = 18000, k = (t % P) / P;
+      const glow = 0.78 + 0.22*Math.sin(k*6.283);   // swells and ebbs
+      const ground = H - 30;
+      // dim sky, darker overhead
+      const sky = x.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, `rgba(${cool},0.55)`); sky.addColorStop(1, `rgba(${cool},0.18)`);
+      x.fillStyle = sky; x.fillRect(0, 0, W, H);
+      // light rising from the grass
+      const up = x.createLinearGradient(0, H, 0, 0);
+      up.addColorStop(0, `rgba(${leaf},${0.6*glow})`);
+      up.addColorStop(0.5, `rgba(${leaf},${0.18*glow})`);
+      up.addColorStop(1, `rgba(${leaf},0)`);
+      x.fillStyle = up; x.fillRect(0, 0, W, H);
+      // trees: dark above, lit underneath
+      for (const tr of trees){
+        const cx = tr.x*W, R = 30*tr.s, cy = ground - 40*tr.s - R*0.3;
+        x.fillStyle = `rgba(${ink},0.55)`;
+        x.fillRect(cx - 2.5, cy, 5, H - cy);
+        const blobs = [[0,0,1],[-0.55,0.18,0.7],[0.55,0.15,0.72],[0,-0.35,0.75]];
+        x.save(); x.beginPath();
+        for (const [dx, dy, s] of blobs){ x.moveTo(cx + dx*R + s*R, cy + dy*R); x.ellipse(cx + dx*R, cy + dy*R, s*R, s*R*0.78, 0, 0, 6.28); }
+        x.fill(); x.clip();
+        const under = x.createLinearGradient(0, cy + R*0.9, 0, cy - R*0.4);
+        under.addColorStop(0, `rgba(${leaf},${glow})`); under.addColorStop(1, `rgba(${leaf},0)`);
+        x.fillStyle = under; x.fillRect(cx - 2*R, cy - 2*R, 4*R, 4*R); x.restore();
+      }
+      // grass
+      x.lineWidth = 1.2;
+      for (const b of blades){
+        const bx = b.x*W, bh = 12 + b.h*30, sway = 3*Math.sin(t*0.0011 + b.p);
+        x.strokeStyle = `rgba(${leaf},${(0.35 + 0.5*b.l)*(0.6 + 0.4*glow)})`;
+        x.beginPath(); x.moveTo(bx, H); x.quadraticCurveTo(bx + sway*0.4, H - bh*0.5, bx + sway, H - bh); x.stroke();
+      }
+      // a bird overhead, its underside catching it
+      const bx = ((t*0.00004) % 1.2 - 0.1)*W, by = 34 + 8*Math.sin(t*0.0007);
+      const fl = Math.sin(t*0.012)*5;
+      x.strokeStyle = `rgba(${leaf},${glow})`; x.lineWidth = 2;
+      x.beginPath(); x.moveTo(bx - 12, by - fl); x.quadraticCurveTo(bx - 4, by + 3, bx, by); x.quadraticCurveTo(bx + 4, by + 3, bx + 12, by - fl); x.stroke();
+    };
+  },
+
+  held(r){
+    const n = 6;
+    return (x, W, H, t) => {
+      const ink = css("--ink"), warm = css("--warm");
+      const P = 18000, k = (t % P) / P;
+      // sun's hour angle: morning, a long stop at noon, afternoon
+      let h;
+      if (k < 0.33) h = -1 + ease(k/0.33);
+      else if (k < 0.67) h = 0;
+      else h = ease((k - 0.67)/0.33);
+      const ground = H - 40;
+      x.fillStyle = `rgba(${ink},0.07)`; x.fillRect(0, ground, W, H - ground);
+      x.strokeStyle = `rgba(${ink},0.3)`; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(0, ground); x.lineTo(W, ground); x.stroke();
+      // sun along the top
+      const sx = W/2 + h*W*0.4, sy = 24 + 26*Math.abs(h);
+      x.fillStyle = `rgba(${warm},0.9)`; x.beginPath(); x.arc(sx, sy, 7, 0, 6.28); x.fill();
+      // posts and shadows (cast onto the ground plane, drawn as skewed shapes)
+      const gap = W/(n + 1), postH = 44;
+      for (let i = 1; i <= n; i++){
+        const px = i*gap;
+        const len = 6 + 70*Math.abs(h), dir = h <= 0 ? 1 : -1;
+        x.fillStyle = `rgba(${ink},0.22)`;
+        x.beginPath(); x.moveTo(px - 3, ground); x.lineTo(px + 3, ground);
+        x.lineTo(px + 3 + dir*len, ground + 9); x.lineTo(px - 3 + dir*len, ground + 9); x.closePath(); x.fill();
+        x.fillStyle = `rgba(${ink},0.6)`; x.fillRect(px - 3, ground - postH, 6, postH);
+      }
+      x.strokeStyle = `rgba(${ink},0.45)`;
+      x.beginPath(); x.moveTo(gap - 3, ground - postH + 10); x.lineTo(n*gap + 3, ground - postH + 10); x.stroke();
+      // the church clock, which does not stop
+      const cx = W - 30, cy = 30, R = 17;
+      x.fillStyle = css("--plate"); x.beginPath(); x.arc(cx, cy, R, 0, 6.28); x.fill();
+      x.strokeStyle = `rgba(${ink},0.55)`; x.lineWidth = 1.2; x.stroke();
+      for (let j = 0; j < 12; j++){ const a = j/12*6.283; x.beginPath(); x.moveTo(cx + Math.sin(a)*(R - 3), cy - Math.cos(a)*(R - 3)); x.lineTo(cx + Math.sin(a)*R, cy - Math.cos(a)*R); x.stroke(); }
+      const mins = k*360;                         // the same span is six clock hours
+      const hrA = ((9 + mins/60) % 12)/12*6.283, mnA = (mins % 60)/60*6.283;
+      x.lineWidth = 2; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.sin(hrA)*R*0.5, cy - Math.cos(hrA)*R*0.5); x.stroke();
+      x.lineWidth = 1.2; x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx + Math.sin(mnA)*R*0.82, cy - Math.cos(mnA)*R*0.82); x.stroke();
+      if (h === 0){
+        x.fillStyle = `rgba(${ink},0.6)`; x.font = "11px ui-monospace,Menlo,monospace"; x.textAlign = "center";
+        x.fillText("noon, still", W/2, H - 12);
+      }
+    };
+  },
+
+  last(r){
+    // a run of evenings cooling, with one last warm one
+    const N = 34, warmth = [];
+    let L = 0;
+    for (let i = 0; i < N; i++){
+      const trend = 1 - i/(N*0.72);
+      let w = trend + (r() - 0.5)*0.5;
+      warmth.push(clamp(w, 0, 1));
+    }
+    for (let i = 0; i < N; i++) if (warmth[i] >= 0.5) L = i;
+    for (let i = L + 1; i < N; i++) warmth[i] = Math.min(warmth[i], 0.42);
+    const SHOW = 14, STEP = 650, AFTER = 5;
+    return (x, W, H, t) => {
+      const ink = css("--ink"), warm = css("--warm"), cool = css("--cool");
+      const cycle = (N + 4)*STEP, d = Math.min(N - 1, Math.floor((t % cycle)/STEP));
+      const show = W < 420 ? 10 : SHOW, bw = W/show, start = Math.max(0, d - show + 1);
+      const top = 34, bottom = H - 26;
+      x.font = "11px ui-monospace,Menlo,monospace"; x.textAlign = "center"; x.textBaseline = "alphabetic";
+      for (let i = start; i <= d; i++){
+        const col = i - start, bx = col*bw, w = warmth[i];
+        const g = x.createLinearGradient(0, top, 0, bottom);
+        const hot = w >= 0.5;
+        g.addColorStop(0, `rgba(${cool},${hot ? 0.1 : 0.3 + 0.2*(1 - w)})`);
+        g.addColorStop(1, `rgba(${hot ? warm : cool},${hot ? 0.45 + 0.45*w : 0.08 + 0.15*w})`);
+        x.fillStyle = g; x.fillRect(bx + 1.5, top, bw - 3, bottom - top);
+        // a chair on the warm ones
+        if (w >= 0.5){
+          const cx = bx + bw/2, cy = bottom - 6;
+          x.strokeStyle = `rgba(${ink},0.55)`; x.lineWidth = 1.2;
+          x.beginPath(); x.moveTo(cx - 5, cy); x.lineTo(cx - 5, cy - 14); x.moveTo(cx - 5, cy - 7); x.lineTo(cx + 5, cy - 7); x.lineTo(cx + 5, cy); x.stroke();
+        }
+        x.fillStyle = `rgba(${ink},0.45)`;
+        if (i === d) x.fillText("tonight", bx + bw/2, H - 9);
+      }
+      // the mark comes only after enough cold evenings
+      if (d >= L + AFTER && L >= start){
+        const bx = (L - start)*bw + bw/2;
+        x.strokeStyle = `rgba(${ink},0.75)`; x.lineWidth = 1;
+        x.beginPath(); x.moveTo(bx, top - 4); x.lineTo(bx, top - 12); x.stroke();
+        x.fillStyle = `rgba(${ink},0.85)`;
+        x.textAlign = bx < 60 ? "left" : bx > W - 60 ? "right" : "center";
+        x.fillText("that was it", bx < 60 ? bx - 4 : bx > W - 60 ? bx + 4 : bx, top - 16);
+      }
+    };
+  }
+};
+
+const live = [];
+document.querySelectorAll("canvas[data-plate]").forEach((c, i) => {
+  const p = { c, x: c.getContext("2d"), draw: plates[c.dataset.plate](rng(3100 + i*7919)), on: false };
+  live.push(p);
+});
+const io = new IntersectionObserver(es => es.forEach(e => {
+  const p = live.find(p => p.c === e.target); if (p) p.on = e.isIntersecting;
+}));
+live.forEach(p => io.observe(p.c));
+
+function size(p){
+  const dpr = devicePixelRatio || 1, W = p.c.clientWidth, H = p.c.clientHeight;
+  if (p.c.width !== Math.round(W*dpr)){ p.c.width = Math.round(W*dpr); p.c.height = Math.round(H*dpr); }
+  p.x.setTransform(dpr,0,0,dpr,0,0); return [W, H];
+}
+// for a still frame, pick a moment that tells each plate's story
+const stillAt = { thin: 8000, borrowed: 14000, green: 9000, held: 9000, last: 33*650 };
+function frame(t){
+  for (const p of live){
+    if (!p.on && !still) continue;
+    const [W, H] = size(p); p.x.clearRect(0, 0, W, H);
+    p.draw(p.x, W, H, still ? stillAt[p.c.dataset.plate] : t);
+  }
+  if (!still) requestAnimationFrame(frame);
+}
+if (still){ live.forEach(p => p.on = true); addEventListener("resize", () => frame(0)); frame(0); }
+else requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -851,3 +851,22 @@ themselves (where the exit stroke ends, where the next letter begins), not from
 a table. Checked at desktop and phone width in the browser, animation and
 toggles exercised, no console errors from the piece. Some capitals are plain to
 the point of stiffness, and there are no swashes. Next: Field guide, or a new kind.
+
+## 047 · 2026-11-20 · A field guide to weather that doesn't happen, vol. III (piece)
+
+Field guide's third volume, the thread resting longest. Volume I was the sky,
+volume II came indoors; this one keeps time. Five entries for the turning year,
+in order from midwinter: the thin day (a solstice short enough that stars show
+through at noon), the borrowed day (a spring day lent in February and repaid
+with a frost in May), the green hour (April dusk lit from the grass up), held
+noon (midsummer shadows that stop while the clocks go on), and the last warm
+evening, which can only be identified afterwards. Each entry has a moving
+plate and, new to this volume, a month strip showing when it keeps.
+
+Why: the notes asked for Field guide or a new kind, away from lettering and
+water. Seasons were the angle volume II's journal suggested. The last-warm-evening
+plate is the one I like: a run of evenings scrolls past, and the mark over the
+last warm one only appears after five cold ones have gone by. The green-hour
+plate was too faint at first (dusk didn't read on the light plate); darkened
+the sky and lit the canopies from below. Checked at phone and desktop width in
+the browser, no console errors. Next: a new kind, or a thread untouched lately.
