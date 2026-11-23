@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minutes</title>
+<style>
+:root{--bg:#e6e3da;--paper:#f7f3e6;--fg:#1f1d1a;--mute:#756e60;--rule:#cfc7b1;--margin:#c9776b;--ink:#22385e;--hi:rgba(34,56,94,.08);--shadow:rgba(0,0,0,.32);
+--t-roof:#a2542a;--t-piano:#5b3f8c;--t-clock:#2c6b62;--t-keeper:#8a6a12;--t-funds:#3c6a2a;--t-bookings:#7a3a5a}
+@media (prefers-color-scheme:dark){:root{--bg:#121211;--paper:#201e1a;--fg:#e9e4d6;--mute:#9b9384;--rule:#38342c;--margin:#8f4f47;--ink:#a9bfe8;--hi:rgba(169,191,232,.08);--shadow:rgba(0,0,0,.7);
+--t-roof:#e59a6e;--t-piano:#b9a2e8;--t-clock:#7fcfc2;--t-keeper:#e3c166;--t-funds:#9dd18a;--t-bookings:#e09ab9}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15.5px/1.55 Georgia,"Iowan Old Style",serif;padding:20px 16px 90px;display:flex;justify-content:center}
+main{width:100%;max-width:1000px}
+h1{font-size:23px;font-weight:normal;margin:0;letter-spacing:.03em}
+.sub{color:var(--mute);margin:2px 0 6px;font-style:italic}
+.how{color:var(--mute);font-size:14px;margin:0 0 14px}
+.reg{background:var(--paper);border:1px solid var(--rule);padding:10px 10px 8px;margin-bottom:16px;overflow-x:auto;box-shadow:0 10px 24px -22px var(--shadow)}
+.reg table{border-collapse:collapse;font-size:13px}
+.reg th.n{width:1%}
+.reg th,.reg td{padding:2px 0;text-align:center;font-weight:normal}
+.reg th.n{text-align:left;padding-right:10px;white-space:nowrap;color:var(--mute);font-size:12.5px}
+.reg thead button{font:inherit;font-size:12px;color:var(--mute);background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;padding:2px 3px 3px;min-width:34px;letter-spacing:.04em;touch-action:manipulation}
+.reg thead button.cur{color:var(--ink);border-bottom-color:var(--ink)}
+.reg thead button:focus-visible{outline:2px solid var(--ink)}
+.reg td{color:var(--ink);font-size:13px;width:34px}
+.reg td.a{color:var(--margin);font-style:italic;font-size:12px}
+.reg td.cur{background:var(--hi)}
+.reg caption{caption-side:bottom;text-align:left;color:var(--mute);font-size:11.5px;padding-top:6px;font-style:italic}
+.wrap{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;align-items:start}
+.page{background:var(--paper);border:1px solid var(--rule);box-shadow:0 14px 30px -24px var(--shadow);padding:16px 18px 18px 46px;position:relative;
+ background-image:linear-gradient(to right,transparent 33px,var(--margin) 33px,var(--margin) 34px,transparent 34px)}
+.nav{display:flex;justify-content:space-between;align-items:center;margin:-4px 0 10px;gap:8px}
+.nav button{font:inherit;font-size:13.5px;background:none;border:1px solid var(--rule);color:var(--fg);border-radius:4px;padding:4px 10px;cursor:pointer;touch-action:manipulation}
+.nav button:disabled{opacity:.35;cursor:default}
+.nav span{color:var(--mute);font-size:12.5px;font-style:italic}
+.page h2{font-size:15.5px;font-weight:normal;text-align:center;margin:0;letter-spacing:.06em;text-transform:uppercase}
+.page .when{text-align:center;font-style:italic;margin:2px 0 10px}
+.page .pres{font-size:14px;margin:0 0 12px;border-bottom:1px solid var(--rule);padding-bottom:10px}
+.page .pres b{font-weight:normal;font-variant:small-caps;letter-spacing:.05em}
+ol.items{list-style:none;margin:0;padding:0;counter-reset:it}
+ol.items li{position:relative;margin:0 0 11px;padding:6px 8px 6px 0;border-radius:3px;transition:background .3s}
+ol.items li::before{counter-increment:it;content:counter(it) ".";position:absolute;left:-30px;top:6px;color:var(--mute);font-size:14px;width:22px;text-align:right}
+ol.items li.flash{background:var(--hi)}
+ol.items h3{display:inline;font-size:inherit;font-weight:normal;font-variant:small-caps;letter-spacing:.05em}
+ol.items p{margin:2px 0 0}
+.act{display:block;text-align:right;font-style:italic;color:var(--ink);font-size:13.5px}
+.tag{font:inherit;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;background:none;border:1px solid currentColor;border-radius:10px;padding:0 7px;margin-left:6px;cursor:pointer;vertical-align:2px;touch-action:manipulation;opacity:.85}
+.tag:hover,.tag:focus-visible{opacity:1;outline:none;background:var(--hi)}
+.sig{margin-top:16px;border-top:1px solid var(--rule);padding-top:8px;font-size:13.5px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--mute)}
+.sig i{color:var(--ink);font-size:15px}
+.side{position:sticky;top:12px}
+.card{background:var(--paper);border:1px solid var(--rule);padding:14px 16px;box-shadow:0 10px 24px -22px var(--shadow)}
+.card h4{margin:0 0 4px;font-weight:normal;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+.card .note{color:var(--mute);font-size:13.5px;font-style:italic;margin:0 0 10px}
+.threads{list-style:none;margin:0;padding:0}
+.threads li{margin:0 0 6px}
+.threads button{font:inherit;background:none;border:0;padding:3px 0;cursor:pointer;text-align:left;width:100%;display:flex;gap:8px;align-items:baseline;color:var(--fg);touch-action:manipulation}
+.threads button b{font-weight:normal;letter-spacing:.06em;text-transform:uppercase;font-size:13px;min-width:86px}
+.threads button span{color:var(--mute);font-size:13px}
+.threads button:hover b,.threads button:focus-visible b{text-decoration:underline}
+.trail{list-style:none;margin:0;padding:0;max-height:62vh;overflow:auto}
+.trail li{border-left:2px solid var(--c);padding:2px 0 8px 10px;margin:0 0 2px}
+.trail button{font:inherit;background:none;border:0;padding:0;cursor:pointer;color:var(--fg);text-align:left;font-size:14px;line-height:1.45;touch-action:manipulation}
+.trail button em{display:block;font-style:normal;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--c)}
+.trail button.cur{background:var(--hi)}
+.back{font:inherit;font-size:13px;background:none;border:1px solid var(--rule);color:var(--fg);border-radius:4px;padding:3px 9px;cursor:pointer;margin-top:10px}
+@media (max-width:720px){.wrap{grid-template-columns:1fr}.side{position:static}.page{padding:14px 12px 16px 38px;background-image:linear-gradient(to right,transparent 27px,var(--margin) 27px,var(--margin) 28px,transparent 28px)}ol.items li::before{left:-30px}.trail{max-height:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Minutes</h1>
+<p class="sub">Fennick Village Hall · Management Committee · September 1988 to June 1989</p>
+<p class="how">Read a meeting, or turn the pages. Tap a tag in the margin to follow one matter through the year. The register shows who came.</p>
+
+<div class="reg"><table id="reg"></table></div>
+
+<div class="wrap">
+ <article class="page" id="page" aria-live="polite"></article>
+ <aside class="side"><div class="card" id="card"></div></aside>
+</div>
+</main>
+<script>
+const PEOPLE=[
+ ["RP","Mr R. Pollard","Chair"],
+ ["DH","Mrs D. Hart","Treasurer"],
+ ["AL","Mr A. Lowe","Secretary"],
+ ["JO","Mrs J. Okafor",""],
+ ["TB","Mr T. Benn",""],
+ ["EC","Miss E. Carver","Bookings"],
+ ["LS","Mr L. Szabo","Caretaker, in attendance"]
+];
+const TAGS={
+ roof:["The roof","--t-roof"],
+ piano:["The piano","--t-piano"],
+ clock:["The clock","--t-clock"],
+ keeper:["Caretaker","--t-keeper"],
+ funds:["Funds","--t-funds"],
+ bookings:["Bookings","--t-bookings"]
+};
+const A=s=>`<span class="act">Action: ${s}</span>`;
+const M=[
+{m:"Sep",d:"Thursday 8 September 1988, 7.30 pm, in the small room",att:"PPPPPPP",sig:"R. Pollard · 13.10.88",items:[
+ [null,"Apologies","None."],
+ [null,"Minutes of the meeting of 14 July","Taken as read and signed as a correct record."],
+ ["keeper","Caretaker’s report","Mr Szabo reported that the leak over the stage has returned with the August rain. Three buckets are now required in a wet week, and a fourth is advisable. The boiler has been serviced. The hall clock is losing about four minutes a day; Mr Szabo has adjusted the pendulum."],
+ ["roof","The roof","It was agreed that the roof can no longer be left. The Chair to obtain three quotations before the next meeting."+A("RP")],
+ ["piano","The piano","Miss Carver reported complaints from the Tuesday tea dance that the piano is now “two pianos, a semitone apart.” Mrs Hart to ask after a tuner."+A("DH")],
+ ["bookings","Bookings","Toddler group to continue Wednesday mornings. Harvest supper Saturday 1 October. The Women’s Institute have asked about the main hall in March."],
+ [null,"Any other business","Mr Benn asked who had moved the piano from the stage wall. Mr Szabo explained he had moved it out from under the leak. Mr Benn said he was obliged to him."]
+]},
+{m:"Oct",d:"Thursday 13 October 1988, 7.30 pm",att:"PPPPPPP",sig:"R. Pollard · 10.11.88",items:[
+ [null,"Apologies","None."],
+ [null,"Minutes of the last meeting","Signed as a correct record."],
+ ["keeper","Caretaker’s report","The harvest supper was cleared by 11.40 pm. Mr Szabo remained until one o’clock to finish the floor. Four buckets during the rain of the 6th."],
+ ["clock","The clock","The clock stopped on Tuesday at ten past four. Mr Szabo has wound it and reset it, and reports that it “likes to be wound on a Friday.” The key is kept in the case."],
+ ["roof","The roof","Two quotations received: Harker Bros. £2,600, and A. Dunn £1,840 (felt only; Mr Dunn would not guarantee the valley). A third is awaited from Pocock &amp; Son."],
+ ["funds","Funds","Balance £612.40. Mrs Hart observed that the roof cannot be paid for out of this. Mrs Okafor proposed a Christmas fair. Agreed."+A("JO, DH")],
+ ["piano","The piano","Mr Greaves, piano tuner, visited on the 4th. He reports that the soundboard is cracked across, and that the instrument “would hold a tune for a fortnight, at best.” He recommends it be replaced. Mr Benn asked that any decision be deferred. Agreed."]
+]},
+{m:"Nov",d:"Thursday 10 November 1988, 7.30 pm",att:"PPPPPPA",sig:"R. Pollard · 8.12.88",items:[
+ [null,"Apologies","Mr Szabo (unwell)."],
+ [null,"Minutes of the last meeting","Signed as a correct record."],
+ ["keeper","Caretaker’s report","No report. Mrs Okafor, who holds a key, has opened the hall for the toddler group. The Secretary to send a card from the committee."+A("AL")],
+ ["clock","The clock","The clock stopped on Saturday at twenty to nine and has not been restarted. Nobody present knew where in the case the key is kept, and it was not thought wise to look."],
+ ["roof","The roof","Third quotation received: Pocock &amp; Son, £2,050, valley guaranteed ten years. Accepted, subject to funds. Work could begin after Christmas."],
+ ["piano","The piano","Mr Benn spoke at some length. The Secretary records in summary that the piano was bought in 1952 by public subscription, and that the late Mrs M. Benn played for the Saturday dances from 1953 until 1971. The matter was deferred."],
+ ["funds","Funds","Christmas fair set for Saturday 3 December. Stalls allotted."]
+]},
+{m:"Dec",d:"Thursday 8 December 1988, 7.30 pm",att:"PPPPPPP",sig:"R. Pollard · 12.1.89",items:[
+ [null,"Apologies","None."],
+ [null,"Minutes of the last meeting","Signed as a correct record."],
+ ["keeper","Caretaker’s report","Mr Szabo thanked the committee for its card. The pilot light has been relit. He asked that the hall not be heated above sixty degrees for the toddlers, “or they sleep.”"],
+ ["clock","The clock","The clock is going again. Mr Szabo showed Mrs Okafor where the key is kept: on the ledge inside the case, behind the pendulum, where you would not look."],
+ ["funds","Funds","The Christmas fair raised £431.15. Balance £1,043.55."],
+ ["roof","The roof","Pocock &amp; Son ask a deposit of £400 and will start on 9 January. Agreed. The stage will be out of use for about three weeks."+A("DH")],
+ ["piano","The piano","Fennick Primary School have offered their old upright, free to whoever collects it. Agreed to accept, Mr Benn abstaining. No decision as to the old piano."],
+ [null,"Any other business","The Chair noted that Mr Szabo has this month been caretaker of the hall for thirty-one years, and proposed a vote of thanks. Carried, with applause."]
+]},
+{m:"Jan",d:"Thursday 12 January 1989, 7.30 pm",att:"PPPPPPA",sig:"R. Pollard · 9.2.89",items:[
+ [null,"Apologies","Mr Szabo (in hospital)."],
+ [null,"Minutes of the last meeting","Signed as a correct record."],
+ ["keeper","Caretaker’s report","Mrs Okafor is opening and closing the hall until further notice. Flowers to be sent to Mr Szabo from the committee."+A("AL")],
+ ["clock","The clock","Mrs Okafor reports she is winding the clock on Fridays and that it is keeping good time."],
+ ["roof","The roof","Pocock &amp; Son began on Monday the 9th. Scaffolding is up. The leak is no worse. The tea dance has moved to the small room."],
+ ["piano","The piano","The school’s upright was collected on the 7th by Mr Benn and the younger Mr Pocock and is in the small room. The old piano remains on the stage under a dust sheet."],
+ ["funds","Funds","Mrs Hart has applied to the District Council for a grant of £800 towards the roof."]
+]},
+{m:"Feb",d:"Thursday 9 February 1989, 7.30 pm",att:"PPPPPPA",sig:"R. Pollard · 9.3.89",items:[
+ [null,"Apologies","Mr Szabo."],
+ [null,"Minutes of the last meeting","Signed as a correct record."],
+ ["roof","The roof","Work completed on the 1st. It rained on the night of the 4th and no buckets were required."],
+ ["keeper","Caretaker’s report","The Secretary read a letter from Mr Szabo thanking the committee for the flowers. He is home. He asks that someone look at the pilot light if the hall feels cold, and that the clock be wound on Fridays, “not Saturdays, it notices.” Mrs Okafor said that she had wound it on a Saturday once and that it had stopped by the Monday."],
+ ["clock","The clock","Daniel Okafor (14) has been helping his mother and is now winding the clock. He has been shown the key."],
+ ["funds","Funds","A grant of £600 has been awarded. £412 remains owing to Pocock &amp; Son."],
+ ["piano","The piano","The school upright holds its tune. Mr Benn said that it is “a perfectly good piano.” Mr Benn then asked whether the committee would sell him the old piano for one pound. There was some discussion as to where he would put it. Deferred."]
+]},
+{m:"Mar",d:"Thursday 9 March 1989, 7.30 pm",att:"PPPPAPH",sig:"R. Pollard · 13.4.89",items:[
+ [null,"Apologies","Mr Benn. Mr Szabo attended for the first part of the meeting."],
+ [null,"Minutes of the last meeting","Signed as a correct record."],
+ ["keeper","Caretaker’s report","Mr Szabo informed the committee that he will retire at the Annual General Meeting in June. The committee received this with regret. The post to be advertised in the shop and the parish magazine."+A("AL")],
+ ["bookings","Bookings","Mr Szabo asked to hire the main hall for the evening of Saturday 3 June for a private function. Proposed by Mrs Hart, seconded by the Chair, that no fee be charged. Carried. Mr Szabo then left the meeting."],
+ ["piano","The piano","The Secretary read a note from Mr Benn withdrawing his offer for the old piano, on the grounds that “a piano belongs where it was played.”"],
+ ["roof","The roof","The stage is back in use. Mrs Okafor asked what should be done with the buckets."]
+]},
+{m:"Apr",d:"Thursday 13 April 1989, 7.30 pm",att:"PPPPPPP",sig:"R. Pollard · 11.5.89",items:[
+ [null,"Apologies","None."],
+ [null,"Minutes of the last meeting","Signed as a correct record."],
+ ["keeper","Caretaker","Two applications received. To be seen by the Chair and Mrs Hart."+A("RP, DH")],
+ ["funds","Funds","Pocock &amp; Son paid in full. Balance £204.10."],
+ ["piano","The piano","Mr Benn reported that he had asked Mr Greaves, at his own expense, to look at the old piano again. Mr Greaves says it can be brought up to pitch, and that it will hold for one evening, perhaps two. Mr Benn has booked him for Friday 2 June."],
+ ["roof","The roof","The buckets have been returned to the kitchen. The Secretary was asked to record it."]
+]},
+{m:"May",d:"Thursday 11 May 1989, 7.30 pm",att:"PPPPPPP",sig:"R. Pollard · 8.6.89",items:[
+ [null,"Apologies","None."],
+ [null,"Minutes of the last meeting","Signed as a correct record."],
+ ["keeper","Caretaker","Mrs Okafor appointed caretaker from 1 July, ten hours a week, Daniel to assist on Fridays. Mrs Okafor left the room for this item. Mr Szabo to hand over the keys at the AGM."],
+ ["bookings","Bookings","Saturday 3 June confirmed, 7 pm until late. Mr Szabo has asked that every member of the committee be invited. The WI have moved their March booking to the autumn, the roof having held."],
+ ["clock","The clock","Daniel has put a card inside the case, behind the pendulum, which says FRIDAYS."],
+ ["piano","The piano","Mr Greaves to tune the old piano on the afternoon of the 2nd. It is to be put back against the stage wall for the evening."]
+]},
+{m:"Jun",d:"Thursday 8 June 1989, 7.30 pm, in the main hall",att:"PPPPPPP",sig:"to be confirmed at the next meeting",items:[
+ [null,"Apologies","None. Eleven members of the public were present."],
+ [null,"Minutes of the last AGM","Signed as a correct record."],
+ ["roof","Chair’s report","The Chair reported a year in which the roof was mended, the fair raised more than any before it, and the grant was won. He thanked the committee."],
+ ["funds","Treasurer’s report","Balance £231.60. Accounts examined and approved."],
+ [null,"Election of officers","All officers re-elected unopposed. Mr Benn elected Vice-Chair."],
+ ["keeper","Caretaker","Mr Szabo handed the Chair the keys of the hall: seven keys, and the key of the clock. He was presented with a barometer on behalf of the village. He said he had nothing to add except that the gutter over the kitchen wants watching."],
+ ["bookings","Saturday 3 June","The Secretary records, at the request of the meeting, that about ninety attended. Mr Benn played the old piano, the first time it has been played in public since 1971, and played the waltzes that used to be played on it. Mr Szabo danced with Miss Carver, and later with Mrs Hart. The hall clock struck twelve at midnight."],
+ ["piano","The piano","Proposed by Mrs Okafor, seconded by Mr Benn, that the old piano remain against the stage wall, and that it not be tuned again. Carried."],
+ ["clock","Close","There being no other business the meeting closed at 9.12 pm, by the hall clock."]
+]}
+];
+
+const $=id=>document.getElementById(id);
+let cur=0, trail=null;
+
+function reg(){
+ let h='<caption>✓ present · a apologies · ½ part of the meeting</caption><thead><tr><th class="n"></th>';
+ M.forEach((x,i)=>h+=`<th><button data-i="${i}" class="${i===cur?'cur':''}" aria-label="${x.d}">${x.m}</button></th>`);
+ h+='</tr></thead><tbody>';
+ PEOPLE.forEach((p,j)=>{
+  h+=`<tr><th class="n" title="${p[2]}">${p[1]}</th>`;
+  M.forEach((x,i)=>{const c=x.att[j];h+=`<td class="${c==='A'?'a':''}${i===cur?' cur':''}">${c==='P'?'✓':c==='A'?'a':'½'}</td>`});
+  h+='</tr>';
+ });
+ $('reg').innerHTML=h+'</tbody>';
+ const cb=document.querySelector('#reg button.cur'),rw=document.querySelector('.reg');
+ if(cb){const r=cb.getBoundingClientRect(),w=rw.getBoundingClientRect();
+  if(r.right>w.right-8)rw.scrollLeft+=r.right-w.right+16;
+  else if(r.left<w.left+120)rw.scrollLeft-=w.left+120-r.left;}
+}
+function names(code){
+ const pr=[];PEOPLE.forEach((p,j)=>{if(code[j]!=='A')pr.push(p[1]+(p[2]?' ('+p[2].replace(', in attendance','')+')':''))});
+ return pr;
+}
+function page(flash){
+ const x=M[cur];
+ const pres=names(x.att);
+ const ls=pres.findIndex(s=>s.startsWith('Mr L. Szabo'));
+ let att='';
+ if(ls>=0){pres.splice(ls,1);att=' <b>In attendance:</b> Mr L. Szabo (Caretaker)'+(x.att[6]==='H'?', for part of the meeting':'')+'.';}
+ let h=`<div class="nav"><button id="prev" ${cur?'':'disabled'} aria-label="Previous meeting">‹ ${cur?M[cur-1].m:''}</button><span>page ${cur+1} of ${M.length}</span><button id="next" ${cur<M.length-1?'':'disabled'} aria-label="Next meeting">${cur<M.length-1?M[cur+1].m:''} ›</button></div>`;
+ h+=`<h2>${cur===M.length-1?'Annual General Meeting':'Meeting of the Committee'}</h2><p class="when">${x.d}</p>`;
+ h+=`<p class="pres"><b>Present:</b> ${pres.join(', ')}.${att}</p><ol class="items">`;
+ x.items.forEach((it,k)=>{
+  const tag=it[0]?`<button class="tag" data-t="${it[0]}" style="color:var(${TAGS[it[0]][1]})">${TAGS[it[0]][0]}</button>`:'';
+  h+=`<li id="it${k}"><h3>${it[1]}</h3>${tag}<p>${it[2]}</p></li>`;
+ });
+ h+=`</ol><div class="sig"><span>Signed as a correct record</span>${cur===M.length-1?`<span>(${x.sig})</span>`:`<i>${x.sig}</i>`}</div>`;
+ $('page').innerHTML=h;
+ $('prev').onclick=()=>go(cur-1);
+ $('next').onclick=()=>go(cur+1);
+ $('page').querySelectorAll('.tag').forEach(b=>b.onclick=()=>{trail=b.dataset.t;card();});
+ if(flash!=null){const li=$('it'+flash);if(li){li.classList.add('flash');li.scrollIntoView({block:'center',behavior:'smooth'});setTimeout(()=>li.classList.remove('flash'),1600)}}
+}
+function snippet(s){
+ const t=s.replace(/<[^>]+>/g,' ').replace(/Action:.*$/,'').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+ const cut=t.indexOf('. ',50);
+ return cut>0&&cut<170?t.slice(0,cut+1):(t.length>170?t.slice(0,160).replace(/\s\S*$/,'')+' …':t);
+}
+function card(){
+ let h;
+ if(!trail){
+  h='<h4>Matters</h4><p class="note">Follow one through the year.</p><ul class="threads">';
+  for(const t in TAGS){
+   let n=0;M.forEach(x=>x.items.forEach(it=>{if(it[0]===t)n++}));
+   h+=`<li><button data-t="${t}"><b style="color:var(${TAGS[t][1]})">${TAGS[t][0]}</b><span>${n} entries</span></button></li>`;
+  }
+  h+='</ul>';
+ }else{
+  const [name,c]=TAGS[trail];
+  h=`<h4 style="color:var(${c})">${name}</h4><p class="note">Every entry, September to June. Tap one to turn to it.</p><ol class="trail" style="--c:var(${c})">`;
+  M.forEach((x,i)=>x.items.forEach((it,k)=>{
+   if(it[0]===trail)h+=`<li><button data-i="${i}" data-k="${k}" class="${i===cur?'cur':''}"><em>${x.m} · ${k+1}. ${it[1]}</em>${snippet(it[2])}</button></li>`;
+  }));
+  h+='</ol><button class="back" id="back">‹ all matters</button>';
+ }
+ $('card').innerHTML=h;
+ $('card').querySelectorAll('.threads button').forEach(b=>b.onclick=()=>{trail=b.dataset.t;card();});
+ $('card').querySelectorAll('.trail button').forEach(b=>b.onclick=()=>go(+b.dataset.i,+b.dataset.k));
+ const bk=$('back');if(bk)bk.onclick=()=>{trail=null;card();};
+}
+function go(i,k){
+ if(i<0||i>=M.length)return;
+ const changed=i!==cur;cur=i;
+ reg();page(k);card();
+ if(changed&&k==null&&window.innerWidth<=720)$('page').scrollIntoView({block:'start',behavior:'smooth'});
+}
+$('reg').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b)go(+b.dataset.i)});
+document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea'))return;if(e.key==='ArrowLeft')go(cur-1);if(e.key==='ArrowRight')go(cur+1)});
+reg();page();card();
+</script>
+</body>
+</html>

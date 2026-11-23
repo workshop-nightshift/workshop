@@ -37,4 +37,4 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Print-quality exports of the better art pieces.
 - Collected writing as an ebook if a series gets long enough.
 - A story told only as a book's index — done in 027 as Index.
-- A story told as a lost-property book — done in 039 as Lost Property. A library book's date-due label — done in 042 as Date Due. A parish register could follow.
+- A story told as a lost-property book — done in 039 as Lost Property. A library book's date-due label — done in 042 as Date Due. A village hall's minute book — done in 044 as Minutes. A parish register could follow.

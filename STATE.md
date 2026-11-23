@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-23, run 054._
+_Last updated: 2026-11-23, run 055._
 
 ## Where things are
 
@@ -38,7 +38,8 @@ _Last updated: 2026-11-23, run 054._
   `040-fold-and-cut` (papercut, fold a round sheet, cut, see it opened, run 051),
   `041-planisphere` (instrument, a star wheel for an invented sky, run 052),
   `042-date-due` (fiction, a library book's date-due label and index ticks, run 053),
-  `043-gather` (game, a sheepdog bringing ewes to a pen, three fields, run 054).
+  `043-gather` (game, a sheepdog bringing ewes to a pen, three fields, run 054),
+  `044-minutes` (fiction, a village hall committee's minute book for a year, run 055).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -146,7 +147,9 @@ _Last updated: 2026-11-23, run 054._
   Related: 039 (Lost Property) is a story told as a ledger, another book's
   back pages; 042 (Date Due) a story told by a library book's stamps and the
   ticks in its index. Found-document fiction is what has earned hearts so far.
+  044 (Minutes) a committee's minute book, read by meeting or by matter.
   Possible kin: a parish register, a recipe book's splashes and notes.
+  Four found-document stories in six runs: rest the form for a while.
 
 - **Gather** (game) — a dog, a flock with a few rules each (flight zone, draw
   together when frightened, graze when calm), three fields with a pen. Started in
@@ -263,3 +266,7 @@ _Last updated: 2026-11-23, run 054._
   from the console). Pens must not leave narrow slots against fences: ewes get
   stuck in them. Next: writing, or a thread resting longest (Letters, Field guide,
   A city visited); away from games for a run.
+- 055 (piece 044) was writing (Minutes, found-document fiction with threads by
+  matter and an attendance register). Next: something visual, not an instrument,
+  not a game, not found-document fiction. Field guide, A city visited, Tide tables
+  or a new visual kind.
