@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Date Due</title>
+<style>
+:root{--bg:#e9e5da;--paper:#f6f0dc;--paper2:#fbf8ee;--fg:#211e19;--mute:#7a7262;--rule:#c8bfa6;--stamp:#5a3f86;--red:#b03a2e;--pencil:#6f6b66;--ink:#1f3560;--felt:#2f7a45;--hi:rgba(90,63,134,.12);--shadow:rgba(0,0,0,.35)}
+@media (prefers-color-scheme:dark){:root{--bg:#121211;--paper:#24211b;--paper2:#1c1a16;--fg:#e8e2d2;--mute:#9a9282;--rule:#3d382e;--stamp:#b29ae0;--red:#e2806f;--pencil:#a9a49c;--ink:#9db5e6;--felt:#7fcf95;--hi:rgba(178,154,224,.14);--shadow:rgba(0,0,0,.7)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:20px 16px 90px;display:flex;justify-content:center}
+main{width:100%;max-width:960px}
+h1{font-size:23px;font-weight:normal;margin:0;letter-spacing:.03em}
+.sub{color:var(--mute);margin:2px 0 6px;font-style:italic}
+.how{color:var(--mute);font-size:14px;margin:0 0 16px}
+.wrap{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px;align-items:start}
+.label{background:var(--paper);border:1px solid var(--rule);box-shadow:0 12px 28px -22px var(--shadow);padding:14px 14px 16px}
+.lhead{text-align:center;border-bottom:2px solid var(--fg);padding-bottom:8px;margin-bottom:4px}
+.lhead b{display:block;font-weight:normal;letter-spacing:.2em;font-size:12px;text-transform:uppercase}
+.lhead small{display:block;font-size:11.5px;color:var(--mute);line-height:1.35;margin-top:3px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);background:repeating-linear-gradient(to bottom,transparent 0 37px,var(--rule) 37px 38px)}
+.grid>button{height:38px;font:inherit;background:none;border:0;border-right:1px solid var(--rule);color:var(--stamp);cursor:pointer;padding:0;position:relative;touch-action:manipulation}
+.grid>button:nth-child(3n){border-right:0}
+.grid>button.wide{grid-column:span 3;border-right:0}
+.grid>button span{display:inline-block;white-space:nowrap;font:bold 13px/1 "Courier New",Courier,monospace;letter-spacing:.06em;padding:4px 5px 3px;border:1.5px solid currentColor;border-radius:3px;opacity:.82;transform:rotate(var(--r,0deg)) translate(var(--dx,0px),var(--dy,0px));mix-blend-mode:multiply}
+@media (prefers-color-scheme:dark){.grid>button span{mix-blend-mode:normal}}
+.grid>button.plain span{border-color:transparent}
+.grid>button.red{color:var(--red)}
+.grid>button.faint span{opacity:.55}
+.grid>button.bar span{font:12px/1 "Courier New",monospace;border:0;color:var(--fg);background:var(--paper2);padding:5px 10px;box-shadow:0 1px 3px var(--shadow);letter-spacing:0;opacity:1;mix-blend-mode:normal}
+.grid>button.bar i{font-style:normal;letter-spacing:-1px;font-size:15px}
+.grid>button.slip span{font:11.5px/1.2 "Courier New",monospace;border:0;color:var(--fg);background:var(--paper2);padding:5px 9px;box-shadow:0 1px 3px var(--shadow);opacity:1;mix-blend-mode:normal}
+.grid>button.hand span{font:italic 15px/1 Georgia,serif;border:0;color:var(--felt);opacity:1;letter-spacing:0}
+.grid>button.empty{cursor:default}
+.grid>button:focus-visible{outline:2px solid var(--stamp);outline-offset:-2px}
+.grid>button.cur{background:var(--hi)}
+.grid>button.seen::after{content:"";position:absolute;right:4px;top:4px;width:5px;height:5px;border-radius:50%;background:var(--stamp);opacity:.45}
+.grid>button.cur::after{opacity:0}
+.side{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--paper2);border:1px solid var(--rule);padding:12px 14px 12px;min-height:150px;box-shadow:0 12px 28px -24px var(--shadow)}
+.card .when{font:bold 13px "Courier New",monospace;letter-spacing:.06em;color:var(--stamp)}
+.card .when.red{color:var(--red)}
+.card .tk{color:var(--mute);font-size:13px;margin-left:6px}
+.card p{margin:6px 0 0;font-size:15px}
+.card p q{font-style:italic;color:var(--ink)}
+.card p q.pencil{color:var(--pencil)}
+.card p q.felt{color:var(--felt)}
+.card .added{margin-top:8px;font-size:13px;color:var(--mute)}
+.nav{display:flex;gap:8px;align-items:center;margin-top:10px}
+.nav button{font:inherit;font-size:13.5px;color:var(--fg);background:var(--paper);border:1px solid var(--rule);border-radius:999px;padding:3px 12px;cursor:pointer;touch-action:manipulation}
+.nav button:disabled{opacity:.4;cursor:default}
+.nav .pos{color:var(--mute);font-size:13px;margin-left:auto}
+.index{background:var(--paper2);border:1px solid var(--rule);padding:10px 14px 12px}
+.ihead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--rule);padding-bottom:4px;margin-bottom:6px}
+.ihead b{font-weight:normal;letter-spacing:.18em;font-size:12px;text-transform:uppercase}
+.tally{font-size:13px;color:var(--mute)}
+.tally em{font-style:normal;color:var(--fg);font-variant-numeric:tabular-nums}
+ul{list-style:none;margin:0;padding:0;columns:2;column-gap:18px;font-size:13px;line-height:1.5}
+li{break-inside:avoid;display:flex;gap:4px;align-items:baseline;transition:background .8s}
+li .tick{width:1.1em;flex:none;text-align:center;font-weight:bold}
+li .nm{flex:1}
+li .pg{color:var(--mute);font-variant-numeric:oldstyle-nums}
+li .yr{font-size:11.5px;font-style:italic;margin-left:2px}
+li .an{display:block;font-size:11.5px;font-style:italic;line-height:1.3;padding-left:1.4em;margin-top:-1px;flex-basis:100%}
+li{flex-wrap:wrap}
+li.new{background:var(--hi)}
+.pencil{color:var(--pencil)}
+.inkh{color:var(--ink)}
+.felt{color:var(--felt)}
+.key{font-size:12px;color:var(--mute);margin-top:8px}
+.key span{margin-right:10px}
+.foot{color:var(--mute);font-size:13px;font-style:italic;text-align:center;margin:20px 0 0}
+@media (max-width:760px){
+  .wrap{grid-template-columns:1fr}
+  .side{order:2}
+}
+@media (max-width:420px){
+  .grid>button span{font-size:11px;padding:3px 3px 2px;letter-spacing:.02em}
+  ul{columns:1}
+}
+@media (prefers-reduced-motion:reduce){li{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Date Due</h1>
+<div class="sub">The back endpaper of a library book, 1958–2019</div>
+<p class="how">Tap a date to see what the book brought back with it, and what was added in the index. Or read it through in order.</p>
+
+<div class="wrap">
+  <div class="label">
+    <div class="lhead"><b>Hollin Lane Branch Library</b><small>This book is due for return on or before the last date stamped below.<br>Fines are charged on books kept beyond that date.</small></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="side">
+    <div class="card" id="card" aria-live="polite"></div>
+    <div class="index">
+      <div class="ihead"><b>Index (in part)</b><span class="tally">ticked <em id="tally">0</em></span></div>
+      <ul id="idx"></ul>
+      <div class="key"><span class="pencil">✓ pencil</span><span class="inkh">✓ ink</span><span class="felt">✓ felt-tip</span></div>
+    </div>
+  </div>
+</div>
+<p class="foot">Moths of Field and Garden, second impression, 1958. Shelf mark 595.78.</p>
+</main>
+
+<script>
+// Species in the book's index. hand: which group of ticks added it (0 = never ticked).
+const SPECIES = [
+ // name, group, year mark, annotation (shown once ticked)
+ ["Large Yellow Underwing",1,"’62"],["Garden Tiger",1,"’62"],["Heart and Dart",1,"’62"],["Angle Shades",1,"’62"],["Silver Y",1,"’62"],["Magpie",1,"’62"],
+ ["Elephant Hawk-moth",2,"’62","came to the kitchen light"],["Brimstone Moth",2,"’62"],["Swallow-tailed Moth",2,"’62"],
+ ["Buff-tip",3,"’63","looks like a stick"],["Peppered Moth",3,"’63"],["Herald",3,"’63"],["Ruby Tiger",3,"’63"],["Cinnabar",3,"’63"],
+ ["Burnished Brass",4,"’64"],["Mother Shipton",4,"’64","has a face on"],["Privet Hawk-moth",4,"’64","on the gate!!"],["Lime Hawk-moth",4,"’64"],["Old Lady",4,"’64"],["Puss Moth",4,"’64"],
+ ["Dark Arches",5,"allot."],["Blood-vein",5,"allot."],["Common Quaker",5,"Whit Lane"],["Hebrew Character",5,"Whit Lane"],["Clouded Drab",5,"Whit Lane"],
+ ["Setaceous Hebrew Character",6,"bathroom window"],["Green Carpet",6,"bathroom window"],["Lesser Yellow Underwing",6,"’80"],["Scalloped Oak",6,"’80"],
+ ["Merveille du Jour",7,"Oct ’81","worth the wait"],["December Moth",7,"’81"],["Winter Moth",7,"’81"],
+ ["Hummingbird Hawk-moth",8,"’83","IN THE DAY"],["Fox Moth",8,"’83"],["Drinker",8,"’83"],
+ ["Oak Eggar",9,"’84"],["Lappet",9,"’84","(drawing)"],
+ ["Red Underwing",10,"’85"],["Emperor Moth",10,"’85"],["Figure of Eighty",10,"’85"],
+ ["Poplar Hawk-moth",11,"14 June ’86"],
+ ["Cabbage Moth",0],["Early Moth",0],["Yellow Shell",0],["Mottled Umber",0],["Kentish Glory",0],["Death’s-head Hawk-moth",0],["Clifden Nonpareil",0]
+];
+const HAND = g => g===0?"":g<=4?"pencil":g<=7?"inkh":"felt";
+// Notes on the Poplar Hawk-moth that change as the years go
+const POPLAR_NOTES = [[11,"paper strip: next year"],[18,"still no"],[26,"14 June ’86 · on the hospital car park lamp"]];
+
+// Entries on the label, in order. s: stamp text, t: ticket, n: note (HTML), g: tick group added, cls: style
+const E = [
+ {s:"14 MAR 1959",t:"ticket 0412",n:"First issue. The spine is still stiff; the book opens best at the colour plates."},
+ {s:"2 JUN 1959",t:"ticket 1177",n:"Back with a cigarette card at the Garden Tiger plate: a Garden Tiger, number 31 of a set of fifty. It stays in the book from now on."},
+ {s:"19 SEP 1960",t:"ticket 0412",n:"Nothing left in it. A thumbprint in soil on page 88, the Cabbage Moth."},
+ {s:"23 JUN 1962",t:"junior ticket J233",n:"Small pencil ticks start in the index, pressed hard enough to show through to the next page. Six of them, each marked <q class=pencil>’62</q>.",g:1},
+ {s:"7 JUL 1962",t:"J233, renewed",n:"Renewed at the desk. Clipped to the card, a renewal slip in the same pencil: <q class=pencil>please can I keep it longer, the Elephant Hawk has come but the Poplar has not</q>.",g:2},
+ {s:"21 JUL 1962",t:"J233, renewed",n:"Renewed again. Two pence fine on return, paid in two pennies. Someone at the desk has written <q>sticky</q> on the card and underlined it."},
+ {s:"6 APR 1963",t:"ticket 2018",n:"A pressed primrose at page 12, the early moths of spring. Whoever this was ticked nothing."},
+ {s:"15 JUN 1963",t:"J233",n:"The pencil again, five more. Beside the Buff-tip: <q class=pencil>looks like a stick</q>.",g:3},
+ {s:"29 JUN 1963",t:"J233, renewed",n:"On the renewal slip: <q class=pencil>we have a sheet and a lamp now</q>."},
+ {s:"30 MAY 1964",t:"J233",n:"Six more ticks in a week. Beside the Privet Hawk-moth: <q class=pencil>on the gate!!</q>",g:4},
+ {s:"13 JUN 1964",t:"J233, renewed",n:"Renewed. No slip this time; the card says <q>renewed by telephone, mother</q>."},
+ {s:"27 JUN 1964",t:"J233",n:"Returned with the Poplar Hawk-moth plate marked by a strip of paper torn from an exercise book. No tick. On the strip: <q class=pencil>next year</q>."},
+ {s:"11 SEP 1964",t:"J233",n:"The last junior issue. At the front of the ticket file J233 is struck through in red: <q>to adult ticket 2290</q>. Then the ticket is not seen again for fifteen years."},
+ {s:"3 MAR 1968",t:"ticket 3018",n:"A recipe for parkin left at the Winter Moth, written on the back of a gas bill. Treacle, oats, ginger, <q>a slow oven and patience</q>."},
+ {s:"17 AUG 1971",t:"ticket 5520",n:"Underlined in biro under the Cabbage Moth: <q>the larva is a pest of</q>. In the margin, <q>HOW DO YOU GET RID?</q> Somebody has tried to rub it out and only made it shine."},
+ {s:"REBOUND 1974",cls:"red wide plain",n:"Sent away and rebound in green buckram. The old label is lifted and pasted back in, a little crooked. The cigarette card comes back too."},
+ {s:"9 JUN 1979",t:"ticket 2290",n:"2290: the adult ticket J233 became. The ticks are in ink now, and have places: <q>allot.</q>, <q>Whit Lane</q>. Five of them.",g:5},
+ {s:"21 JUN 1980",t:"ticket 2290",n:"Four more. Two say <q>bathroom window</q>. A bus ticket, Whit Lane to the Infirmary, used as a bookmark at the Scalloped Oak.",g:6},
+ {s:"10 OCT 1981",t:"ticket 2290",n:"Three autumn moths. Against the Merveille du Jour: <q>worth the wait</q>. Against the Poplar Hawk-moth, very small, in ink: <q>still no</q>.",g:7},
+ {s:"2 JUL 1983",t:"junior ticket J4471",n:"A new junior ticket, the same address on its card. The ticks are felt-tip, green, large, one per line and sometimes two lines.",g:8},
+ {s:"16 JUL 1983",t:"J4471, renewed",n:"On the renewal slip, a different hand from 1962 and the same request: <q class=felt>please can we keep it longer</q>."},
+ {s:"14 JUL 1984",t:"J4471",n:"Two more in felt-tip. In the margin by the Lappet, a drawing of one, done carefully, and quite good.",g:9},
+ {s:"6 SEP 1985",t:"J4471",n:"Three more. The tick by the Red Underwing goes through the page.",g:10},
+ {s:"28 JUN 1986",t:"J4471",n:"Issued for two weeks. Not returned."},
+ {s:"1st NOTICE",cls:"red",n:"Overdue notice sent, 12 July 1986. No reply."},
+ {s:"2nd NOTICE",cls:"red",n:"Second notice, 9 August 1986. No reply."},
+ {s:"RETURNED 17 MAR 1987",cls:"red wide",t:"J4471",n:"Brought back to the desk with the whole fine counted out, £1.84 in coins. One tick added, felt-tip, against the Poplar Hawk-moth: <q class=felt>14 June ’86, on the hospital car park lamp</q>. Folded in the pocket, in a grown-up hand: <q>Sorry this is so late. It came into hospital with us and she liked the names read out. Nobody wanted to be the one to bring it back.</q>",g:11},
+ {s:"1 OCT 1990",t:"ticket 6631",n:"A school project. A photocopy slip: plates 3, 4 and 9, thirty pence. Someone has written <q>boring</q> on the slip, then crossed it out."},
+ {s:"<i>▌▍▌▌▍▍▌▍▌</i> 31205 00418 27",cls:"bar wide",n:"1994. The library goes onto the computer. A barcode is stuck over the last ruled lines; there will be no more stamps."},
+ {s:"DUE 12/05/08",cls:"slip",n:"A printed receipt, left at page 1. <q>Items borrowed today: 1. You have saved £7.99 by using your library.</q> Nothing ticked."},
+ {s:"WITHDRAWN",cls:"red",n:"2019. Withdrawn from stock. Pencilled inside the front cover, in the library’s hand: <q>20p</q>."},
+ {s:"Forty-one.",cls:"hand wide",n:"On the flyleaf, in a hand that has grown out of felt-tip: <q class=felt>Bought back at the Hollin Lane book sale, 2019. Forty-one, and the Poplar. I still read her the names.</q>"}
+];
+// Hand-placed wobble so stamps don't sit square
+function rnd(i){let x=Math.sin(i*91.7+3.1)*43758.5;return x-Math.floor(x)}
+
+const grid=document.getElementById('grid'),card=document.getElementById('card'),idx=document.getElementById('idx'),tally=document.getElementById('tally');
+let cur=-1;const seen=new Set();
+
+// lay out: fill 3-wide rows; wide ones start a fresh row
+const btns=[];let col=0;
+function pad(){while(col%3!==0){const b=document.createElement('button');b.className='empty';b.tabIndex=-1;b.setAttribute('aria-hidden','true');grid.appendChild(b);col++}}
+E.forEach((e,i)=>{
+  const wide=(e.cls||'').includes('wide');
+  if(wide)pad();
+  const b=document.createElement('button');
+  b.className=e.cls||'';
+  const sp=document.createElement('span');sp.innerHTML=e.s;
+  sp.style.setProperty('--r',((rnd(i)-.5)*(e.cls&&e.cls.includes('bar')?2:7)).toFixed(1)+'deg');
+  sp.style.setProperty('--dx',((rnd(i+40)-.5)*6).toFixed(1)+'px');
+  sp.style.setProperty('--dy',((rnd(i+80)-.5)*4).toFixed(1)+'px');
+  if(!e.cls&&rnd(i+7)<.3)b.classList.add('faint');
+  b.appendChild(sp);
+  b.setAttribute('aria-label',(e.s.replace(/<[^>]+>/g,''))+(e.t?', '+e.t:''));
+  b.onclick=()=>go(i);
+  grid.appendChild(b);btns.push(b);
+  col+=wide?3:1;
+});
+pad();
+
+// index: alphabetical with made-up pages
+const sorted=SPECIES.map((s,i)=>({name:s[0],g:s[1],yr:s[2]||'',an:s[3]||'',pg:12+Math.floor(rnd(i+200)*170)})).sort((a,b)=>a.name.localeCompare(b.name));
+const lis=sorted.map(s=>{
+  const li=document.createElement('li');
+  li.innerHTML=`<span class="tick"></span><span class="nm">${s.name}</span><span class="pg">${s.pg}</span><span class="an"></span>`;
+  idx.appendChild(li);return {li,s};
+});
+
+function groupAt(i){let g=0;for(let k=0;k<=i;k++)if(E[k].g)g=E[k].g;return g}
+function render(prevG){
+  const g=cur<0?0:groupAt(cur);
+  let n=0;
+  lis.forEach(({li,s})=>{
+    const t=li.querySelector('.tick'),an=li.querySelector('.an');
+    const on=s.g>0&&s.g<=g;
+    li.classList.toggle('new',on&&cur>=0&&E[cur].g===s.g);
+    t.textContent=on?'✓':'';t.className='tick '+(on?HAND(s.g):'');
+    let a='',ah='';
+    if(on){n++;a=s.yr+(s.an?' · '+s.an:'');ah=HAND(s.g)}
+    if(s.name==='Poplar Hawk-moth'){
+      for(const [at,txt] of POPLAR_NOTES)if(cur>=at){a=txt;ah=at>=26?'felt':at>=18?'inkh':'pencil'}
+    }
+    an.textContent=a;an.className='an '+ah;an.style.display=a?'':'none';
+  });
+  tally.textContent=n;
+  btns.forEach((b,k)=>{b.classList.toggle('cur',k===cur);b.classList.toggle('seen',seen.has(k))});
+  if(cur<0){
+    card.innerHTML=`<p>Thirty-two marks on the label and the papers stuck over it. Begin at the first, or tap any date.</p><div class="nav"><button id="nx">Begin</button></div>`;
+  }else{
+    const e=E[cur];
+    const nm=e.s.replace(/<i>.*<\/i>\s*/,'barcode ').replace(/<[^>]+>/g,'');
+    const red=(e.cls||'').includes('red');
+    let added='';
+    if(e.g){const c=SPECIES.filter(s=>s[1]===e.g).length;added=`<div class="added">${c} tick${c>1?'s':''} added in the index.</div>`}
+    card.innerHTML=`<span class="when${red?' red':''}">${nm}</span>${e.t?`<span class="tk">${e.t}</span>`:''}<p>${e.n}</p>${added}<div class="nav"><button id="pv" ${cur===0?'disabled':''}>← earlier</button><button id="nx" ${cur===E.length-1?'disabled':''}>later →</button><span class="pos">${cur+1} / ${E.length}</span></div>`;
+  }
+  const pv=document.getElementById('pv'),nx=document.getElementById('nx');
+  if(pv)pv.onclick=()=>go(cur-1);
+  if(nx)nx.onclick=()=>go(cur+1);
+}
+function go(i){
+  if(i<0||i>=E.length)return;
+  const prevG=cur<0?0:groupAt(cur);
+  cur=i;seen.add(i);render(prevG);
+  if(matchMedia('(max-width:760px)').matches&&document.activeElement&&document.activeElement.closest('.grid'))card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'&&e.altKey){go(cur+1)}
+  else if(e.key==='ArrowLeft'){go(cur-1)}
+});
+render(0);
+</script>
+</body>
+</html>

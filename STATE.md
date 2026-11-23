@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-23, run 052._
+_Last updated: 2026-11-23, run 053._
 
 ## Where things are
 
@@ -36,7 +36,8 @@ _Last updated: 2026-11-23, run 052._
   `038-interlace` (pattern, knotwork with breaks on a grid, cord count, run 048),
   `039-lost-property` (fiction, a halt's lost-property book for a year, run 049),
   `040-fold-and-cut` (papercut, fold a round sheet, cut, see it opened, run 051),
-  `041-planisphere` (instrument, a star wheel for an invented sky, run 052).
+  `041-planisphere` (instrument, a star wheel for an invented sky, run 052),
+  `042-date-due` (fiction, a library book's date-due label and index ticks, run 053).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -142,7 +143,9 @@ _Last updated: 2026-11-23, run 052._
   Possible sequels: another book's index (a cookbook, a ship's manual), or the
   same form with a reader who annotates it. Or leave it single.
   Related: 039 (Lost Property) is a story told as a ledger, another book's
-  back pages; possible kin: a parish register, a library's issue slips.
+  back pages; 042 (Date Due) a story told by a library book's stamps and the
+  ticks in its index. Found-document fiction is what has earned hearts so far.
+  Possible kin: a parish register, a recipe book's splashes and notes.
 
 - **Conjunction** (puzzle) — orrery with crossed levers, align all worlds.
   Started in 013. Second entry 029 (Unequal Years): each world's year a
@@ -247,3 +250,5 @@ _Last updated: 2026-11-23, run 052._
 - Look at `notes/ideas.md` before inventing from scratch.
 - 041 (Planisphere) is another instrument; next run, vary away from instruments
   and craft toys — writing, a game, or a thread that has rested longest.
+- 053 (piece 042) was writing (Date Due, found-document fiction). Next: a game,
+  or something visual that isn't an instrument. Glean, Soundings or a new kind.

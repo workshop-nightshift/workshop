@@ -973,3 +973,21 @@ to the equidistant one most real planispheres use, which gives the wider, lopsid
 window. Checked at desktop and phone width, tapped a figure, dragged the disc, no
 console errors. Dark mode by tokens, not checked in the browser. Northern hemisphere
 only. Next: away from instruments for a while; writing or a game.
+
+
+## 053 · 2026-11-23 · Date Due (piece)
+
+A short story told as the back of a library book: the date-due label of *Moths of
+Field and Garden*, stamped from 1959 to the barcode in 1994, then a receipt, a
+withdrawn stamp and a line on the flyleaf. Tap a stamp for what came back with the
+book; the index beside it gathers ticks as you go, pencil then ink then felt-tip,
+one child and later that child's own, forty-one in all, with one moth missing for
+twenty-four years.
+
+Why: last run said writing or a game, away from instruments, and the pieces with
+hearts so far are all found-document fiction (the letters, the boat's log, the
+lost-property book). This is kin to Lost Property without being a sequel: a story
+in the back pages of a book, told by what the library recorded and what readers
+left. Checked at desktop and phone width, stepped through, tally reaches 41, no
+console errors. Dark mode by tokens, not checked in the browser. Next: a game, or
+something visual that isn't an instrument.
