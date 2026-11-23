@@ -74,7 +74,8 @@ html{scroll-behavior:smooth}
 .sort button[aria-pressed=true]{color:var(--fg);text-decoration:none}
 .shelf li{display:flex;align-items:flex-start}
 .shelf li>a{flex:1;min-width:0}
-.heart{font:13px/1.9 ui-monospace,Menlo,monospace;color:var(--mute);background:none;border:0;padding:16px 0 16px 14px;cursor:pointer;white-space:nowrap;min-width:3.2em;text-align:right}
+.heart{font:14px/1 ui-monospace,Menlo,monospace;color:var(--mute);background:none;border:0;padding:14px 0 14px 16px;cursor:pointer;white-space:nowrap;min-width:3.6em;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.heart .g{font-size:22px;line-height:1}
 .heart:hover,.heart[aria-pressed=true]{color:var(--accent)}
 `;
 
@@ -93,7 +94,7 @@ window.nsHit=hit;hit(location.pathname,document.title);})();</script>`;
 const heartsJs = `<script>(()=>{let mine={};try{mine=JSON.parse(localStorage.getItem("ns-hearts")||"{}")||{}}catch(e){}
 const save=()=>{try{localStorage.setItem("ns-hearts",JSON.stringify(mine))}catch(e){}};
 const n=b=>{const id=b.dataset.heart,base=+b.dataset.count||0;return id in mine?Math.max(base,mine[id]):base};
-const show=b=>{const on=b.dataset.heart in mine,c=n(b);b.textContent=(on?"♥":"♡")+(c?" "+c:"");b.setAttribute("aria-pressed",on);
+const show=b=>{const on=b.dataset.heart in mine,c=n(b);b.innerHTML='<span class="g" aria-hidden="true">'+(on?"♥":"♡")+"</span>"+(c?'<span class="c">'+c+"</span>":"");b.setAttribute("aria-pressed",on);
 b.setAttribute("aria-label",on?"You hearted this ("+c+")":"Heart this piece"+(c?" ("+c+")":""));b.closest("li")?.style.setProperty("--n",c)};
 [document,document.getElementById("ns-pill")?.shadowRoot].filter(Boolean).flatMap(r=>[...r.querySelectorAll("[data-heart]")]).forEach(b=>{show(b);b.addEventListener("click",e=>{e.preventDefault();const id=b.dataset.heart;
 if(id in mine)return;mine[id]=(+b.dataset.count||0)+1;save();window.nsHit&&nsHit("heart-"+id,"♥ "+(b.dataset.title||id),true);show(b);
@@ -149,8 +150,8 @@ await writeFile(join(dist, "hearts.json"), JSON.stringify({ built: new Date().to
 // "pill": false leaves it out (the counter stays).
 for (const p of pieces) {
   const f = join(dist, "pieces", p.id, "index.html");
-  const pillHtml = `<style>:host{all:initial}div{position:fixed;${p.pill === "top" ? "right:10px;top:10px" : "left:10px;bottom:10px"};z-index:2147483000;display:flex;align-items:center;font:12px/1 ui-monospace,Menlo,monospace;background:#f6f3ecee;color:#6f6a60;border:1px solid #d9d3c6;border-radius:99px;padding:0 2px;box-shadow:0 1px 4px #0002}
-a,button{font:inherit;color:inherit;background:none;border:0;padding:8px 9px;cursor:pointer;text-decoration:none}a:hover,button:hover,button[aria-pressed=true]{color:#b4472b}
+  const pillHtml = `<style>:host{all:initial}div{position:fixed;${p.pill === "top" ? "right:max(14px,calc(env(safe-area-inset-right) + 10px));top:max(14px,calc(env(safe-area-inset-top) + 10px))" : "left:max(16px,calc(env(safe-area-inset-left) + 12px));bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px))"};z-index:2147483000;display:flex;align-items:center;font:13px/1 ui-monospace,Menlo,monospace;background:#f6f3ecee;color:#6f6a60;border:1px solid #d9d3c6;border-radius:99px;padding:0 2px;box-shadow:0 1px 4px #0002}
+a,button{font:inherit;color:inherit;background:none;border:0;padding:10px 12px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px}.g{font-size:19px;line-height:1}a:hover,button:hover,button[aria-pressed=true]{color:#b4472b}
 @media (prefers-color-scheme:dark){div{background:#121315ee;color:#9a958b;border-color:#2b2c30}a:hover,button:hover,button[aria-pressed=true]{color:#e58a63}}
 @media print{div{display:none}}</style><div><a href="../../" aria-label="Back to the shelf">← shelf</a><button data-heart="${esc(p.id)}" data-count="${p.hearts}" data-title="${esc(p.title)}"></button></div>`;
   const pill = p.pill === false ? "" : `<script>(()=>{const h=document.createElement("div");h.id="ns-pill";h.attachShadow({mode:"open"}).innerHTML=${JSON.stringify(pillHtml).replace(/</g, "\\u003c")};document.body.appendChild(h)})();</script>${heartsJs}`;
@@ -159,7 +160,7 @@ a,button{font:inherit;color:inherit;background:none;border:0;padding:8px 9px;cur
   // "← shelf" link in varying places; drop it (and a " · " joining it to a caption)
   // from the published copy. The source files keep theirs.
   if (p.pill !== false) html = html.replace(/(\s*·\s*)?<a href="\.\.\/\.\.\/"[^>]*>←[^<]*<\/a>(\s*·\s*)?/g, (m, a, b) => (a && b ? " · " : ""));
-  const add = counter + pill + (p.pill === false || p.pill === "top" ? "" : `<div aria-hidden="true" style="height:52px"></div>`);
+  const add = counter + pill + (p.pill === false || p.pill === "top" ? "" : `<div aria-hidden="true" style="height:72px"></div>`);
   await writeFile(f, /<\/body>/i.test(html) ? html.replace(/<\/body>(?![\s\S]*<\/body>)/i, add + "</body>") : html + add);
 }
 
