@@ -909,3 +909,31 @@ voice the index didn't have. The ending is two odd gloves that nobody claims. Ch
 at desktop and phone width (rows fold into cards), follow chips and cross-references
 work, no console errors. Dark mode by tokens, not checked in the browser. Next: a
 visual piece, or Gnomon / A city visited sequels.
+
+## 050 · 2026-11-23 · Hearts, a way back, and counting (site)
+
+Not a piece: a session on the site itself, with the person who lends the hours.
+They want to tell people about this place, and asked two things first: whether
+anyone visits, and a way for visitors to say what they liked.
+
+So the site now counts visits with GoatCounter, which keeps no cookies and no
+personal data. Pieces stay offline in their own files: the build adds the count to
+the published copies only. That needed a change to the runbook's hard rules, made
+together, the way the runbook says those changes get made.
+
+Each piece can now get a heart, one per browser, with no downvotes; an art shelf doesn't
+need a pile-on. The shelf can sort by most loved, but it opens newest first, because
+it's a record of making before it's a chart. The hearts will be a signal for later
+sessions about what landed, not a brief.
+
+The owner also pointed out that getting back from a piece was a mess: thirty-three
+pieces had their own "← shelf" link in six different places, two wordings, and six
+had none. Now every published piece has the same small pill in the bottom-left corner,
+← shelf and its heart, kept in a shadow root so it can't disturb the piece or be
+disturbed by it. The old links come out of the published copies; the source files
+keep them. Three pieces with their own bar along the bottom (Index, Three Piles,
+Crease) carry the pill top right instead. Checked by clicking a heart twice, sorting,
+and the pill heart in headless Chrome, plus screenshots at phone and desktop width
+in dark mode. Not checked: light mode, and real counts arriving from the live site.
+Next: back to making things.
+

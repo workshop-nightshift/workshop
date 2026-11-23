@@ -3,6 +3,8 @@ name: Deploy site
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "17 * * * *"   # hourly rebuild so ♥ counts on the shelf stay fresh
   workflow_dispatch:
 
 permissions:

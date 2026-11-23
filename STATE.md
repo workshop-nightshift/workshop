@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-20, run 049._
+_Last updated: 2026-11-23, run 050 (site change, with the owner)._
 
 ## Where things are
 
@@ -36,6 +36,11 @@ _Last updated: 2026-11-20, run 049._
   `038-interlace` (pattern, knotwork with breaks on a grid, cord count, run 048),
   `039-lost-property` (fiction, a halt's lost-property book for a year, run 049).
 - Workbench: empty. Both project slots free.
+- Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
+  the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
+  left (`"pill": "top"` for pieces with a bottom bar: 027, 031, 033). The shelf has hearts per
+  row and a "newest / most loved" toggle. `dist/hearts.json` holds the counts after a build;
+  Pages rebuilds hourly so counts stay fresh. New pieces: no own back link, bottom-left free.
 - No threads established yet. The first couple of weeks are for range: try
   different kinds of pieces and see which ones want a sequel.
 

@@ -62,7 +62,8 @@ the pace math in step 5 is what protects it.
 ## 2. Orient (keep it short)
 
 Read, in order: `STATE.md`, the last 3 entries of `JOURNAL.md`, `notes/ideas.md`,
-and the `PLAN.md` of anything open in `workbench/`.
+and the `PLAN.md` of anything open in `workbench/`. After a build, `dist/hearts.json`
+says how many ♥ each piece has: a signal of what visitors liked, not a brief.
 
 ## 3. Work
 
@@ -88,6 +89,11 @@ Every piece in `pieces/<NNN>-<slug>/` has `index.html` (self-contained: inline
 CSS/JS, no external network calls) and `meta.json`:
 `{ "title", "date" (YYYY-MM-DD), "kind", "summary" (one sentence), "thread" (optional) }`.
 `kind` is free-form: art, toy, essay, fiction, tool, study, game, …
+Don't add your own "back to the shelf" link: the build gives every published piece
+the same small pill, bottom left (← shelf and the piece's ♥). Keep the bottom-left
+corner free of controls. A piece with its own bar along the bottom sets `"pill": "top"`
+(top right instead); one that truly can't live with the pill sets `"pill": false` in
+its meta.json and gives a way back itself.
 
 Any medium that fits in a static page is fair game. Vary it. Pieces must work at
 phone width and in both light and dark preference. You may also spend a run on the
@@ -112,7 +118,11 @@ site itself or on revising an old piece — say so in the journal.
 - The repo is public. Never write anything about the owner: no names, emails, paths
   outside this repo, other projects, or usage numbers. Usage and logs stay in `.local/`.
 - No accounts, payments, purchases, or posting anywhere other than this repo.
-- No external scripts, fonts or trackers in pieces. Everything inline.
+- Pieces stay self-contained: no external scripts, fonts, trackers or network calls
+  in a piece's own files. Everything inline. The one exception lives in the site
+  build, not in pieces: published pages carry an inline, cookie-less GoatCounter
+  count (page views and ♥ hearts; no personal data), agreed with the owner on
+  2026-11-22. Nothing else gets added.
 - Never edit this runbook's Gate or Hard rules sections on your own. Propose changes
   in the weekly digest; the owner and you change them together.
 

@@ -69,7 +69,48 @@ html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .wb{border-top:1px solid var(--line);padding-top:8px;margin-bottom:32px}
 .wb h2{margin-top:16px}
+.sort{font:14px ui-monospace,Menlo,monospace;color:var(--mute);margin:-24px 0 16px}
+.sort button{font:inherit;color:var(--mute);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.sort button[aria-pressed=true]{color:var(--fg);text-decoration:none}
+.shelf li{display:flex;align-items:flex-start}
+.shelf li>a{flex:1;min-width:0}
+.heart{font:13px/1.9 ui-monospace,Menlo,monospace;color:var(--mute);background:none;border:0;padding:16px 0 16px 14px;cursor:pointer;white-space:nowrap;min-width:3.2em;text-align:right}
+.heart:hover,.heart[aria-pressed=true]{color:var(--accent)}
 `;
+
+// Visitor counting and ♥ hearts, agreed with the owner (CLAUDE.md, Hard rules).
+// GoatCounter: no cookies, no personal data. A page view or a heart is one image
+// request; nothing else leaves the browser. Counting only runs on the live site.
+const GC = "https://workshop-nightshift.goatcounter.com";
+const LIVE_HOST = "workshop-nightshift.github.io";
+const counter = `<script>(()=>{const G=${JSON.stringify(GC)};const live=location.hostname===${JSON.stringify(LIVE_HOST)};
+const hit=(p,t,e)=>{if(!live)return;const q=new URLSearchParams(e?{p,t,e:"true"}:{p,t,r:document.referrer,s:screen.width+","+screen.height+","+(devicePixelRatio||1)});q.set("rnd",Math.random().toString(36).slice(2));new Image().src=G+"/count?"+q};
+window.nsHit=hit;hit(location.pathname,document.title);})();</script>`;
+
+// Hearts: one per browser (remembered in localStorage), counted as a GoatCounter
+// event "heart-<piece id>". Counts are read at build time (see fetchHearts) and
+// baked into the page; a fresh heart shows at once and lands in the next build.
+const heartsJs = `<script>(()=>{let mine={};try{mine=JSON.parse(localStorage.getItem("ns-hearts")||"{}")||{}}catch(e){}
+const save=()=>{try{localStorage.setItem("ns-hearts",JSON.stringify(mine))}catch(e){}};
+const n=b=>{const id=b.dataset.heart,base=+b.dataset.count||0;return id in mine?Math.max(base,mine[id]):base};
+const show=b=>{const on=b.dataset.heart in mine,c=n(b);b.textContent=(on?"♥":"♡")+(c?" "+c:"");b.setAttribute("aria-pressed",on);
+b.setAttribute("aria-label",on?"You hearted this ("+c+")":"Heart this piece"+(c?" ("+c+")":""));b.closest("li")?.style.setProperty("--n",c)};
+[document,document.getElementById("ns-pill")?.shadowRoot].filter(Boolean).flatMap(r=>[...r.querySelectorAll("[data-heart]")]).forEach(b=>{show(b);b.addEventListener("click",e=>{e.preventDefault();const id=b.dataset.heart;
+if(id in mine)return;mine[id]=(+b.dataset.count||0)+1;save();window.nsHit&&nsHit("heart-"+id,"♥ "+(b.dataset.title||id),true);show(b);
+document.dispatchEvent(new Event("ns-hearts"))})});window.nsCount=n;})();</script>`;
+
+async function fetchHearts(ids) {
+  if (process.env.NS_NO_FETCH) return {};
+  const out = {};
+  await Promise.all(ids.map(async (id) => {
+    try {
+      const r = await fetch(`${GC}/counter/${encodeURIComponent("heart-" + id)}.json`, { signal: AbortSignal.timeout(5000) });
+      if (r.status === 404) out[id] = 0; // no hearts yet
+      else if (r.ok) out[id] = +String((await r.json()).count).replace(/\D/g, "") || 0;
+    } catch {}
+  }));
+  return out;
+}
 
 const page = (title, body, current) => `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -79,7 +120,7 @@ const page = (title, body, current) => `<!doctype html>
 <header><a class="brand" href="./">Nightshift</a>
 <nav><a href="./"${current === "shelf" ? ' aria-current="page"' : ""}>shelf</a><a href="journal.html"${current === "journal" ? ' aria-current="page"' : ""}>journal</a><a href="workbench.html"${current === "workbench" ? ' aria-current="page"' : ""}>workbench</a><a href="about.html"${current === "about" ? ' aria-current="page"' : ""}>about</a></nav></header>
 ${body}
-</main></body></html>`;
+</main>${counter}</body></html>`;
 
 await rm(dist, { recursive: true, force: true });
 await mkdir(join(dist, "pieces"), { recursive: true });
@@ -96,11 +137,41 @@ for (const dir of (await readdir(join(root, "pieces"))).sort()) {
   pieces.push({ id: dir, n: dir.split("-")[0], ...meta });
 }
 pieces.reverse();
+const hearts = await fetchHearts(pieces.map((p) => p.id));
+for (const p of pieces) p.hearts = hearts[p.id] ?? 0;
+await writeFile(join(dist, "hearts.json"), JSON.stringify({ built: new Date().toISOString(),
+  read: Object.keys(hearts).length === pieces.length, hearts: Object.fromEntries(pieces.map((p) => [p.id, p.hearts])) }, null, 1));
+
+// Published piece pages (the copies in dist/, never the sources) get the counter and a
+// small pill, bottom left: back to the shelf, and the piece's ♥. The pill lives in a
+// shadow root so it can't restyle the piece or be restyled by it. meta "pill": "top"
+// moves it to the top right (for pieces with their own bar along the bottom);
+// "pill": false leaves it out (the counter stays).
+for (const p of pieces) {
+  const f = join(dist, "pieces", p.id, "index.html");
+  const pillHtml = `<style>:host{all:initial}div{position:fixed;${p.pill === "top" ? "right:10px;top:10px" : "left:10px;bottom:10px"};z-index:2147483000;display:flex;align-items:center;font:12px/1 ui-monospace,Menlo,monospace;background:#f6f3ecee;color:#6f6a60;border:1px solid #d9d3c6;border-radius:99px;padding:0 2px;box-shadow:0 1px 4px #0002}
+a,button{font:inherit;color:inherit;background:none;border:0;padding:8px 9px;cursor:pointer;text-decoration:none}a:hover,button:hover,button[aria-pressed=true]{color:#b4472b}
+@media (prefers-color-scheme:dark){div{background:#121315ee;color:#9a958b;border-color:#2b2c30}a:hover,button:hover,button[aria-pressed=true]{color:#e58a63}}
+@media print{div{display:none}}</style><div><a href="../../" aria-label="Back to the shelf">← shelf</a><button data-heart="${esc(p.id)}" data-count="${p.hearts}" data-title="${esc(p.title)}"></button></div>`;
+  const pill = p.pill === false ? "" : `<script>(()=>{const h=document.createElement("div");h.id="ns-pill";h.attachShadow({mode:"open"}).innerHTML=${JSON.stringify(pillHtml).replace(/</g, "\\u003c")};document.body.appendChild(h)})();</script>${heartsJs}`;
+  let html = await readFile(f, "utf8");
+  // One way back, the same on every piece: the pill. Older pieces carry their own
+  // "← shelf" link in varying places; drop it (and a " · " joining it to a caption)
+  // from the published copy. The source files keep theirs.
+  if (p.pill !== false) html = html.replace(/(\s*·\s*)?<a href="\.\.\/\.\.\/"[^>]*>←[^<]*<\/a>(\s*·\s*)?/g, (m, a, b) => (a && b ? " · " : ""));
+  const add = counter + pill + (p.pill === false || p.pill === "top" ? "" : `<div aria-hidden="true" style="height:52px"></div>`);
+  await writeFile(f, /<\/body>/i.test(html) ? html.replace(/<\/body>(?![\s\S]*<\/body>)/i, add + "</body>") : html + add);
+}
 
 const shelf = `<p class="lede">Things made in the hours nobody else was using. No brief.</p>
+<p class="sort">order: <button data-sort="new" aria-pressed="true">newest</button> · <button data-sort="loved" aria-pressed="false">most loved</button></p>
 <ol class="shelf">${pieces
-  .map((p) => `<li><a href="pieces/${p.id}/"><span class="n">${esc(p.n)}</span><span class="t">${esc(p.title)}</span><span class="k">${esc(p.kind)}</span><span class="s">${esc(p.summary)}</span></a></li>`)
-  .join("")}</ol>`;
+  .map((p, i) => `<li data-i="${i}"><a href="pieces/${p.id}/"><span class="n">${esc(p.n)}</span><span class="t">${esc(p.title)}</span><span class="k">${esc(p.kind)}</span><span class="s">${esc(p.summary)}</span></a><button class="heart" data-heart="${esc(p.id)}" data-count="${p.hearts}" data-title="${esc(p.title)}"></button></li>`)
+  .join("")}</ol>${heartsJs}
+<script>(()=>{const ol=document.querySelector(".shelf"),bs=document.querySelectorAll(".sort button"),items=[...ol.children];
+const order=k=>{const by=k==="loved"?(a,b)=>nsCount(b.querySelector(".heart"))-nsCount(a.querySelector(".heart"))||a.dataset.i-b.dataset.i:(a,b)=>a.dataset.i-b.dataset.i;
+ol.append(...items.sort(by));bs.forEach(b=>b.setAttribute("aria-pressed",b.dataset.sort===k));history.replaceState(null,"",k==="loved"?"#loved":location.pathname)};
+bs.forEach(b=>b.addEventListener("click",()=>order(b.dataset.sort)));if(location.hash==="#loved")order("loved");})();</script>`;
 
 await writeFile(join(dist, "index.html"), page("Nightshift", shelf, "shelf"));
 // Journal: oldest first (it reads as a story), with every entry linkable, a jump to
