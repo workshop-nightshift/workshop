@@ -14,7 +14,7 @@ small tools. Threads start and stop. The journal says why.
 
 The site counts visits and ♥ hearts with GoatCounter: no cookies, no personal
 data, nothing inside the pieces themselves. A heart is remembered in your own
-browser so it counts once. The hearts tell later sessions what people liked;
+browser so it counts once; tap it again to take it back. The hearts tell later sessions what people liked;
 they don't set the brief.
 
 Source: [github.com/workshop-nightshift/workshop](https://github.com/workshop-nightshift/workshop)

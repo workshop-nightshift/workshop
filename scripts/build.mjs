@@ -88,27 +88,32 @@ const counter = `<script>(()=>{const G=${JSON.stringify(GC)};const live=location
 const hit=(p,t,e)=>{if(!live)return;const q=new URLSearchParams(e?{p,t,e:"true"}:{p,t,r:document.referrer,s:screen.width+","+screen.height+","+(devicePixelRatio||1)});q.set("rnd",Math.random().toString(36).slice(2));new Image().src=G+"/count?"+q};
 window.nsHit=hit;hit(location.pathname,document.title);})();</script>`;
 
-// Hearts: one per browser (remembered in localStorage), counted as a GoatCounter
-// event "heart-<piece id>". Counts are read at build time (see fetchHearts) and
-// baked into the page; a fresh heart shows at once and lands in the next build.
-const heartsJs = `<script>(()=>{let mine={};try{mine=JSON.parse(localStorage.getItem("ns-hearts")||"{}")||{}}catch(e){}
-const save=()=>{try{localStorage.setItem("ns-hearts",JSON.stringify(mine))}catch(e){}};
-const n=b=>{const id=b.dataset.heart,base=+b.dataset.count||0;return id in mine?Math.max(base,mine[id]):base};
-const show=b=>{const on=b.dataset.heart in mine,c=n(b);b.innerHTML='<span class="g" aria-hidden="true">'+(on?"♥":"♡")+"</span>"+(c?'<span class="c">'+c+"</span>":"");b.setAttribute("aria-pressed",on);
-b.setAttribute("aria-label",on?"You hearted this ("+c+")":"Heart this piece"+(c?" ("+c+")":""));b.closest("li")?.style.setProperty("--n",c)};
-[document,document.getElementById("ns-pill")?.shadowRoot].filter(Boolean).flatMap(r=>[...r.querySelectorAll("[data-heart]")]).forEach(b=>{show(b);b.addEventListener("click",e=>{e.preventDefault();const id=b.dataset.heart;
-if(id in mine)return;mine[id]=(+b.dataset.count||0)+1;save();window.nsHit&&nsHit("heart-"+id,"♥ "+(b.dataset.title||id),true);show(b);
-document.dispatchEvent(new Event("ns-hearts"))})});window.nsCount=n;})();</script>`;
+// Hearts: one per browser (remembered in localStorage), counted as GoatCounter
+// events "heart-<piece id>"; taking a heart back sends "unheart-<piece id>".
+// Counting can't go down, so the shown number is hearts minus unhearts, read at
+// build time (fetchHearts) and baked into the page. A tap shows at once and lands
+// in the next build; localStorage keeps the number this browser last showed.
+const heartsJs = `<script>(()=>{let st={on:{},off:{}};try{const v=JSON.parse(localStorage.getItem("ns-hearts")||"{}")||{};st=v.on?{on:v.on,off:v.off||{}}:{on:v,off:{}}}catch(e){}
+const save=()=>{try{localStorage.setItem("ns-hearts",JSON.stringify(st))}catch(e){}};
+const n=b=>{const id=b.dataset.heart,base=+b.dataset.count||0;return id in st.on?Math.max(base,st.on[id]):id in st.off?Math.min(base,st.off[id]):base};
+const show=b=>{const on=b.dataset.heart in st.on,c=n(b);b.innerHTML='<span class="g" aria-hidden="true">'+(on?"♥":"♡")+"</span>"+(c?'<span class="c">'+c+"</span>":"");b.setAttribute("aria-pressed",on);
+b.setAttribute("aria-label",on?"Take back your heart ("+c+")":"Heart this piece"+(c?" ("+c+")":""));b.title=on?"Tap again to take your heart back":""};
+[document,document.getElementById("ns-pill")?.shadowRoot].filter(Boolean).flatMap(r=>[...r.querySelectorAll("[data-heart]")]).forEach(b=>{show(b);b.addEventListener("click",e=>{e.preventDefault();const id=b.dataset.heart,c=n(b),t=b.dataset.title||id;
+if(id in st.on){delete st.on[id];st.off[id]=Math.max(0,c-1);window.nsHit&&nsHit("unheart-"+id,"♡ "+t,true)}
+else{delete st.off[id];st.on[id]=c+1;window.nsHit&&nsHit("heart-"+id,"♥ "+t,true)}
+save();show(b);document.dispatchEvent(new Event("ns-hearts"))})});window.nsCount=n;})();</script>`;
 
 async function fetchHearts(ids) {
   if (process.env.NS_NO_FETCH) return {};
+  const get = async (path) => {
+    const r = await fetch(`${GC}/counter/${encodeURIComponent(path)}.json`, { signal: AbortSignal.timeout(5000) });
+    if (r.status === 404) return 0; // none yet
+    if (!r.ok) throw new Error(r.status);
+    return +String((await r.json()).count).replace(/\D/g, "") || 0;
+  };
   const out = {};
   await Promise.all(ids.map(async (id) => {
-    try {
-      const r = await fetch(`${GC}/counter/${encodeURIComponent("heart-" + id)}.json`, { signal: AbortSignal.timeout(5000) });
-      if (r.status === 404) out[id] = 0; // no hearts yet
-      else if (r.ok) out[id] = +String((await r.json()).count).replace(/\D/g, "") || 0;
-    } catch {}
+    try { out[id] = Math.max(0, (await get("heart-" + id)) - (await get("unheart-" + id))); } catch {}
   }));
   return out;
 }
