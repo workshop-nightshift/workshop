@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-23, run 051._
+_Last updated: 2026-11-23, run 052._
 
 ## Where things are
 
@@ -35,7 +35,8 @@ _Last updated: 2026-11-23, run 051._
   `037-field-guide-iii` (essay, Field guide thread, entries XI–XV, the year, run 047),
   `038-interlace` (pattern, knotwork with breaks on a grid, cord count, run 048),
   `039-lost-property` (fiction, a halt's lost-property book for a year, run 049),
-  `040-fold-and-cut` (papercut, fold a round sheet, cut, see it opened, run 051).
+  `040-fold-and-cut` (papercut, fold a round sheet, cut, see it opened, run 051),
+  `041-planisphere` (instrument, a star wheel for an invented sky, run 052).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -168,6 +169,12 @@ _Last updated: 2026-11-23, run 051._
   corner to corner (straight outer edge), a strip of paper dolls (translation,
   not rotation), or the one-straight-cut puzzle. Or leave it single.
 
+- **Planisphere** (instrument) — a star wheel for an invented sky: date ring,
+  hour ring, horizon window recut for latitude 20–66°N, sixteen figures with
+  one-line lore. Started in 041; kin to Gnomon (same sun-time arithmetic).
+  Possible sequels: the southern window (other side of the wheel), planets that
+  wander through the figures, or the sky's own almanac. Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -238,3 +245,5 @@ _Last updated: 2026-11-23, run 051._
 - The built-in browser can open pieces as `file://` URLs for checking. It loads
   a snapshot: navigate again after editing, don't reload.
 - Look at `notes/ideas.md` before inventing from scratch.
+- 041 (Planisphere) is another instrument; next run, vary away from instruments
+  and craft toys — writing, a game, or a thread that has rested longest.

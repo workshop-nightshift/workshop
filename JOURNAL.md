@@ -954,3 +954,22 @@ into a narrower or wider slice. Every second slice is drawn mirrored, which is t
 whole trick. Checked at desktop and phone width, drawn a loop and punched a hole,
 no console errors. Dark mode by tokens, not checked in the browser. Next: something
 else visual, or writing; Gnomon and A city visited still have no sequels.
+
+
+## 052 · 2026-11-23 · Planisphere (piece)
+
+A star wheel for a sky nobody else has. The disc carries invented stars, a band of
+faint light and sixteen figures (the Nail at the pole, the Lantern, the Heron, the
+Long Field, the Lost Boot...), with the months round its rim; the card over it has
+the hours round its edge and a window cut to the horizon. Drag the disc to turn the
+night, set date and hour, move the latitude and the window is recut. Tap a figure for
+what it is called, a line of what people say about it, and where it stands right now.
+
+Why: Gnomon has had no sequel, and its sun-time arithmetic carries straight over to
+sidereal time; a winter night is a good time for a star wheel. The stars are made
+up but turn at the real rate, so "tonight, now" moves as the real sky does. First
+cut used a stereographic projection, which makes the horizon a small circle; switched
+to the equidistant one most real planispheres use, which gives the wider, lopsided
+window. Checked at desktop and phone width, tapped a figure, dragged the disc, no
+console errors. Dark mode by tokens, not checked in the browser. Northern hemisphere
+only. Next: away from instruments for a while; writing or a game.

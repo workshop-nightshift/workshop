@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Planisphere</title>
+<style>
+:root{--bg:#eeeae0;--fg:#1d1b18;--mute:#746d5d;--line:#d3cab7;--paper:#e5dcc8;--card:#2a3b33;--cardink:#d9cfae;--disc:#e7dcc0;--discink:#3a3226;--sky:#0e1830;--accent:#a8641c}
+@media (prefers-color-scheme:dark){:root{--bg:#111110;--fg:#e8e3d8;--mute:#9a927f;--line:#2f2c26;--paper:#24211c;--card:#1c2823;--cardink:#bfb48f;--disc:#3a3428;--discink:#ddd0b0;--sky:#070c1a;--accent:#e0a050}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 56px}
+main{width:100%;max-width:640px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+canvas{display:block;width:100%;max-width:600px;margin:0 auto;touch-action:none;cursor:grab}
+canvas.drag{cursor:grabbing}
+.read{text-align:center;margin:8px 0 0;font-variant-numeric:tabular-nums}
+.read b{font-weight:normal;font-size:19px}
+.read small{color:var(--mute);font-size:14px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px 16px;margin-top:12px}
+.ctl label{display:flex;flex-direction:column;color:var(--mute);font-size:14px}
+.ctl label span{display:flex;justify-content:space-between}
+.ctl output{color:var(--fg);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--paper);border-color:var(--mute)}
+.lore{margin:14px 0 0;padding:10px 14px;border-left:2px solid var(--accent);background:var(--paper);min-height:4.2em}
+.lore b{font-weight:normal;font-size:17px}
+.lore p{margin:.2em 0 0}
+.lore .m{color:var(--mute);font-size:14px;font-style:italic}
+.up{margin-top:10px;font-size:14px;color:var(--mute)}
+.up button{margin:3px 4px 0 0;padding:1px 8px}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+p{margin:.6em 0}
+.prose{max-width:36em}
+</style>
+</head>
+<body>
+<main>
+  <h1>Planisphere</h1>
+  <p class="sub">a star wheel for a sky nobody else has</p>
+
+  <canvas id="c" aria-label="a planisphere: a disc of stars turning under a window cut to the horizon"></canvas>
+  <p class="read" id="read" aria-live="polite"></p>
+
+  <div class="ctl">
+    <label><span>date <output id="oday"></output></span><input type="range" id="day" min="1" max="365" value="327"></label>
+    <label><span>hour <output id="otim"></output></span><input type="range" id="tim" min="0" max="1435" step="5" value="1320"></label>
+    <label><span>latitude <output id="olat"></output></span><input type="range" id="lat" min="20" max="66" value="52"></label>
+  </div>
+
+  <div class="row">
+    <span><button id="now">tonight, now</button><button id="play" aria-pressed="false">let it turn</button></span>
+    <span><button id="lines" aria-pressed="true">figures</button><button id="names" aria-pressed="true">names</button></span>
+  </div>
+  <div class="row"><span>drag the disc to turn the hours; tap a figure</span></div>
+
+  <div class="lore" id="lore" aria-live="polite"></div>
+  <div class="up" id="up"></div>
+
+  <h2>about</h2>
+  <div class="prose">
+    <p>A planisphere is two pieces of card on a rivet. The lower one is the whole sky you could ever see from a latitude, printed round its pole with the months along its rim. The upper one is opaque except for a window cut to the shape of the horizon, with the hours of the night around its edge. Put tonight's date against the hour and the window shows what is overhead. Hold it up with the south edge down and it matches the sky, east on the left.</p>
+    <p>The window is a lopsided oval because the pole is not overhead: it sits as high above the north horizon as your latitude, so the northern stars near it never leave the window and the far southern ones never enter it. Move the latitude and the window is recut.</p>
+    <p>These stars are invented, and so are their figures and what people say about them. But the wheel turns as ours does, once in a sidereal day, four minutes short of a solar one, which is why the same figure stands where it did an hour earlier a fortnight on. Set it to tonight and the motion, at least, is true.</p>
+    <p class="m" style="color:var(--mute);font-style:italic">Times are local sun time, not the clock: no daylight saving, no time zone.</p>
+  </div>
+</main>
+<script>
+(()=>{
+const D2R=Math.PI/180, R2D=180/Math.PI;
+const $=id=>document.getElementById(id);
+const cv=$('c'), ctx=cv.getContext('2d');
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MDAYS=[31,28,31,30,31,30,31,31,30,31,30,31];
+function doyToDate(d){let m=0;while(m<11&&d>MDAYS[m]){d-=MDAYS[m];m++}return [m,d]}
+
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=rng(41041);
+
+// vectors on the sphere
+function vec(a,d){a*=D2R;d*=D2R;return[Math.cos(d)*Math.cos(a),Math.cos(d)*Math.sin(a),Math.sin(d)]}
+function radec(v){const n=Math.hypot(v[0],v[1],v[2]);return[(Math.atan2(v[1],v[0])*R2D+360)%360,Math.asin(v[2]/n)*R2D]}
+function tangent(a0,d0,dx,dy){ // dx east, dy north, degrees
+  const c=vec(a0,d0), A=a0*D2R, Dd=d0*D2R;
+  const e=[-Math.sin(A),Math.cos(A),0], n=[-Math.sin(Dd)*Math.cos(A),-Math.sin(Dd)*Math.sin(A),Math.cos(Dd)];
+  const x=Math.tan(dx*D2R), y=Math.tan(dy*D2R);
+  return radec([c[0]+x*e[0]+y*n[0],c[1]+x*e[1]+y*n[1],c[2]+x*e[2]+y*n[2]]);
+}
+
+// the figures
+const FIG=[
+ ['The Nail',     12, 88, 3,'The one star that does not move, and the small ring of three that turns about it. Gates are hung facing it, so they swing true.','its point: Stay'],
+ ['The Lantern',  40, 66, 5,'Carried round the Nail all night and never set down. In a hard winter it is said to be brighter, because someone needs it.','its flame: Wick'],
+ ['The Heron',   110, 52, 6,'Stands on one leg in autumn evenings and lifts the other by morning. Children are told it is waiting for the Weir to open.','its eye: Patience'],
+ ['The Long Field',175, 44, 7,'Seven stars in a slow furrow. When it lies flat along the east at dusk, the ploughing should be done.','its gate: Headland'],
+ ['The Bellrope', 235, 60, 5,'Hangs straight down from near the Nail in summer, as if someone above had let go of it. Pull it and the year turns.','its sally: Tug'],
+ ['The Beekeeper',290, 38, 6,'A figure bent over something small. Look a long time and the faint stars near her hands are said to drift.','her veil: Hum'],
+ ['The Crooked Gate',345, 30, 6,'Never quite shut. What gets through it in spring is the reason for the lambs.','its latch: Hasp'],
+ ['The Hare',      60, 18, 6,'Up first in the east on winter nights, running from the Harrow. It has never been caught and never will be.','its ear: Listen'],
+ ['The Kettle',  140, 12, 5,'Low and round with a spout. When it rises before the sun the weather turns cold enough to want it.','its lid: Rattle'],
+ ['The Ladder',  205,  8, 6,'Leans against nothing. The top rung is the faintest, and people disagree about whether it is there.','its top: Maybe'],
+ ['The Harrow',   20,-10, 7,'A broad dragged frame of stars across the south in autumn, close behind the Hare.','its tine: Tooth'],
+ ['The Sieve',   255,-12, 6,'A ring with a scatter of faint stars inside: what got through. Summer evenings, low in the south.','its rim: Keep'],
+ ['The Sleeper', 315,-26, 6,'Lies along the southern horizon at the end of summer, never quite rising from it.','her hand: Dream'],
+ ['The Pail',    100,-28, 5,'Only seen from the south of things. Northern people know it as the figure that is always being fetched.','its handle: Carry'],
+ ['The Weir',    170,-40, 6,'A line of stars the river of light pours over. Too far south for most, which is why the Heron waits.','its sill: Overfall'],
+ ['The Lost Boot',  0, 56, 4,'Nobody has claimed it. It is always there, and so, apparently, is the person missing it.','its heel: Sorry'],
+];
+const STARS=[], FIGS=[];
+for(const [name,a0,d0,n,lore,bright] of FIG){
+  const pts=[];
+  const spread = n<=3?3.2:(n<=5?8:10.5);
+  for(let i=0;i<n;i++){
+    let dx,dy,ok,tries=0;
+    do{ dx=(R()*2-1)*spread*1.2; dy=(R()*2-1)*spread; ok=pts.every(p=>Math.hypot(p.dx-dx,p.dy-dy)>spread*0.35); }while(!ok&&++tries<40);
+    if(name==='The Nail'&&i===0){dx=0;dy=0}
+    pts.push({dx,dy});
+  }
+  if(name==='The Nail'){pts[0].dx=0;pts[0].dy=0}
+  // minimum spanning tree as the figure's lines
+  const edges=[], inT=[true];
+  for(let k=1;k<n;k++){let best=null,bd=1e9;
+    for(let i=0;i<n;i++)if(inT[i])for(let j=0;j<n;j++)if(!inT[j]){const dd=Math.hypot(pts[i].dx-pts[j].dx,pts[i].dy-pts[j].dy);if(dd<bd){bd=dd;best=[i,j]}}
+    inT[best[1]]=true;edges.push(best);}
+  if(n>=6){ // one closing line makes most figures read as a thing
+    let best=null,bd=1e9;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){if(edges.some(e=>(e[0]===i&&e[1]===j)||(e[0]===j&&e[1]===i)))continue;const dd=Math.hypot(pts[i].dx-pts[j].dx,pts[i].dy-pts[j].dy);if(dd<bd){bd=dd;best=[i,j]}}
+    if(best&&bd<spread*1.1)edges.push(best);
+  }
+  const first=STARS.length;
+  pts.forEach((p,i)=>{
+    const [a,d]=name==='The Nail'&&i===0?[0,90]:tangent(a0,d0,p.dx,p.dy);
+    STARS.push({a,d,m:i===0?0.6+R()*0.9:1.8+R()*1.8,t:R(),fig:FIGS.length});
+  });
+  FIGS.push({name,a0,d0,lore,bright,first,n,edges:edges.map(e=>[e[0]+first,e[1]+first])});
+}
+// the field
+for(let i=0;i<620;i++){
+  const z=R()*2-1, a=R()*360;
+  STARS.push({a,d:Math.asin(z)*R2D,m:3+Math.pow(R(),0.45)*2.9,t:R(),fig:-1});
+}
+// a river of light: a great circle with its pole at (250, 35)
+const MW=[];
+{const P=vec(250,35), u=(()=>{const t=[0,0,1];const c=[P[1]*t[2]-P[2]*t[1],P[2]*t[0]-P[0]*t[2],P[0]*t[1]-P[1]*t[0]];const l=Math.hypot(...c);return c.map(x=>x/l)})();
+ const w=[P[1]*u[2]-P[2]*u[1],P[2]*u[0]-P[0]*u[2],P[0]*u[1]-P[1]*u[0]];
+ for(let i=0;i<2600;i++){
+   const th=R()*Math.PI*2, wid=(R()+R()+R()-1.5)*(0.13+0.06*Math.sin(th*3+1));
+   const v=[0,1,2].map(k=>Math.cos(th)*u[k]+Math.sin(th)*w[k]+wid*P[k]);
+   const [a,d]=radec(v); MW.push({a,d,s:R()});
+ }}
+
+// state
+let day=+$('day').value, mins=+$('tim').value, lat=+$('lat').value;
+let showLines=true, showNames=true, sel=-1, playing=false;
+let W=0, cx=0, cy=0, Rsky=0, Rdate=0, Rhour=0, dpr=1, k=1, horizon=[], hcen=[0,0];
+let COL={};
+function readCols(){const s=getComputedStyle(document.documentElement);for(const n of ['bg','fg','mute','card','cardink','disc','discink','sky','accent'])COL[n]=s.getPropertyValue('--'+n).trim()}
+
+function lstDeg(){ // local sidereal time from local sun time and date
+  const T=mins/60, ra=24*(day-80)/365.2422;
+  return(((T-12+ra)*15)%360+360)%360;
+}
+function decMin(){return lat-90-5}
+function rOf(d){return k*(90-d)}
+function projH(H,d){const r=rOf(d), h=H*D2R;return[cx+r*Math.sin(h),cy+r*Math.cos(h)]}
+function alt(H,d){const h=H*D2R,de=d*D2R,p=lat*D2R;return Math.asin(Math.sin(p)*Math.sin(de)+Math.cos(p)*Math.cos(de)*Math.cos(h))*R2D}
+
+function layout(){
+  const css=Math.min(cv.parentElement.clientWidth,600);
+  dpr=Math.min(window.devicePixelRatio||1,2.5);
+  W=Math.round(css*dpr);cv.width=W;cv.height=W;cv.style.height=css+'px';
+  cx=cy=W/2;
+  const band=Math.max(20*dpr,W*0.052);
+  Rhour=W/2-2*dpr; Rdate=Rhour-band; Rsky=Rdate-band;
+  recut();
+}
+function recut(){
+  k=Rsky/(90-decMin());
+  horizon=[];const p=lat*D2R;
+  for(let A=0;A<=360;A+=1){const a=A*D2R;
+    const d=Math.asin(Math.cos(p)*Math.cos(a))*R2D;
+    const H=Math.atan2(-Math.sin(a),-Math.sin(p)*Math.cos(a))*R2D;
+    horizon.push({A,pt:projH(H,d)});}
+  let sx=0,sy=0;for(const h of horizon){sx+=h.pt[0];sy+=h.pt[1]}hcen=[sx/horizon.length,sy/horizon.length];
+}
+
+function starCol(t,al){const r=255,g=Math.round(236+t*19),b=Math.round(214+t*41);const w=t<.15?[255,214,180]:[r,g,b];return`rgba(${w[0]},${w[1]},${w[2]},${al})`}
+
+function draw(){
+  const L=lstDeg();
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,W);
+  // hour ring (on the card)
+  ctx.fillStyle=COL.card;ctx.beginPath();ctx.arc(cx,cy,Rhour,0,7);ctx.fill();
+  // the disc: date ring + sky
+  ctx.save();ctx.translate(cx,cy);
+  ctx.fillStyle=COL.disc;ctx.beginPath();ctx.arc(0,0,Rdate,0,7);ctx.fill();
+  ctx.fillStyle=COL.sky;ctx.beginPath();ctx.arc(0,0,Rsky,0,7);ctx.fill();
+  ctx.restore();
+
+  // the sky itself, clipped to the disc
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,Rsky,0,7);ctx.clip();
+  // river of light
+  for(const m of MW){if(m.d<decMin()-2)continue;const[x,y]=projH(L-m.a,m.d);ctx.fillStyle=`rgba(190,205,235,${0.05+m.s*0.07})`;const s=(1.4+m.s*2.4)*dpr;ctx.fillRect(x-s/2,y-s/2,s,s)}
+  // declination rings and hour lines, faint
+  ctx.strokeStyle='rgba(170,190,230,.13)';ctx.lineWidth=dpr;
+  for(let d=-60;d<90;d+=30){if(d<decMin())continue;ctx.beginPath();ctx.arc(cx,cy,rOf(d),0,7);ctx.stroke()}
+  for(let h=0;h<24;h+=2){const a=(L-h*15);const p0=projH(a,80),p1=projH(a,decMin());ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke()}
+  // figures
+  if(showLines){
+    for(let f=0;f<FIGS.length;f++){const F=FIGS[f];const on=f===sel;
+      ctx.strokeStyle=on?'rgba(255,214,150,.9)':(sel>=0?'rgba(170,195,240,.22)':'rgba(170,195,240,.4)');ctx.lineWidth=(on?1.8:1.1)*dpr;
+      ctx.beginPath();for(const[i,j]of F.edges){const a=STARS[i],b=STARS[j];if(a.d<decMin()&&b.d<decMin())continue;const p=projH(L-a.a,a.d),q=projH(L-b.a,b.d);ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1])}ctx.stroke();}
+  }
+  // stars
+  const sc=W/600;
+  for(const s of STARS){if(s.d<decMin()-1)continue;const[x,y]=projH(L-s.a,s.d);
+    const r=Math.max(.55,(5.2-s.m)*0.62)*sc*dpr*0.9;
+    const glow=s.fig===sel&&sel>=0;
+    if(s.m<2.2||glow){ctx.fillStyle=glow?'rgba(255,214,150,.25)':starCol(s.t,.12);ctx.beginPath();ctx.arc(x,y,r*2.6,0,7);ctx.fill()}
+    ctx.fillStyle=glow?'rgb(255,226,170)':starCol(s.t,Math.min(1,.35+(6-s.m)*.16));ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();}
+  // names
+  if(showNames){
+    ctx.font=`italic ${Math.round(Math.max(11,12.5*sc)*dpr)}px Georgia,serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    const placed=[];const lh=16*dpr*Math.max(.85,sc);
+    const order=[...FIGS.keys()].sort((a,b)=>(b===sel)-(a===sel));
+    for(const f of order){let c=figCentre(f,L);if(!c)continue;
+      const tw=ctx.measureText(FIGS[f].name.replace(/^The /,'')).width;
+      if(placed.some(q=>Math.abs(q[0]-c[0])<(q[2]+tw)/2+4*dpr&&Math.abs(q[1]-c[1])<lh))continue;
+      placed.push([c[0],c[1],tw]);
+      ctx.fillStyle=f===sel?'rgba(255,220,160,.95)':'rgba(205,215,240,.62)';
+      ctx.fillText(FIGS[f].name.replace(/^The /,''),c[0],c[1]+(FIGS[f].n<=3?14*dpr:0));}
+  }
+  ctx.restore();
+
+  // the card over it, with the horizon window cut out
+  ctx.save();
+  ctx.beginPath();ctx.arc(cx,cy,Rsky+.5,0,7);
+  ctx.moveTo(horizon[0].pt[0],horizon[0].pt[1]);for(const h of horizon)ctx.lineTo(h.pt[0],h.pt[1]);ctx.closePath();
+  ctx.fillStyle=COL.card;ctx.fill('evenodd');
+  ctx.strokeStyle=COL.cardink;ctx.globalAlpha=.7;ctx.lineWidth=1.2*dpr;
+  ctx.beginPath();ctx.moveTo(horizon[0].pt[0],horizon[0].pt[1]);for(const h of horizon)ctx.lineTo(h.pt[0],h.pt[1]);ctx.stroke();
+  ctx.globalAlpha=1;
+  // zenith
+  {const z=projH(0,lat);ctx.strokeStyle='rgba(230,220,190,.35)';ctx.lineWidth=dpr;const s=5*dpr;ctx.beginPath();ctx.moveTo(z[0]-s,z[1]);ctx.lineTo(z[0]+s,z[1]);ctx.moveTo(z[0],z[1]-s);ctx.lineTo(z[0],z[1]+s);ctx.stroke()}
+  // compass letters
+  ctx.fillStyle=COL.cardink;ctx.font=`${Math.round(13*dpr*Math.max(.85,sc))}px Georgia,serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  for(const [A,t] of [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW']]){
+    const h=horizon[A].pt;let vx=h[0]-hcen[0],vy=h[1]-hcen[1];const l=Math.hypot(vx,vy)||1;
+    const off=(t.length>1?11:13)*dpr*Math.max(.85,sc);
+    let x=h[0]+vx/l*off,y=h[1]+vy/l*off;
+    const rr=Math.hypot(x-cx,y-cy);if(rr>Rsky-8*dpr){const f=(Rsky-8*dpr)/rr;x=cx+(x-cx)*f;y=cy+(y-cy)*f}
+    ctx.globalAlpha=t.length>1?.55:1;ctx.fillText(t,x,y);}
+  ctx.globalAlpha=1;
+  ctx.restore();
+
+  // date ring (turns with the stars)
+  ctx.save();ctx.translate(cx,cy);
+  const dk=COL.discink;ctx.strokeStyle=dk;ctx.fillStyle=dk;
+  const mid=(Rsky+Rdate)/2;
+  ctx.font=`${Math.round(Math.max(10,11*sc)*dpr)}px Georgia,serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  let dd=1;for(let m=0;m<12;m++){for(let i=1;i<=MDAYS[m];i++,dd++){
+    const ang=(L-(360*(dd-80)/365.2422+180))*D2R;const s=Math.sin(ang),c=Math.cos(ang);
+    const len=i===1?(Rdate-Rsky)*.9:(i%5===0?(Rdate-Rsky)*.32:(Rdate-Rsky)*.16);
+    ctx.lineWidth=(i===1?1.2:.7)*dpr;ctx.beginPath();ctx.moveTo(s*Rsky,c*Rsky);ctx.lineTo(s*(Rsky+len),c*(Rsky+len));ctx.stroke();
+    if(i===16){ctx.save();ctx.rotate(-ang);const flip=Math.cos(ang)<0;ctx.translate(0,mid+(Rdate-Rsky)*.1);if(flip)ctx.rotate(Math.PI);ctx.fillText(MON[m],0,0);ctx.restore()}
+  }}
+  // today's mark
+  {const ang=(L-(360*(day-80)/365.2422+180))*D2R;ctx.strokeStyle=COL.accent;ctx.lineWidth=2.2*dpr;ctx.beginPath();ctx.moveTo(Math.sin(ang)*Rsky,Math.cos(ang)*Rsky);ctx.lineTo(Math.sin(ang)*Rdate,Math.cos(ang)*Rdate);ctx.stroke()}
+  // hour ring (fixed, on the card)
+  ctx.strokeStyle=COL.cardink;ctx.fillStyle=COL.cardink;
+  const hm=(Rdate+Rhour)/2;
+  for(let q=0;q<96;q++){const T=q/4;const ang=T*15*D2R;const s=Math.sin(ang),c=Math.cos(ang);
+    const len=q%4===0?(Rhour-Rdate)*.28:(Rhour-Rdate)*.14;ctx.lineWidth=(q%4===0?1:.6)*dpr;
+    ctx.beginPath();ctx.moveTo(s*Rdate,c*Rdate);ctx.lineTo(s*(Rdate+len),c*(Rdate+len));ctx.stroke();
+    const every=W/dpr<420?3:1;
+    if(q%4===0&&(T%every===0)){ctx.save();ctx.rotate(-ang);const flip=Math.cos(ang)<0;ctx.translate(0,hm+(Rhour-Rdate)*.12);if(flip)ctx.rotate(Math.PI);
+      ctx.globalAlpha=(T>=18||T<=6)?1:.5;ctx.fillText(T===0?'mid':T===12?'noon':String(T),0,0);ctx.restore()}}
+  ctx.globalAlpha=1;
+  // the hour pointer
+  {const ang=(mins/60)*15*D2R;ctx.strokeStyle=COL.accent;ctx.lineWidth=2.2*dpr;ctx.beginPath();ctx.moveTo(Math.sin(ang)*Rdate,Math.cos(ang)*Rdate);ctx.lineTo(Math.sin(ang)*Rhour,Math.cos(ang)*Rhour);ctx.stroke()}
+  // rivet
+  ctx.fillStyle=COL.cardink;ctx.globalAlpha=.8;ctx.beginPath();ctx.arc(0,0,2.6*dpr,0,7);ctx.fill();ctx.globalAlpha=1;
+  ctx.restore();
+}
+
+function figCentre(f,L){const F=FIGS[f];let sx=0,sy=0,v=0;
+  for(let i=F.first;i<F.first+F.n;i++){const s=STARS[i];if(alt(L-s.a,s.d)<-1)continue;const p=projH(L-s.a,s.d);sx+=p[0];sy+=p[1];v++}
+  return v*2>=F.n?[sx/v,sy/v]:null}
+function upNow(){const L=lstDeg();const out=[];for(let f=0;f<FIGS.length;f++){const F=FIGS[f];let v=0;for(let i=F.first;i<F.first+F.n;i++){const s=STARS[i];if(alt(L-s.a,s.d)>0)v++}if(v*2>=F.n)out.push(f)}return out}
+
+function fmtT(m){const h=Math.floor(m/60),mm=m%60;return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0')}
+function sun(){ // sun altitude, roughly, to say whether it is night at all
+  const dec=-23.44*Math.cos(2*Math.PI*(day+10)/365), H=(mins/60-12)*15;return alt(H,dec)}
+function info(){
+  const [m,d]=doyToDate(day);
+  $('oday').textContent=d+' '+MON[m];$('otim').textContent=fmtT(mins);$('olat').textContent=lat+'°N';
+  const L=lstDeg()/15, lh=Math.floor(L), lm=Math.floor((L-lh)*60);
+  const s=sun();
+  const sky=s>0?'the sun is up, so this is a sky you would not see':s>-6?'twilight':s>-12?'the sky going dark':s>-18?'nearly full dark':'full dark';
+  $('read').innerHTML=`<b>${d} ${MON[m]}, ${fmtT(mins)}</b> <small>· star time ${String(lh).padStart(2,'0')}h${String(lm).padStart(2,'0')} · ${sky}</small>`;
+  const up=upNow();
+  const box=$('up');box.innerHTML='';const lab=document.createElement('span');lab.textContent=up.length?'above the horizon: ':'nothing named is up';box.appendChild(lab);
+  for(const f of up){const b=document.createElement('button');b.textContent=FIGS[f].name.replace(/^The /,'');b.setAttribute('aria-pressed',String(f===sel));b.onclick=()=>select(f);box.appendChild(b)}
+  showLore();
+}
+function where(f){const L=lstDeg();const F=FIGS[f];const s=STARS[F.first];
+  // altitude/azimuth of the brightest star
+  const H=(L-s.a)*D2R,de=s.d*D2R,p=lat*D2R;
+  const a=alt(L-s.a,s.d);
+  const az=(Math.atan2(-Math.sin(H)*Math.cos(de),Math.cos(p)*Math.sin(de)-Math.sin(p)*Math.cos(de)*Math.cos(H))*R2D+360)%360;
+  const dirs=['north','north-east','east','south-east','south','south-west','west','north-west'];
+  const dir=dirs[Math.round(az/45)%8];
+  if(a<0){ // circumpolar or never up?
+    if(s.d< -(90-lat))return 'never rises this far north';
+    return 'below the horizon now';}
+  const h=a>70?'nearly overhead':a>40?'high in the '+dir:a>15?'in the '+dir:'low in the '+dir;
+  const circ=s.d>90-lat?', and never sets here':'';
+  return h+circ;
+}
+function showLore(){
+  const el=$('lore');
+  if(sel<0){el.innerHTML='<p class="m">Tap a figure in the window, or a name below, to hear what it is.</p>';return}
+  const F=FIGS[sel];
+  el.innerHTML=`<b>${F.name}</b> <span class="m">· ${where(sel)}</span><p>${F.lore}</p><p class="m">${F.bright}</p>`;
+}
+function select(f){sel=f===sel?-1:f;info();draw()}
+
+// controls
+function sync(){$('day').value=day;$('tim').value=mins}
+$('day').oninput=e=>{day=+e.target.value;info();draw()};
+$('tim').oninput=e=>{mins=+e.target.value;info();draw()};
+$('lat').oninput=e=>{lat=+e.target.value;recut();info();draw()};
+$('now').onclick=()=>{const n=new Date();const st=new Date(n.getFullYear(),0,1);day=Math.min(365,Math.floor((n-st)/864e5)+1);mins=n.getHours()*60+n.getMinutes();sync();info();draw()};
+function tog(id,fn){$(id).onclick=()=>{const v=$(id).getAttribute('aria-pressed')!=='true';$(id).setAttribute('aria-pressed',String(v));fn(v);draw()}}
+tog('lines',v=>showLines=v);tog('names',v=>showNames=v);
+tog('play',v=>{playing=v;if(v)loop()});
+let acc=0;
+function step(dm){acc+=dm;const whole=Math.trunc(acc);if(!whole)return;acc-=whole;mins+=whole;
+  while(mins>=1440){mins-=1440;day=day%365+1}while(mins<0){mins+=1440;day=day===1?365:day-1}}
+let last=0;
+function loop(t){if(!playing)return;if(last&&t){step(Math.min(50,t-last)*0.12)}last=t||0;mins=Math.round(mins);$('tim').value=mins-(mins%5);$('day').value=day;info();draw();requestAnimationFrame(loop)}
+$('play').addEventListener('click',()=>{last=0});
+
+// drag to turn, tap to pick
+let drag=null;
+function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*W/r.height]}
+cv.addEventListener('pointerdown',e=>{const[x,y]=pos(e);cv.setPointerCapture(e.pointerId);drag={x0:x,y0:y,ang:Math.atan2(x-cx,y-cy),moved:false};cv.classList.add('drag')});
+cv.addEventListener('pointermove',e=>{if(!drag)return;const[x,y]=pos(e);
+  if(Math.hypot(x-drag.x0,y-drag.y0)>6*dpr)drag.moved=true;if(!drag.moved)return;
+  if(Math.hypot(x-cx,y-cy)<14*dpr)return;
+  const a=Math.atan2(x-cx,y-cy);let da=(a-drag.ang)*R2D;if(da>180)da-=360;if(da<-180)da+=360;drag.ang=a;
+  step(da/15*60);$('tim').value=mins-(mins%5);$('day').value=day;info();draw()});
+cv.addEventListener('pointerup',e=>{cv.classList.remove('drag');if(!drag)return;const d=drag;drag=null;if(d.moved)return;
+  const[x,y]=pos(e);const L=lstDeg();let best=-1,bd=(46*dpr)**2;
+  for(let f=0;f<FIGS.length;f++){const F=FIGS[f];for(let i=F.first;i<F.first+F.n;i++){const s=STARS[i];if(alt(L-s.a,s.d)<0)continue;const p=projH(L-s.a,s.d);const q=(p[0]-x)**2+(p[1]-y)**2;if(q<bd){bd=q;best=f}}}
+  if(best>=0||sel>=0)select(best>=0?best:sel)});
+cv.addEventListener('pointercancel',()=>{drag=null;cv.classList.remove('drag')});
+
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readCols();draw()});
+window.addEventListener('resize',()=>{layout();draw()});
+readCols();layout();info();draw();
+})();
+</script>
+</body>
+</html>
