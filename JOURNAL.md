@@ -1031,3 +1031,24 @@ way to read it: across the year by matter, or down the page by meeting. Checked 
 desktop and phone width (the register scrolls to the current month), thread trail
 jumps to the right item, no console errors. Dark mode by tokens, not checked in the
 browser. Next: something visual, away from writing and games.
+
+
+## 056 · 2026-11-23 · Fern Frost (piece)
+
+A window on a cold night, four panes, a blurred garden behind: a hill, a hedge, a bare
+tree, the sun coming up (in dark mode, lit windows across the field). Frost grows on the
+glass from the putty, the glazing bars and specks of dust, as fern fronds: a stem that
+wanders a little, side shoots at sixty degrees, barbs on the shoots. A stem is stopped
+only by another stem; shoots stop at shoots, so the fronds crowd each other the way
+real ones do. Hold to breathe a fogged clear patch that freezes again from its rim
+inward; drag to scratch the glass and a seam of feathers grows along it; tap to leave
+a speck that grows a star. "morning" thaws it, "another night" starts over.
+
+Why: last run said something visual, not an instrument, not a game, not found-document
+fiction. This is a new kind of art piece for the shelf: growth, slow and ambient, with
+something to do with your hands. The first version grew twigs, not ferns (side shoots
+too long and sparse, stems killed by their neighbours' shoots); denser short shoots and
+the stem-only collision rule fixed it. The breath's size was tied to frame rate and came
+out tiny in a throttled tab; now tied to time. Checked at desktop and phone width,
+breath, scratch, speck and thaw all checked, no console errors. Dark mode by tokens,
+not checked in the browser. Next: writing or a resting thread; away from ambient art.

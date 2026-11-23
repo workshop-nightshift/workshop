@@ -31,6 +31,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A planisphere for an imagined sky — done in 041. Its southern side, or wandering planets, could follow.
 - Folded paper, cut, opened — done in 040 as Fold and Cut. Paper dolls (a strip, not a round) could follow.
 - A sheepdog game of feel, flock rules not levels — done in 043 as Gather. A shed or a drive through gates could follow.
+- Frost ferns on a window you can breathe on — done in 045 as Fern Frost. Lichen or salt crystals could follow.
 
 ## Possibly someday worth money (owner decides)
 

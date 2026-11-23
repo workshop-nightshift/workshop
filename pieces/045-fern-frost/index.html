@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fern Frost</title>
+<style>
+:root{--bg:#e9e6df;--fg:#1e1d1a;--mute:#726c60;--line:#cfc8b8;--wood:#8a6d4e;--wood2:#6d553c;--sill:#a3876a;
+  --sky1:#7f93ab;--sky2:#d9c3b0;--hill:#5d6b74;--hedge:#3e4a52;--glow:255,214,170;--frost:244,249,255;--haze:236,242,248}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e6e3dc;--mute:#948d80;--line:#2c2c2e;--wood:#4a3a2b;--wood2:#35291e;--sill:#58463a;
+  --sky1:#060a12;--sky2:#17233a;--hill:#0f1724;--hedge:#080d16;--glow:255,196,120;--frost:226,236,252;--haze:200,214,232}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 56px}
+main{width:100%;max-width:760px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em;font-style:italic}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.frame{position:relative;background:var(--wood);padding:14px;border-radius:3px;box-shadow:inset 0 0 0 2px var(--wood2)}
+.pane{position:relative;width:100%;aspect-ratio:4/5;max-height:78vh;overflow:hidden;background:var(--sky1);box-shadow:inset 0 0 0 2px var(--wood2)}
+@media (min-width:640px){.pane{aspect-ratio:5/4}}
+.pane canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#scene{filter:blur(7px);transform:scale(1.06)}
+#frost{touch-action:none;cursor:crosshair}
+.mull{position:absolute;background:var(--wood);box-shadow:0 0 0 1px var(--wood2);pointer-events:none}
+.sill{height:10px;background:var(--sill);margin:0 -8px;border-radius:0 0 3px 3px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:12px;color:var(--mute);font-size:14px}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+.prose{max-width:36em}
+p{margin:.6em 0}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+</style>
+</head>
+<body>
+<main>
+  <h1>Fern Frost</h1>
+  <p class="sub">a cold night on single glazing, and a window you can breathe on</p>
+
+  <div class="frame">
+    <div class="pane" id="pane">
+      <canvas id="scene" aria-hidden="true"></canvas>
+      <canvas id="haze" aria-hidden="true"></canvas>
+      <canvas id="frost" aria-label="a frosted window pane; hold to breathe a clear patch, drag to scratch the glass, tap to leave a speck for frost to start from"></canvas>
+      <div class="mull" id="mv"></div>
+      <div class="mull" id="mh"></div>
+    </div>
+  </div>
+  <div class="sill"></div>
+
+  <div class="row">
+    <span id="hint">hold to breathe · drag to scratch · tap for a speck</span>
+    <span><button id="thaw">morning</button> <button id="night">another night</button></span>
+  </div>
+
+  <div class="prose">
+    <h2>about the glass</h2>
+    <p>On a still, clear night the inside of an old window falls below freezing, and the
+    damp in the room's air goes straight to ice on it without being water first. It needs
+    somewhere to start: the edge of the putty, a scratch, a speck of dust, the mark a
+    cloth left. From there the ice grows the way it likes to, in six directions, and a
+    needle that has started keeps going while the air round its tip still has water to
+    give. Each needle robs the glass beside it, so its neighbours stop, and the side
+    shoots come off at sixty degrees, and in the morning there are ferns.</p>
+    <p>Breath is warm and wet. It melts a hole and fogs it, and the fog freezes again
+    from the rim inward, so a patch you breathed on comes back finer than the rest.
+    A scratch comes back as a seam of feathers. A speck comes back as a star.</p>
+  </div>
+</main>
+<script>
+(()=>{
+const pane=document.getElementById('pane');
+const sc=document.getElementById('scene'), hz=document.getElementById('haze'), fr=document.getElementById('frost');
+const sx=sc.getContext('2d'), hx=hz.getContext('2d'), fx=fr.getContext('2d');
+const mv=document.getElementById('mv'), mh=document.getElementById('mh');
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const dark=matchMedia('(prefers-color-scheme:dark)');
+let W=0,H=0,DPR=1, CELL=3, GW=0, GH=0, grid=null;
+let tips=[], live=0, nextId=1, fogs=[], pending=[], running=false, thawing=0;
+let FROST='244,249,255', HAZE='236,242,248';
+const R=Math.random, TAU=Math.PI*2, SIXTY=Math.PI/3;
+const MAXTIPS=4000, BUDGET=1400;
+let mull={x:0,y:0,w:0};
+
+function size(){
+  const r=pane.getBoundingClientRect();
+  W=Math.round(r.width); H=Math.round(r.height); DPR=Math.min(2,window.devicePixelRatio||1);
+  for(const c of [sc,hz,fr]){c.width=W*DPR;c.height=H*DPR}
+  for(const x of [sx,hx,fx]) x.setTransform(DPR,0,0,DPR,0,0);
+  GW=Math.ceil(W/CELL); GH=Math.ceil(H/CELL); grid=new Int32Array(GW*GH);
+  mull.w=Math.max(8,Math.round(W*0.018)); mull.x=Math.round(W/2-mull.w/2); mull.y=Math.round(H*0.5-mull.w/2);
+  mv.style.cssText=`left:${mull.x}px;top:0;width:${mull.w}px;height:${H}px`;
+  mh.style.cssText=`left:0;top:${mull.y}px;width:${W}px;height:${mull.w}px`;
+  FROST=css('--frost'); HAZE=css('--haze');
+  drawScene();
+}
+
+// ---- the view through the glass (blurred by CSS) ----
+function drawScene(){
+  const g=sx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,css('--sky1')); g.addColorStop(.75,css('--sky2')); g.addColorStop(1,css('--sky2'));
+  sx.fillStyle=g; sx.fillRect(0,0,W,H);
+  let seed=7; const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
+  // far hill
+  sx.fillStyle=css('--hill'); sx.beginPath(); sx.moveTo(0,H);
+  for(let x=0;x<=W;x+=8){sx.lineTo(x,H*.62+Math.sin(x/W*3.1+1)*H*.05+Math.sin(x/W*9)*H*.012)}
+  sx.lineTo(W,H); sx.fill();
+  // lit windows / a lamp
+  const glow=css('--glow'), isDark=dark.matches;
+  const lights=isDark?[[.18,.66,.03],[.24,.665,.02],[.71,.6,.025],[.83,.72,.05]]:[[.8,.3,.12]];
+  for(const [lx,ly,lr] of lights){
+    const rr=lr*Math.max(W,H)*(isDark?1:1.6), gg=sx.createRadialGradient(lx*W,ly*H,0,lx*W,ly*H,rr);
+    gg.addColorStop(0,`rgba(${glow},${isDark?.95:.55})`); gg.addColorStop(1,`rgba(${glow},0)`);
+    sx.fillStyle=gg; sx.fillRect(lx*W-rr,ly*H-rr,rr*2,rr*2);
+  }
+  // hedge and a tree
+  sx.fillStyle=css('--hedge'); sx.beginPath(); sx.moveTo(0,H);
+  for(let x=0;x<=W;x+=6){sx.lineTo(x,H*.78-rnd()*H*.03-Math.sin(x/W*5)*H*.02)}
+  sx.lineTo(W,H); sx.fill();
+  const tx=W*.3, ty=H*.8;
+  sx.strokeStyle=css('--hedge'); sx.lineCap='round';
+  (function br(x,y,a,l,w,d){
+    const x2=x+Math.cos(a)*l, y2=y+Math.sin(a)*l;
+    sx.lineWidth=w; sx.beginPath(); sx.moveTo(x,y); sx.lineTo(x2,y2); sx.stroke();
+    if(d>0){br(x2,y2,a-.35-rnd()*.3,l*.72,w*.65,d-1); br(x2,y2,a+.3+rnd()*.3,l*.7,w*.65,d-1)}
+  })(tx,ty,-Math.PI/2,H*.16,Math.max(4,W*.012),7);
+}
+
+// ---- growth ----
+function cellOf(x,y){const i=x/CELL|0,j=y/CELL|0; if(i<0||j<0||i>=GW||j>=GH) return -1; return j*GW+i}
+function onMull(x,y){return (x>mull.x&&x<mull.x+mull.w)||(y>mull.y&&y<mull.y+mull.w)}
+function tip(x,y,a,life,g,pid){
+  if(tips.length+live>=MAXTIPS) return;
+  tips.push({x,y,a,life,g,id:nextId++,pid:pid||0,k:0,every:g===0?3+(R()*3|0):g===1?3+(R()*2|0):99,
+    curl:(R()-.5)*(g===0?.022:.035), w:[1.35,.85,.55,.5][g], step:g===0?1.6:1.3});
+}
+function stem(x,y,a,len){tip(x,y,a,len??(60+R()*170),0,0)}
+function star(x,y,small){
+  const a0=R()*TAU, arms=6;
+  for(let i=0;i<arms;i++) tip(x,y,a0+i*SIXTY,(small?10:18)+R()*(small?14:30),1,0);
+}
+function seedEdges(off,frac){
+  const T0=performance.now()+off, per=2*(W+H), n=Math.round(per/52*frac);
+  for(let i=0;i<n;i++){
+    const t=R()*per; let x,y,a;
+    if(t<W){x=t;y=H-1;a=-Math.PI/2}
+    else if(t<2*W){x=t-W;y=1;a=Math.PI/2}
+    else if(t<2*W+H){x=1;y=t-2*W;a=0}
+    else {x=W-1;y=t-2*W-H;a=Math.PI}
+    // bottom edge is coldest and dampest: more and longer
+    const delay=R()*(y>H-2?4000:12000);
+    pending.push({at:T0+delay,f:()=>stem(x,y,a+(R()-.5)*1.1,(y>H-2?110:70)+R()*170)});
+  }
+  // mullion edges
+  for(let i=0;i<n*.45;i++){
+    const v=R()<.5, side=R()<.5?-1:1;
+    let x,y,a;
+    if(v){x=side<0?mull.x:mull.x+mull.w; y=R()*H; a=side<0?Math.PI:0}
+    else {y=side<0?mull.y:mull.y+mull.w; x=R()*W; a=side<0?-Math.PI/2:Math.PI/2}
+    pending.push({at:T0+2000+R()*16000,f:()=>stem(x+Math.cos(a)*2,y+Math.sin(a)*2,a+(R()-.5)*1.2,50+R()*120)});
+  }
+  // dust specks
+  for(let i=0;i<Math.round(W*H/26000*frac);i++){
+    const x=R()*W,y=R()*H; if(onMull(x,y)) continue;
+    pending.push({at:T0+3000+R()*36000,f:()=>star(x,y,R()<.6)});
+  }
+}
+function advance(t){
+  t.k++; t.life--;
+  t.a+=t.curl+(R()-.5)*.05;
+  const nx=t.x+Math.cos(t.a)*t.step, ny=t.y+Math.sin(t.a)*t.step;
+  const c=cellOf(nx,ny);
+  if(c<0||onMull(nx,ny)) return false;
+  // a stem is stopped only by stems; a shoot by stems and shoots; a barb by anything
+  const o=grid[c], og=o&3, oid=o>>2;
+  if(o!==0&&oid!==t.id&&oid!==t.pid&&og<=t.g) return false;
+  if(o===0||og>=t.g) grid[c]=(t.id<<2)|t.g;
+  fx.lineWidth=t.w; fx.beginPath(); fx.moveTo(t.x,t.y); fx.lineTo(nx,ny); fx.stroke();
+  t.x=nx; t.y=ny;
+  if(t.k%t.every===0&&t.g<2&&t.life>4){
+    const cl=t.g===0?Math.min(t.life*.45,8+R()*20):Math.min(t.life*.45,3+R()*6);
+    const j=()=>(R()-.5)*.12;
+    // fern: side shoots at sixty degrees, both sides, sometimes one
+    if(R()<.9) tip(t.x,t.y,t.a+SIXTY+j(),cl*(.7+R()*.5),t.g+1,t.id);
+    if(R()<.9) tip(t.x,t.y,t.a-SIXTY+j(),cl*(.7+R()*.5),t.g+1,t.id);
+    if(t.g===0&&R()<.035&&t.life>40) tip(t.x,t.y,t.a+(R()<.5?1:-1)*SIXTY,t.life*.8,0,t.id); // fork
+  }
+  return t.life>0;
+}
+
+// ---- breath and fog ----
+let press=null;
+function melt(x,y,r,amt){
+  fx.save(); fx.globalCompositeOperation='destination-out';
+  const g=fx.createRadialGradient(x,y,r*.35,x,y,r);
+  g.addColorStop(0,`rgba(0,0,0,${amt})`); g.addColorStop(1,'rgba(0,0,0,0)');
+  fx.fillStyle=g; fx.beginPath(); fx.arc(x,y,r,0,TAU); fx.fill(); fx.restore();
+  const rc=(r*.8)/CELL|0, ci=x/CELL|0, cj=y/CELL|0;
+  for(let j=Math.max(0,cj-rc);j<=Math.min(GH-1,cj+rc);j++)
+    for(let i=Math.max(0,ci-rc);i<=Math.min(GW-1,ci+rc);i++)
+      if((i-ci)**2+(j-cj)**2<=rc*rc) grid[j*GW+i]=0;
+  const r2=(r*.8)**2;
+  tips=tips.filter(t=>(t.x-x)**2+(t.y-y)**2>r2);
+}
+function breathe(x,y,dt){
+  press.r=Math.min(press.max,14+(performance.now()-press.t-320)*.07);
+  melt(x,y,press.r,.18);
+  let f=fogs.find(f=>f.p===press);
+  if(!f){f={x,y,r:press.r,a:0,p:press};fogs.push(f)}
+  f.r=press.r*1.1; f.a=Math.min(.82,f.a+dt*.003); f.x=x; f.y=y;
+}
+function refreeze(f){
+  // the fogged patch freezes from its rim inward, finer than before
+  const n=Math.round(f.r/4.5);
+  for(let i=0;i<n;i++){
+    const a=R()*TAU, x=f.x+Math.cos(a)*f.r*.82, y=f.y+Math.sin(a)*f.r*.82;
+    if(onMull(x,y)) continue;
+    pending.push({at:performance.now()+400+R()*2600,f:()=>tip(x,y,a+Math.PI+(R()-.5)*.9,f.r*(.35+R()*.45),0,0)});
+  }
+  for(let i=0;i<f.r/30;i++){
+    const a=R()*TAU, d=R()*f.r*.5, x=f.x+Math.cos(a)*d, y=f.y+Math.sin(a)*d;
+    if(!onMull(x,y)) pending.push({at:performance.now()+1500+R()*3000,f:()=>star(x,y,true)});
+  }
+}
+function scratch(x0,y0,x1,y1){
+  const d=Math.hypot(x1-x0,y1-y0); if(d<1) return;
+  const a=Math.atan2(y1-y0,x1-x0);
+  melt((x0+x1)/2,(y0+y1)/2,5,.5);
+  fx.save(); fx.strokeStyle=`rgba(${FROST},.25)`; fx.lineWidth=.8; fx.beginPath(); fx.moveTo(x0,y0); fx.lineTo(x1,y1); fx.stroke(); fx.restore();
+  for(let s=0;s<d;s+=7){
+    const x=x0+Math.cos(a)*s, y=y0+Math.sin(a)*s;
+    const delay=600+R()*1800;
+    pending.push({at:performance.now()+delay,f:()=>{
+      tip(x,y,a+Math.PI/2+(R()-.5)*.5,10+R()*26,1,0);
+      tip(x,y,a-Math.PI/2+(R()-.5)*.5,10+R()*26,1,0);
+    }});
+  }
+}
+
+fr.addEventListener('pointerdown',e=>{
+  fr.setPointerCapture(e.pointerId);
+  const p=pt(e);
+  press={x:p.x,y:p.y,lx:p.x,ly:p.y,t:performance.now(),moved:0,breath:false,r:12,max:Math.min(W,H)*.22};
+  wake();
+});
+fr.addEventListener('pointermove',e=>{
+  if(!press) return; const p=pt(e);
+  const d=Math.hypot(p.x-press.lx,p.y-press.ly);
+  press.moved+=d;
+  if(press.breath){press.x=p.x;press.y=p.y;press.lx=p.x;press.ly=p.y;return}
+  if(press.moved>8&&d>2){scratch(press.lx,press.ly,p.x,p.y);press.lx=p.x;press.ly=p.y;wake()}
+});
+function end(){
+  if(!press) return;
+  if(press.breath){const f=fogs.find(f=>f.p===press); if(f){f.p=null;f.fall=true;refreeze(f)}}
+  else if(press.moved<8) star(press.x,press.y,false);
+  press=null; wake();
+}
+fr.addEventListener('pointerup',end); fr.addEventListener('pointercancel',end);
+function pt(e){const r=fr.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
+
+document.getElementById('thaw').onclick=()=>{thawing=performance.now();pending=[];wake()};
+document.getElementById('night').onclick=()=>night();
+
+function night(){
+  tips=[];pending=[];fogs=[];thawing=0;press=null;
+  fx.clearRect(0,0,W,H); hx.clearRect(0,0,W,H);
+  if(grid) grid.fill(0);
+  fx.lineCap='round';
+  seedEdges(0,1); seedEdges(22000,.6); wake();
+}
+
+// ---- loop ----
+let last=0;
+function wake(){if(!running){running=true;last=performance.now();requestAnimationFrame(frame)}}
+function frame(now){
+  const dt=Math.min(50,now-last); last=now;
+  fx.strokeStyle=`rgba(${FROST},.62)`; fx.lineCap='round';
+  for(let i=pending.length-1;i>=0;i--) if(pending[i].at<=now){const p=pending[i];pending.splice(i,1);p.f()}
+  if(press&&!press.breath&&press.moved<8&&now-press.t>320) press.breath=true;
+  if(press&&press.breath){fx.strokeStyle=`rgba(${FROST},.62)`;breathe(press.x,press.y,dt)}
+  // grow: share a step budget across the tips
+  if(tips.length){
+    const reps=Math.max(1,Math.min(4,Math.floor(BUDGET/tips.length)));
+    fx.strokeStyle=`rgba(${FROST},.55)`;
+    const cur=tips, keep=[]; tips=[]; live=cur.length;
+    // new shoots land in the fresh tips array and start growing next frame
+    for(const t of cur){let ok=true;for(let r=0;r<reps&&ok;r++) ok=advance(t); if(ok) keep.push(t)}
+    tips=keep.concat(tips); live=0;
+  }
+  // fog
+  hx.clearRect(0,0,W,H);
+  for(const f of fogs){
+    if(f.fall) f.a-=dt*.00028;
+    const g=hx.createRadialGradient(f.x,f.y,f.r*.2,f.x,f.y,f.r);
+    const fa=Math.max(0,f.a);
+    g.addColorStop(0,`rgba(${HAZE},${fa})`); g.addColorStop(.6,`rgba(${HAZE},${fa*.8})`); g.addColorStop(1,`rgba(${HAZE},0)`);
+    hx.fillStyle=g; hx.beginPath(); hx.arc(f.x,f.y,f.r,0,TAU); hx.fill();
+  }
+  fogs=fogs.filter(f=>f.a>0);
+  // morning: the sun takes it off
+  if(thawing){
+    const k=(now-thawing)/5000;
+    fx.save(); fx.globalCompositeOperation='destination-out'; fx.fillStyle=`rgba(0,0,0,${.012+k*.05})`; fx.fillRect(0,0,W,H); fx.restore();
+    tips=[];
+    if(k>1.2){thawing=0; fx.clearRect(0,0,W,H); grid.fill(0)}
+  }
+  if(tips.length||pending.length||fogs.length||press||thawing) requestAnimationFrame(frame);
+  else running=false;
+}
+
+let rt=0;
+addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{const w=W,h=H;const r=pane.getBoundingClientRect();if(Math.round(r.width)!==w||Math.abs(Math.round(r.height)-h)>60){size();night()}},200)});
+dark.addEventListener('change',()=>{FROST=css('--frost');HAZE=css('--haze');drawScene()});
+size(); night();
+window.__frost={get tips(){return tips.length},get pending(){return pending.length}};
+})();
+</script>
+</body>
+</html>

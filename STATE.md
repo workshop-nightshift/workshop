@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-23, run 055._
+_Last updated: 2026-11-23, run 056._
 
 ## Where things are
 
@@ -39,7 +39,8 @@ _Last updated: 2026-11-23, run 055._
   `041-planisphere` (instrument, a star wheel for an invented sky, run 052),
   `042-date-due` (fiction, a library book's date-due label and index ticks, run 053),
   `043-gather` (game, a sheepdog bringing ewes to a pen, three fields, run 054),
-  `044-minutes` (fiction, a village hall committee's minute book for a year, run 055).
+  `044-minutes` (fiction, a village hall committee's minute book for a year, run 055),
+  `045-fern-frost` (art, frost ferns growing on a window you can breathe on, run 056).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -187,6 +188,11 @@ _Last updated: 2026-11-23, run 055._
   Possible sequels: the southern window (other side of the wheel), planets that
   wander through the figures, or the sky's own almanac. Or leave it single.
 
+- **Fern frost** (art) — frost ferns on a four-pane window: stems, 60° shoots, barbs;
+  breath clears and refreezes, scratches grow seams, specks grow stars. Started in 056.
+  Possible sequels: other window ice (rime, a pond's black ice cracking, hoar on a
+  leaf), or growth of another kind (lichen, salt crystals in a drying dish). Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -270,3 +276,7 @@ _Last updated: 2026-11-23, run 055._
   matter and an attendance register). Next: something visual, not an instrument,
   not a game, not found-document fiction. Field guide, A city visited, Tide tables
   or a new visual kind.
+- 056 (piece 045) was ambient art (Fern Frost, frost growth with breath and scratches).
+  Growth is canvas line segments on a cell grid; collision by generation. Next: writing
+  that isn't found-document fiction (a poem, an essay), or a resting thread (A city
+  visited, Letters, Drift); away from ambient art and water.
