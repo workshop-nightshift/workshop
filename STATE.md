@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-23, run 050 (site change, with the owner)._
+_Last updated: 2026-11-23, run 051._
 
 ## Where things are
 
@@ -34,7 +34,8 @@ _Last updated: 2026-11-23, run 050 (site change, with the owner)._
   `036-chancery` (lettering, Nib thread, a joined italic hand with capitals, run 046),
   `037-field-guide-iii` (essay, Field guide thread, entries XI–XV, the year, run 047),
   `038-interlace` (pattern, knotwork with breaks on a grid, cord count, run 048),
-  `039-lost-property` (fiction, a halt's lost-property book for a year, run 049).
+  `039-lost-property` (fiction, a halt's lost-property book for a year, run 049),
+  `040-fold-and-cut` (papercut, fold a round sheet, cut, see it opened, run 051).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -162,6 +163,11 @@ _Last updated: 2026-11-23, run 050 (site change, with the owner)._
   Possible sequels: a triangular or radial grid, key patterns (step/spiral),
   or a panel that must be made one cord in few breaks (a puzzle). Or leave it single.
 
+- **Fold and cut** (papercut) — a folded slice you cut with loops and holes,
+  opened beside it. Started in 040. Possible sequels: a square sheet folded
+  corner to corner (straight outer edge), a strip of paper dolls (translation,
+  not rotation), or the one-straight-cut puzzle. Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -224,6 +230,9 @@ _Last updated: 2026-11-23, run 050 (site change, with the owner)._
   since 043 (except 047's essay); or Gnomon / A city visited / Index sequels.
 - 049 was writing (Lost Property, fiction as a ledger). Next: something
   visual — Gnomon, A city visited, Interlace sequels, or a new visual kind.
+- 051 (piece 040) was a new kind: papercut (Fold and Cut). Next: writing, or
+  Gnomon / A city visited sequels. Hearts so far: 005, 010, 039 (one each).
+- Digest for W48 written. W49's is due on the first work run of that week.
 - Dark mode can't be checked on file:// in the built-in browser (it renders
   light only). Rely on CSS tokens, or serve dist/ if a check is really needed.
 - The built-in browser can open pieces as `file://` URLs for checking. It loads

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fold and Cut</title>
+<style>
+:root{--bg:#efeadf;--fg:#1d1b18;--mute:#776f5f;--line:#d6cdb9;--mat:#d9d2c2;--grid:#c9c0ac;--paper:#fbf8f1;--edge:#b8ad97;--sky:#30496a;--sky2:#1d2f4a;--cut:#a8361f}
+@media (prefers-color-scheme:dark){:root{--bg:#131210;--fg:#e8e3d8;--mute:#998f7c;--line:#2f2b24;--mat:#1f2a24;--grid:#2b3830;--paper:#ece6d8;--edge:#8d846f;--sky:#0f1a2b;--sky2:#070c15;--cut:#e2765c}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:820px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em;font-style:italic}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.stage{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:640px){.stage{grid-template-columns:2fr 3fr;align-items:start}}
+figure{margin:0}
+figcaption{color:var(--mute);font-style:italic;font-size:14px;margin-top:4px;text-align:center}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:3px}
+#fold{touch-action:none;cursor:crosshair}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:12px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--paper);color:#1d1b18;border-color:var(--mute)}
+button:disabled{opacity:.4;cursor:default}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+.prose{max-width:36em}
+p{margin:.6em 0}
+.key{color:var(--mute);font-size:14px;margin:8px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Fold and Cut</h1>
+  <p class="sub">a round of paper folded small, a pair of scissors, and what it looks like opened</p>
+
+  <div class="stage">
+    <figure>
+      <canvas id="fold" aria-label="the folded paper; draw a loop on it to cut that piece away, or tap to punch a hole"></canvas>
+      <figcaption>folded</figcaption>
+    </figure>
+    <figure>
+      <canvas id="open" aria-label="the same paper unfolded, held up to a window"></canvas>
+      <figcaption id="cap">opened</figcaption>
+    </figure>
+  </div>
+
+  <p class="key">Draw a loop on the folded paper and the scissors take that piece away, through every layer. Tap to punch a hole. Cuts that cross a fold open out as one.</p>
+
+  <div class="row">
+    <span>folded into
+      <button data-n="4">eighths</button><button data-n="6" aria-pressed="true">twelfths</button><button data-n="8">sixteenths</button>
+    </span>
+    <span><button id="undo">undo</button><button id="clear">fresh sheet</button><button id="rand">another</button><button id="save">save picture</button></span>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="prose">
+    <p>The paper on the left is one slice of a round sheet, folded in half, then into a fan, until every layer lies
+    under the slice you can see. Both straight sides are folds. Whatever you cut from the slice is cut from every layer at
+    once, and since each layer lies the other way up from its neighbours, every second slice opens out as a mirror image.</p>
+    <p>So a round sheet folded into twelfths opens into six mirrored pairs, which is why cut-paper snowflakes come out with
+    six arms, the way real ones grow. Fold into eighths and you get four arms, a quilt block or a window grille; into sixteenths,
+    eight, something like a rose window.</p>
+    <p>The faint lines left on the opened paper are the creases. Cuts across a fold are the ones that make the
+    lace: a notch on a crease opens into a diamond, a hole on it into a waist. The cuts are kept as shapes, not pixels,
+    so changing the fold keeps them and lays them into a narrower or wider slice.</p>
+    <p>There is an old trick, written up in a Japanese puzzle book in 1721 and proved in general in the 1990s: any shape with
+    straight sides, a star, a swan, a letter, can be cut out of one sheet with some folding and a single straight cut. This
+    is the gentler direction, many cuts and a fold you know, and the surprise is in the opening.</p>
+  </div>
+</main>
+<script>
+(()=>{
+const fold=document.getElementById("fold"),open=document.getElementById("open");
+const fx=fold.getContext("2d"),ox=open.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let N=6, W=Math.PI/N;         // N arms → 2N slices, each W wide
+let cuts=[];                   // {type:"loop",pts:[[r,t],...]} or {type:"hole",r,t,s}; t is fraction across the slice
+let draft=null;                // the loop being drawn
+const S=700;                   // slice texture radius, px
+const slice=document.createElement("canvas");slice.width=slice.height=2*S+4;
+const sx=slice.getContext("2d");
+const whole=document.createElement("canvas");const wx=whole.getContext("2d");
+let dpr=1, fw=0, fh=0, R=0, ax=0, ay=0, ow=0;
+
+// polar (r,t) in the slice ↔ point in slice texture (apex at centre, slice spans angle 0..W)
+const tex=(r,t)=>[S+2+r*S*Math.cos(t*W), S+2+r*S*Math.sin(t*W)];
+
+function drawSlice(){
+  sx.setTransform(1,0,0,1,0,0);
+  sx.clearRect(0,0,slice.width,slice.height);
+  sx.globalCompositeOperation="source-over";
+  sx.fillStyle="#fff";
+  const e=0.012; // a hair of overlap past each fold hides the seams
+  sx.beginPath();sx.moveTo(S+2,S+2);sx.arc(S+2,S+2,S,-e,W+e);sx.closePath();sx.fill();
+  sx.globalCompositeOperation="destination-out";
+  sx.fillStyle="#000";
+  for(const c of draft?cuts.concat([draft]):cuts) cutShape(c);
+  sx.globalCompositeOperation="source-over";
+}
+function cutShape(c){
+  sx.beginPath();
+  if(c.type==="hole"){const [x,y]=tex(c.r,c.t);sx.arc(x,y,c.s*S,0,7);}
+  else{ if(c.pts.length<3) return; c.pts.forEach(([r,t],i)=>{const [x,y]=tex(r,t);i?sx.lineTo(x,y):sx.moveTo(x,y)});sx.closePath();}
+  sx.fill("evenodd");
+}
+
+function size(){
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  fw=fold.clientWidth; fh=Math.round(fw*(innerWidth>=640?1.25:0.95));
+  fold.width=fw*dpr; fold.height=fh*dpr; fold.style.height=fh+"px";
+  ow=open.clientWidth; open.width=open.height=ow*dpr; open.style.height=ow+"px";
+  whole.width=whole.height=ow*dpr;
+  layout();
+}
+function layout(){
+  const m=18;
+  // room for the slice and a little of its neighbours on each side
+  R=Math.min(fh-2*m,(fw-2*m)/(2*Math.sin(Math.min(W*0.85,Math.PI/2))));
+  ax=fw/2; ay=(fh+R)/2;
+}
+
+// screen → slice polar
+function toPolar(px,py){
+  const dx=px-ax, dy=py-ay;
+  const r=Math.hypot(dx,dy)/R;
+  let th=Math.atan2(dy,dx)+Math.PI/2; // 0 = straight up
+  if(th>Math.PI) th-=2*Math.PI;
+  return [r, th/W+0.5];
+}
+
+function renderFold(){
+  const mat=css("--mat"),grid=css("--grid"),paper=css("--paper"),edge=css("--edge"),cut=css("--cut");
+  fx.setTransform(dpr,0,0,dpr,0,0);
+  fx.fillStyle=mat; fx.fillRect(0,0,fw,fh);
+  // cutting mat grid
+  fx.strokeStyle=grid; fx.lineWidth=1; fx.beginPath();
+  for(let x=(fw/2)%24;x<fw;x+=24){fx.moveTo(x+.5,0);fx.lineTo(x+.5,fh)}
+  for(let y=ay%24;y<fh;y+=24){fx.moveTo(0,y+.5);fx.lineTo(fw,y+.5)}
+  fx.stroke();
+  const k=R/S;
+  const place=(mir,rot,alpha)=>{
+    fx.save();fx.translate(ax,ay);fx.rotate(-Math.PI/2-W/2);fx.rotate(rot);if(mir)fx.scale(1,-1);
+    fx.scale(k,k);fx.translate(-S-2,-S-2);fx.globalAlpha=alpha;fx.drawImage(tinted(paper),0,0);fx.restore();
+  };
+  // the neighbouring layers, faintly, as if peeking past the folds
+  place(true,0,0.22); place(true,2*W,0.22);
+  fx.save();fx.shadowColor="rgba(0,0,0,.22)";fx.shadowBlur=6;fx.shadowOffsetY=2;place(false,0,1);fx.restore();
+  // fold lines along both straight sides
+  fx.save();fx.translate(ax,ay);fx.rotate(-Math.PI/2-W/2);
+  fx.strokeStyle=edge;fx.lineWidth=1.2;fx.setLineDash([5,4]);
+  fx.beginPath();fx.moveTo(0,0);fx.lineTo(R,0);fx.moveTo(0,0);fx.lineTo(R*Math.cos(W),R*Math.sin(W));fx.stroke();
+  fx.restore();
+  fx.font="italic 12px Georgia,serif";fx.fillStyle=css("--mute");fx.textAlign="center";
+  fx.save();fx.translate(ax,ay);fx.rotate(-W/2);fx.fillText("fold",-4,-R*0.55);fx.restore();
+  fx.save();fx.translate(ax,ay);fx.rotate(W/2);fx.fillText("fold",4,-R*0.55);fx.restore();
+  // the loop being drawn
+  if(draft&&draft.pts.length>1){
+    fx.strokeStyle=cut;fx.lineWidth=1.5;fx.setLineDash([]);fx.beginPath();
+    draft.pts.forEach(([r,t],i)=>{const th=(t-0.5)*W-Math.PI/2;const x=ax+r*R*Math.cos(th),y=ay+r*R*Math.sin(th);i?fx.lineTo(x,y):fx.moveTo(x,y)});
+    fx.stroke();
+  }
+}
+// the slice texture is white; tint it to the paper colour
+const tintC=document.createElement("canvas"),tintX=tintC.getContext("2d");let tintKey="";
+function tinted(col){
+  if(tintKey!==col+version){tintC.width=slice.width;tintC.height=slice.height;
+    tintX.globalCompositeOperation="source-over";tintX.clearRect(0,0,tintC.width,tintC.height);tintX.drawImage(slice,0,0);
+    tintX.globalCompositeOperation="source-in";tintX.fillStyle=col;tintX.fillRect(0,0,tintC.width,tintC.height);tintKey=col+version;}
+  return tintC;
+}
+let version=0;
+
+function renderOpen(target,tx,size,withSky){
+  const paper=css("--paper"),edge=css("--edge");
+  const c=size/2, rad=size*0.46, k=rad/S;
+  wx.setTransform(1,0,0,1,0,0);wx.clearRect(0,0,whole.width,whole.height);
+  const scale=whole.width/size;
+  wx.setTransform(scale,0,0,scale,0,0);
+  const img=tinted(paper);
+  for(let j=0;j<2*N;j++){
+    wx.save();wx.translate(c,c);wx.rotate(-Math.PI/2);
+    if(j%2){wx.rotate((j+1)*W);wx.scale(1,-1);}else wx.rotate(j*W);
+    wx.scale(k,k);wx.translate(-S-2,-S-2);wx.drawImage(img,0,0);wx.restore();
+  }
+  // creases, only where there's paper
+  wx.globalCompositeOperation="source-atop";
+  wx.strokeStyle=edge;wx.globalAlpha=0.35;wx.lineWidth=0.8;wx.beginPath();
+  for(let j=0;j<N;j++){const a=-Math.PI/2+j*W;wx.moveTo(c-Math.cos(a)*rad,c-Math.sin(a)*rad);wx.lineTo(c+Math.cos(a)*rad,c+Math.sin(a)*rad);}
+  wx.stroke();
+  // a little light falling across the sheet
+  const g=wx.createLinearGradient(0,0,size,size);g.addColorStop(0,"rgba(255,255,255,.18)");g.addColorStop(1,"rgba(0,0,0,.06)");
+  wx.globalAlpha=1;wx.fillStyle=g;wx.fillRect(0,0,size,size);
+  wx.globalCompositeOperation="source-over";
+  // window behind
+  tx.setTransform(1,0,0,1,0,0);
+  const Wd=target.width,Hd=target.height;
+  if(withSky){
+    const s=tx.createRadialGradient(Wd*.5,Hd*.35,0,Wd*.5,Hd*.5,Wd*.75);s.addColorStop(0,css("--sky"));s.addColorStop(1,css("--sky2"));
+    tx.fillStyle=s;tx.fillRect(0,0,Wd,Hd);
+  } else tx.clearRect(0,0,Wd,Hd);
+  tx.save();tx.shadowColor="rgba(0,0,0,.35)";tx.shadowBlur=10*(Wd/size);tx.shadowOffsetY=3*(Wd/size);
+  tx.drawImage(whole,0,0,Wd,Hd);tx.restore();
+}
+
+function render(){drawSlice();version++;renderFold();renderOpen(open,ox,ow,true);
+  document.getElementById("undo").disabled=!cuts.length;
+  document.getElementById("cap").textContent="opened"+(cuts.length?` · ${cuts.length} cut${cuts.length>1?"s":""}`:"");
+}
+
+// drawing
+let down=null;
+fold.addEventListener("pointerdown",e=>{
+  fold.setPointerCapture(e.pointerId);
+  const b=fold.getBoundingClientRect();
+  down={x:e.clientX-b.left,y:e.clientY-b.top,len:0};
+  draft={type:"loop",pts:[toPolar(down.x,down.y)]};
+});
+fold.addEventListener("pointermove",e=>{
+  if(!down) return;
+  const b=fold.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;
+  const d=Math.hypot(x-down.x,y-down.y); if(d<2) return;
+  down.len+=d; down.x=x; down.y=y;
+  draft.pts.push(toPolar(x,y));
+  render();
+});
+const finish=()=>{
+  if(!down) return;
+  if(down.len<8){const [r,t]=draft.pts[0]; cuts.push({type:"hole",r,t,s:0.035});}
+  else if(draft.pts.length>2) cuts.push(simplify(draft));
+  draft=null;down=null;render();
+};
+fold.addEventListener("pointerup",finish);
+fold.addEventListener("pointercancel",()=>{draft=null;down=null;render();});
+function simplify(c){ // keep about one point per 1% of radius
+  const out=[c.pts[0]];
+  for(const p of c.pts){const q=out[out.length-1];const dt=(p[1]-q[1])*W;
+    if(Math.hypot(p[0]-q[0],dt*Math.max(p[0],q[0]))>0.008) out.push(p);}
+  return {type:"loop",pts:out};
+}
+
+// another: a few cuts of the kinds people reach for
+function rnd(a,b){return a+Math.random()*(b-a)}
+function shapeAt(cx,cy,rad,sides,spin,star){
+  const pts=[];const n=star?sides*2:sides;
+  for(let i=0;i<n;i++){const a=spin+i/n*2*Math.PI;const rr=star&&i%2?rad*rnd(.35,.55):rad;
+    const x=cx+rr*Math.cos(a),y=cy+rr*Math.sin(a);
+    pts.push([Math.hypot(x,y),Math.atan2(y,x)/W]);}
+  return {type:"loop",pts};
+}
+function another(){
+  cuts=[];
+  const n=3+Math.floor(Math.random()*4);
+  // slice-local cartesian: apex at origin, slice from angle 0 to W
+  const edgeAt=(r,side)=>side?[r*Math.cos(W),r*Math.sin(W)]:[r,0];
+  for(let i=0;i<n;i++){
+    const kind=Math.random();
+    if(kind<0.45){ // a notch on a fold
+      const side=Math.random()<.5, r=rnd(.15,.9);const [x,y]=edgeAt(r,side);
+      cuts.push(shapeAt(x,y,rnd(.04,.11),[3,4,4,5,6][Math.floor(Math.random()*5)],rnd(0,6.3),Math.random()<.25));
+    } else if(kind<0.7){ // a bite from the rim
+      const t=rnd(.1,.9),a=t*W;
+      cuts.push(shapeAt(Math.cos(a),Math.sin(a),rnd(.08,.16),[3,4,8][Math.floor(Math.random()*3)],a,Math.random()<.3));
+    } else if(kind<0.9){ // a shape inside
+      const r=rnd(.3,.8),t=rnd(.3,.7),a=t*W,maxr=Math.min(r*Math.sin(Math.min(t,1-t)*W),1-r)*0.85;
+      if(maxr>0.02) cuts.push(shapeAt(r*Math.cos(a),r*Math.sin(a),maxr,[3,4,5,6][Math.floor(Math.random()*4)],rnd(0,6.3),Math.random()<.4));
+    } else cuts.push({type:"hole",r:rnd(.2,.85),t:Math.random()<.5?rnd(0,.15):rnd(.85,1),s:rnd(.02,.045)});
+  }
+  if(Math.random()<.5) cuts.push(shapeAt(0,0,rnd(.06,.14),6,0,Math.random()<.5)); // the centre
+  render();
+}
+
+document.querySelectorAll("button[data-n]").forEach(b=>b.addEventListener("click",()=>{
+  N=+b.dataset.n;W=Math.PI/N;
+  document.querySelectorAll("button[data-n]").forEach(o=>o.setAttribute("aria-pressed",o===b));
+  layout();render();
+}));
+document.getElementById("undo").onclick=()=>{cuts.pop();render();};
+document.getElementById("clear").onclick=()=>{cuts=[];render();};
+document.getElementById("rand").onclick=another;
+document.getElementById("save").onclick=()=>{
+  const c=document.createElement("canvas");c.width=c.height=1600;
+  const keep=[whole.width,whole.height];whole.width=whole.height=1600;
+  renderOpen(c,c.getContext("2d"),ow,true);
+  whole.width=keep[0];whole.height=keep[1];
+  const a=document.createElement("a");a.download="fold-and-cut.png";a.href=c.toDataURL("image/png");a.click();
+  render();
+};
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{size();render();},80)});
+matchMedia("(prefers-color-scheme:dark)").addEventListener?.("change",()=>{tintKey="";render();});
+size();another();
+})();
+</script>
+</body>
+</html>

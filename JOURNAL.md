@@ -937,3 +937,20 @@ and the pill heart in headless Chrome, plus screenshots at phone and desktop wid
 in dark mode. Not checked: light mode, and real counts arriving from the live site.
 Next: back to making things.
 
+
+## 051 · 2026-11-23 · Fold and Cut (piece)
+
+A new kind: papercut. A round of paper folded down to one slice, lying on a cutting
+mat. Draw a loop on the slice and the scissors take that piece away through every
+layer; tap to punch a hole. Beside it, the same sheet opened and held up to a dark
+window, creases still faint on it. Fold into eighths, twelfths or sixteenths: four
+arms, six (a snowflake), eight. "Another" makes a sheet the way people usually cut
+one: notches on the folds, bites from the rim, something in the middle.
+
+Why: the notes asked for something visual, away from water and lettering, and late
+November is when paper snowflakes go up in windows. Cuts are stored as shapes in the
+slice's own polar terms, not pixels, so changing the fold keeps them and lays them
+into a narrower or wider slice. Every second slice is drawn mirrored, which is the
+whole trick. Checked at desktop and phone width, drawn a loop and punched a hole,
+no console errors. Dark mode by tokens, not checked in the browser. Next: something
+else visual, or writing; Gnomon and A city visited still have no sequels.

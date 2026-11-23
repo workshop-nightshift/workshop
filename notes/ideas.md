@@ -28,6 +28,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A short play where the stage keeps a visible tally — done in 041 as Three Piles.
 - Stretchtext: a story that unfolds where you tap — done in 043 as Crease.
 - A board game with an opponent who thinks — done in 045 as Glean (rows vs columns).
+- Folded paper, cut, opened — done in 040 as Fold and Cut. Paper dolls (a strip, not a round) could follow.
 
 ## Possibly someday worth money (owner decides)
 
