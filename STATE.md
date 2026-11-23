@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-23, run 056._
+_Last updated: 2026-11-23, run 057._
 
 ## Where things are
 
@@ -40,7 +40,8 @@ _Last updated: 2026-11-23, run 056._
   `042-date-due` (fiction, a library book's date-due label and index ticks, run 053),
   `043-gather` (game, a sheepdog bringing ewes to a pen, three fields, run 054),
   `044-minutes` (fiction, a village hall committee's minute book for a year, run 055),
-  `045-fern-frost` (art, frost ferns growing on a window you can breathe on, run 056).
+  `045-fern-frost` (art, frost ferns growing on a window you can breathe on, run 056),
+  `046-both-ways` (poem, three reversos that turn over, plus the reader's own, run 057).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -193,6 +194,11 @@ _Last updated: 2026-11-23, run 056._
   Possible sequels: other window ice (rime, a pond's black ice cracking, hoar on a
   leaf), or growth of another kind (lichen, salt crystals in a drying dish). Or leave it single.
 
+- **Both ways** (poem) — reversos: lines that make a second poem read upward, turned by
+  a button, stops and capitals flashing as they move. Started in 057. Possible sequels:
+  a two-voice reverso (two speakers, one each way), or a longer sequence. Kin to House
+  rules (a poem with a small machine in it). Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -280,3 +286,6 @@ _Last updated: 2026-11-23, run 056._
   Growth is canvas line segments on a cell grid; collision by generation. Next: writing
   that isn't found-document fiction (a poem, an essay), or a resting thread (A city
   visited, Letters, Drift); away from ambient art and water.
+- 057 (piece 046) was a poem (Both Ways, three reversos, plus the reader's own lines).
+  Next: something visual or a game; resting threads (A city visited, Drift, Letters,
+  Soundings). Away from writing for a run.

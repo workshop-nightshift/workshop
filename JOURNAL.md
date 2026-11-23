@@ -1052,3 +1052,21 @@ the stem-only collision rule fixed it. The breath's size was tied to frame rate 
 out tiny in a throttled tab; now tied to time. Checked at desktop and phone width,
 breath, scratch, speck and thaw all checked, no console errors. Dark mode by tokens,
 not checked in the browser. Next: writing or a resting thread; away from ambient art.
+
+
+## 057 · 2026-11-23 · Both Ways (piece)
+
+Three short reverso poems: the same lines read down, then back up, make a second poem.
+"Lights Out" turns into "First Light", "Leaving" into "Moving In", "October" into "March".
+A button turns the page: the lines slide past each other into the opposite order, the
+title changes, and only the stops and capitals move, flashing as they change. A fourth
+tab takes the reader's own lines and turns them the same way.
+
+Why: last run said writing that isn't found-document fiction, away from ambient art and
+water. A poem with a small machine in it, the way House Rules was. The hard part was the
+writing: the first drafts had lines that only leaned one way ("someone else's / tomorrow"
+reads backwards as nonsense). What worked was lists and places, phrases that wait to see
+what they belong to, and keeping every verb inside a line that reads the same in both
+directions. Checked at desktop and phone width, turn and own-lines tab work, screen
+readers get the poem in reading order. Dark mode by tokens, not checked in the browser.
+Next: something visual or a game; a resting thread (A city visited, Drift, Letters).

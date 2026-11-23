@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Both Ways</title>
+<style>
+:root{--bg:#ece8de;--paper:#faf7ef;--fg:#221f1a;--mute:#7a7264;--rule:#d6cdb8;--ink:#8a3b2a;--shadow:rgba(0,0,0,.28)}
+@media (prefers-color-scheme:dark){:root{--bg:#141310;--paper:#1f1d19;--fg:#ebe5d6;--mute:#9a9283;--rule:#3a352d;--ink:#e39a7f;--shadow:rgba(0,0,0,.7)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:17px/1.5 Georgia,"Iowan Old Style","Palatino Linotype",serif;padding:22px 16px 96px;display:flex;justify-content:center}
+main{width:100%;max-width:560px}
+header h1{font-size:24px;font-weight:normal;margin:0;letter-spacing:.04em}
+header p{margin:3px 0 16px;color:var(--mute);font-style:italic;font-size:15px}
+nav{display:flex;gap:4px;margin:0 0 12px;flex-wrap:wrap}
+nav button{font:inherit;font-size:14.5px;background:none;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:4px 10px 5px;cursor:pointer;touch-action:manipulation;letter-spacing:.05em}
+nav button.cur{color:var(--fg);border-bottom-color:var(--ink)}
+nav button:focus-visible,.turn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.page{background:var(--paper);border:1px solid var(--rule);box-shadow:0 18px 34px -28px var(--shadow);padding:26px 22px 22px;position:relative}
+.titles{position:relative;height:34px;margin:0 0 14px 34px}
+.titles span{position:absolute;left:0;top:0;font-size:21px;font-style:italic;transition:opacity .7s,transform .7s}
+.titles .t-up{opacity:0;transform:translateY(8px)}
+.up .titles .t-down{opacity:0;transform:translateY(-8px)}
+.up .titles .t-up{opacity:1;transform:none}
+.poem{position:relative;margin-left:34px}
+.line{position:absolute;left:0;top:0;white-space:nowrap;transition:transform 1.15s cubic-bezier(.65,0,.3,1);will-change:transform}
+.line .w{transition:color 1.4s}
+.line.chg .w{color:var(--ink);transition:color .15s}
+.spine{position:absolute;left:22px;top:84px;width:14px;bottom:76px}
+.spine::before{content:"";position:absolute;left:6px;top:0;bottom:0;border-left:1px solid var(--rule)}
+.spine i{position:absolute;left:1px;width:12px;height:12px;border-left:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transition:top 1.15s cubic-bezier(.65,0,.3,1),transform 1.15s cubic-bezier(.65,0,.3,1)}
+.spine i{top:calc(100% - 14px);transform:rotate(-45deg)}
+.up .spine i{top:2px;transform:rotate(135deg)}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;padding-top:12px;border-top:1px solid var(--rule)}
+.turn{font:inherit;font-size:15px;background:none;color:var(--fg);border:1px solid var(--rule);border-radius:20px;padding:6px 16px;cursor:pointer;touch-action:manipulation}
+.turn:hover{border-color:var(--ink)}
+.foot small{color:var(--mute);font-style:italic;font-size:13.5px;text-align:right}
+.yours{display:none;margin-top:14px}
+.yours.on{display:block}
+.yours textarea{width:100%;min-height:190px;font:inherit;font-size:16px;line-height:1.5;background:var(--paper);color:var(--fg);border:1px solid var(--rule);padding:12px 14px;resize:vertical}
+.yours textarea:focus{outline:2px solid var(--ink);outline-offset:-1px}
+.yours .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;color:var(--mute);font-size:13.5px;font-style:italic}
+.about{color:var(--mute);font-size:14.5px;margin:22px 2px 0}
+.about p{margin:0 0 8px}
+@media (prefers-reduced-motion:reduce){.line,.spine i,.titles span{transition-duration:.01s}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Both Ways</h1>
+  <p>Three short poems that read down, and then back up.</p>
+</header>
+<nav id="tabs"></nav>
+<div class="page" id="page">
+  <div class="spine" aria-hidden="true"><i></i></div>
+  <div class="titles" aria-live="polite"><span class="t-down" id="tDown"></span><span class="t-up" id="tUp"></span></div>
+  <div class="poem" id="poem" role="img"></div>
+  <div class="foot">
+    <button class="turn" id="turn">read it up ↑</button>
+    <small id="hint">same lines, the other way</small>
+  </div>
+</div>
+<div class="yours" id="yours">
+  <textarea id="own" spellcheck="false" aria-label="Your poem, one line per line"></textarea>
+  <div class="row"><span>One phrase per line. It turns as you type.</span><span id="count"></span></div>
+</div>
+<div class="about">
+  <p>A reverso is a poem whose lines, taken in the opposite order, make a second poem. Nothing
+  is added or taken away going back up; only the stops and capitals move, and they are marked
+  as they change.</p>
+  <p>The trick is in lines that can lean either way: a list, a place, a phrase that waits to
+  see what it belongs to.</p>
+</div>
+</main>
+<script>
+const POEMS = [
+  { down:"Lights Out", up:"First Light", lines:[
+    ["Slowly","slowly."],
+    ["the room changes,","the room changes"],
+    ["one thing at a time:","One thing at a time"],
+    ["the door,","the door."],
+    ["the coat on the door,","the coat on the door,"],
+    ["the chair, the window,","the chair, the window,"],
+    ["grey","grey:"],
+    ["at the curtain's edge,","at the curtain's edge,"],
+    ["and then","and then,"],
+    ["your breathing.","Your breathing,"]
+  ]},
+  { down:"Leaving", up:"Moving In", lines:[
+    ["The keys","the keys."],
+    ["on the windowsill,","on the windowsill,"],
+    ["rooms bigger than we remember,","rooms bigger than we remember,"],
+    ["a hook in the hall,","a hook in the hall,"],
+    ["pale squares on the wallpaper","pale squares on the wallpaper,"],
+    ["where pictures were,","where pictures were"],
+    ["and somewhere","and somewhere,"],
+    ["the tap dripping,","the tap dripping"],
+    ["someone else's","someone else's:"],
+    ["home.","Home,"]
+  ]},
+  { down:"October", up:"March", lines:[
+    ["Nothing","nothing."],
+    ["on the bean poles,","on the bean poles,"],
+    ["the beds","the beds;"],
+    ["bare,","bare,"],
+    ["the hedge","the hedge;"],
+    ["turning,","turning,"],
+    ["under the soil","under the soil;"],
+    ["the bulbs","the bulbs"],
+    ["getting ready.","Getting ready,"]
+  ]}
+];
+const OWN_DEFAULT = "Your coat\non the hook,\nthe kettle\nwarm,\na note on the table\nsaying\nback soon";
+let own = OWN_DEFAULT;
+try { const s = localStorage.getItem("both-ways-own"); if (s) own = s; } catch (e) {}
+
+const $ = id => document.getElementById(id);
+const poemEl = $("poem"), page = $("page"), tabs = $("tabs");
+let cur = 0, up = false, lh = 32, els = [], swapTimer = 0;
+const NAMES = ["i", "ii", "iii", "yours"];
+
+NAMES.forEach((n, i) => {
+  const b = document.createElement("button");
+  b.textContent = n; b.onclick = () => show(i);
+  tabs.appendChild(b);
+});
+
+function ownPoem() {
+  const ls = own.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 24);
+  return { down: "Down", up: "Up", lines: ls.map(s => [s, s]) };
+}
+
+function layout(p) {
+  const n = p.lines.length;
+  els.forEach((el, i) => {
+    const pos = up ? n - 1 - i : i;
+    el.style.transform = `translateY(${pos * lh}px)`;
+  });
+  poemEl.style.height = (n * lh) + "px";
+  const order = p.lines.map(l => l[up ? 1 : 0]);
+  if (up) order.reverse();
+  poemEl.setAttribute("aria-label", order.join(" / "));
+}
+
+function build(p) {
+  poemEl.innerHTML = "";
+  els = p.lines.map(pair => {
+    const d = document.createElement("div");
+    d.className = "line";
+    const w = document.createElement("span");
+    w.className = "w";
+    w.textContent = pair[up ? 1 : 0];
+    d.appendChild(w);
+    poemEl.appendChild(d);
+    return d;
+  });
+  $("tDown").textContent = p.down;
+  $("tUp").textContent = p.up;
+  // no transition on first placement
+  els.forEach(el => el.style.transition = "none");
+  layout(p);
+  poemEl.offsetHeight;
+  els.forEach(el => el.style.transition = "");
+}
+
+function poem() { return cur === 3 ? ownPoem() : POEMS[cur]; }
+
+function show(i) {
+  cur = i;
+  [...tabs.children].forEach((b, j) => b.classList.toggle("cur", j === i));
+  $("yours").classList.toggle("on", i === 3);
+  up = false; page.classList.remove("up");
+  clearTimeout(swapTimer);
+  updateButton();
+  build(poem());
+  $("hint").textContent = i === 3 ? "your lines, the other way" : "same lines, the other way";
+}
+
+function updateButton() { $("turn").textContent = up ? "read it down ↓" : "read it up ↑"; }
+
+function turn() {
+  const p = poem();
+  up = !up;
+  page.classList.toggle("up", up);
+  updateButton();
+  layout(p);
+  clearTimeout(swapTimer);
+  swapTimer = setTimeout(() => {
+    els.forEach((el, i) => {
+      const t = p.lines[i][up ? 1 : 0], w = el.firstChild;
+      if (w.textContent !== t) {
+        w.textContent = t;
+        el.classList.add("chg");
+        setTimeout(() => el.classList.remove("chg"), 260);
+      }
+    });
+  }, 560);
+}
+$("turn").onclick = turn;
+
+const ta = $("own");
+ta.value = own;
+function countLines() { const n = ownPoem().lines.length; $("count").textContent = n + (n === 1 ? " line" : " lines"); }
+ta.addEventListener("input", () => {
+  own = ta.value;
+  try { localStorage.setItem("both-ways-own", own); } catch (e) {}
+  countLines();
+  if (cur === 3) build(poem());
+});
+countLines();
+
+function measure() {
+  lh = window.innerWidth < 420 ? 30 : 32;
+  poemEl.style.fontSize = window.innerWidth < 380 ? "16.5px" : "";
+  const p = poem();
+  els.forEach(el => el.style.transition = "none");
+  layout(p);
+  poemEl.offsetHeight;
+  els.forEach(el => el.style.transition = "");
+}
+window.addEventListener("resize", measure);
+document.addEventListener("keydown", e => {
+  if (e.target === ta) return;
+  if (e.key === "ArrowUp" && !up) turn();
+  else if (e.key === "ArrowDown" && up) turn();
+});
+measure();
+show(0);
+</script>
+</body>
+</html>
