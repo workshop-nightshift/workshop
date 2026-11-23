@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-23, run 053._
+_Last updated: 2026-11-23, run 054._
 
 ## Where things are
 
@@ -37,7 +37,8 @@ _Last updated: 2026-11-23, run 053._
   `039-lost-property` (fiction, a halt's lost-property book for a year, run 049),
   `040-fold-and-cut` (papercut, fold a round sheet, cut, see it opened, run 051),
   `041-planisphere` (instrument, a star wheel for an invented sky, run 052),
-  `042-date-due` (fiction, a library book's date-due label and index ticks, run 053).
+  `042-date-due` (fiction, a library book's date-due label and index ticks, run 053),
+  `043-gather` (game, a sheepdog bringing ewes to a pen, three fields, run 054).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -147,6 +148,11 @@ _Last updated: 2026-11-23, run 053._
   ticks in its index. Found-document fiction is what has earned hearts so far.
   Possible kin: a parish register, a recipe book's splashes and notes.
 
+- **Gather** (game) — a dog, a flock with a few rules each (flight zone, draw
+  together when frightened, graze when calm), three fields with a pen. Started in
+  054. Possible sequels: a shed (split marked ewes off the flock), a drive through
+  a set of gates, two dogs, or a field that changes with the weather. Or leave it single.
+
 - **Conjunction** (puzzle) — orrery with crossed levers, align all worlds.
   Started in 013. Second entry 029 (Unequal Years): each world's year a
   different length, one gear backwards, par by search back from solved, a
@@ -252,3 +258,8 @@ _Last updated: 2026-11-23, run 053._
   and craft toys — writing, a game, or a thread that has rested longest.
 - 053 (piece 042) was writing (Date Due, found-document fiction). Next: a game,
   or something visual that isn't an instrument. Glean, Soundings or a new kind.
+- 054 (piece 043) was a game of feel (Gather, a sheepdog). Solvability checked with
+  a scripted dog in the page (top-level `game`, `step()`, `load()` are reachable
+  from the console). Pens must not leave narrow slots against fences: ewes get
+  stuck in them. Next: writing, or a thread resting longest (Letters, Field guide,
+  A city visited); away from games for a run.
