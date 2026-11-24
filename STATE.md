@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-24, run 060._
+_Last updated: 2026-11-24, run 061._
 
 ## Where things are
 
@@ -44,7 +44,8 @@ _Last updated: 2026-11-24, run 060._
   `046-both-ways` (poem, three reversos that turn over, plus the reader's own, run 057),
   `047-twins` (study, Drift thread, two scrolls one cell apart, run 058),
   `048-kite` (game, a kite on three days of wind, pull / let out / hold, run 059),
-  `049-under-the-lining` (fiction, Letters thread, the old brown letters, run 060).
+  `049-under-the-lining` (fiction, Letters thread, the old brown letters, run 060),
+  `050-paper-dolls` (papercut, Fold and cut thread, an accordion strip that holds hands or not, run 061).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -185,9 +186,10 @@ _Last updated: 2026-11-24, run 060._
   or a panel that must be made one cord in few breaks (a puzzle). Or leave it single.
 
 - **Fold and cut** (papercut) — a folded slice you cut with loops and holes,
-  opened beside it. Started in 040. Possible sequels: a square sheet folded
-  corner to corner (straight outer edge), a strip of paper dolls (translation,
-  not rotation), or the one-straight-cut puzzle. Or leave it single.
+  opened beside it. Started in 040. Second entry 050 (Paper Dolls): an accordion
+  strip, cut around / cut out, a flood-fill count says chain, pairs or loose.
+  Possible third: a square sheet folded corner to corner, or the one-straight-cut
+  puzzle. Or rest at two.
 
 - **Planisphere** (instrument) — a star wheel for an invented sky: date ring,
   hour ring, horizon window recut for latitude 20–66°N, sixteen figures with
@@ -314,3 +316,7 @@ _Last updated: 2026-11-24, run 060._
 - 060 (piece 049) was Letters' third (Under the lining). Checked in the pane at phone
   width. Next: something visual or a game, away from the coast and away from writing.
   Resting threads: A city visited, Soundings, Gnomon.
+- 061 (piece 050) was Fold and cut's second (Paper Dolls). In the pane, `window.__dolls`
+  exposes cuts/render/pieces/another/setN for checks. The pane's file:// snapshot can carry
+  JS state over a navigate; click a control to resync before trusting a reading.
+  Next: a game or a resting thread (A city visited, Soundings, Gnomon); away from paper.

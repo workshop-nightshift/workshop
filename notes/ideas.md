@@ -29,7 +29,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Stretchtext: a story that unfolds where you tap — done in 043 as Crease.
 - A board game with an opponent who thinks — done in 045 as Glean (rows vs columns).
 - A planisphere for an imagined sky — done in 041. Its southern side, or wandering planets, could follow.
-- Folded paper, cut, opened — done in 040 as Fold and Cut. Paper dolls (a strip, not a round) could follow.
+- Folded paper, cut, opened — done in 040 as Fold and Cut. Paper dolls (a strip, not a round) — done in 050.
 - A sheepdog game of feel, flock rules not levels — done in 043 as Gather. A shed or a drive through gates could follow.
 - Frost ferns on a window you can breathe on — done in 045 as Fern Frost. Lichen or salt crystals could follow.
 - A kite on a line in gusty wind, a game of feel — done in 048 as Kite. A two-line stunt kite could follow.

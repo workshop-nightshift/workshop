@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper Dolls</title>
+<style>
+:root{--bg:#efeadf;--fg:#1d1b18;--mute:#776f5f;--line:#d6cdb9;--mat:#d9d2c2;--grid:#c9c0ac;--paper:#fbf8f1;--edge:#b8ad97;--table:#e4ddcd;--cut:#a8361f;--ok:#3f6b4a}
+@media (prefers-color-scheme:dark){:root{--bg:#131210;--fg:#e8e3d8;--mute:#998f7c;--line:#2f2b24;--mat:#1f2a24;--grid:#2b3830;--paper:#ece6d8;--edge:#8d846f;--table:#1b1916;--cut:#e2765c;--ok:#8cc39a}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:860px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em;font-style:italic}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.stage{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+@media (min-width:640px){.stage{grid-template-columns:minmax(220px,300px) 1fr}}
+figure{margin:0}
+figcaption{color:var(--mute);font-style:italic;font-size:14px;margin-top:4px;text-align:center}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:3px}
+#fold{touch-action:none;cursor:crosshair;max-width:300px;margin:0 auto}
+.side{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--paper);color:#1d1b18;border-color:var(--mute)}
+button:disabled{opacity:.4;cursor:default}
+#verdict{font-style:italic;min-height:1.5em;margin:6px 0 0;text-align:center}
+#verdict.ok{color:var(--ok)} #verdict.bad{color:var(--cut)}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+.prose{max-width:36em}
+p{margin:.6em 0}
+.key{color:var(--mute);font-size:14px;margin:8px 0 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Paper Dolls</h1>
+  <p class="sub">a strip of paper folded back and forth, one figure cut through all of it, and whether they still hold hands</p>
+
+  <div class="stage">
+    <div class="side">
+      <figure>
+        <canvas id="fold" aria-label="the folded strip; draw a loop on it to cut, or tap to punch a hole"></canvas>
+        <figcaption>folded · both sides are folds</figcaption>
+      </figure>
+      <div class="row"><span>scissors
+        <button data-mode="around" aria-pressed="true">cut around</button><button data-mode="out">cut out</button></span></div>
+      <div class="row"><span>folded into
+        <button data-n="4">4</button><button data-n="6" aria-pressed="true">6</button><button data-n="8">8</button></span></div>
+      <div class="row"><span><button id="undo">undo</button><button id="clear">fresh strip</button><button id="rand">another</button><button id="save">save picture</button></span></div>
+    </div>
+    <figure>
+      <canvas id="open" aria-label="the same strip opened out on the table"></canvas>
+      <p id="verdict"></p>
+    </figure>
+  </div>
+
+  <p class="key"><b>Cut around</b>: draw a loop and keep only what is inside it. <b>Cut out</b>: draw a loop and that piece falls away. Tap to punch a hole. Every cut goes through every layer.</p>
+
+  <h2>How it works</h2>
+  <div class="prose">
+    <p>The strip is folded like a fan: forward, back, forward, so each layer lies the other way round from the one under it.
+    The square on the left is the top layer, and both its sides are folds, though the folds on the left side belong to
+    different pairs of layers than the ones on the right. Whatever you cut goes through the whole stack.</p>
+    <p>So the opened strip is one figure repeated, every second one a mirror image. A lopsided figure, one arm up and one down,
+    comes out as pairs facing each other.</p>
+    <p>The dolls hold hands only where the cut stops short of a fold. A loop that crosses a fold leaves a bridge of paper
+    there, and the bridge opens into joined hands, or joined skirts, or shared walls if you are cutting houses. Miss the
+    fold on one side and the chain comes apart into pairs; miss both and you have a pile of loose dolls. The count under the
+    opened strip says which.</p>
+    <p>The two ends of the strip are not folds, just the paper's edge, so whatever reaches out there reaches nobody.</p>
+  </div>
+</main>
+<script>
+(()=>{
+const fold=document.getElementById("fold"),open=document.getElementById("open");
+const fx=fold.getContext("2d"),ox=open.getContext("2d");
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const ASP=1.5;                 // panel height / width
+const PW=400, PH=PW*ASP;       // panel texture
+let N=6, mode="around";
+let cuts=[];                   // {type:"out"|"around",pts:[[u,v],...]} or {type:"hole",u,v,s}; u,v in panel units 0..1
+let draft=null;
+const panel=document.createElement("canvas");panel.width=PW;panel.height=PH;const px=panel.getContext("2d");
+const tint=document.createElement("canvas");tint.width=PW;tint.height=PH;const tx=tint.getContext("2d");
+let dpr=1,fw=0,fh=0,pr=null,ow=0,oh=0;
+
+function drawPanel(){
+  px.globalCompositeOperation="source-over";px.clearRect(0,0,PW,PH);
+  px.fillStyle="#fff";px.fillRect(0,0,PW,PH);
+  for(const c of cuts){
+    px.beginPath();
+    if(c.type==="hole"){px.arc(c.u*PW,c.v*PH,c.s*PW,0,7);px.globalCompositeOperation="destination-out";px.fillStyle="#000";px.fill();continue;}
+    if(c.pts.length<3) continue;
+    c.pts.forEach(([u,v],i)=>i?px.lineTo(u*PW,v*PH):px.moveTo(u*PW,v*PH));px.closePath();
+    px.globalCompositeOperation=c.type==="around"?"destination-in":"destination-out";
+    px.fillStyle="#000";px.fill("evenodd");
+  }
+  px.globalCompositeOperation="source-over";
+  tx.globalCompositeOperation="source-over";tx.clearRect(0,0,PW,PH);tx.drawImage(panel,0,0);
+  tx.globalCompositeOperation="source-in";tx.fillStyle=css("--paper");tx.fillRect(0,0,PW,PH);
+  tx.globalCompositeOperation="source-over";
+}
+
+function size(){
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  fw=fold.clientWidth;fh=Math.round(fw*1.45);
+  fold.width=fw*dpr;fold.height=fh*dpr;fold.style.height=fh+"px";
+  // the folded panel sits in the middle with a margin for drawing past the folds
+  const m=Math.max(26,fw*0.13);
+  let w=fw-2*m, h=w*ASP; if(h>fh-30){h=fh-30;w=h/ASP;}
+  pr={x:(fw-w)/2,y:(fh-h)/2,w,h};
+  ow=open.clientWidth;
+  const pw=Math.min((ow-24)/N,200);
+  oh=Math.round(pw*ASP+40);
+  open.width=ow*dpr;open.height=oh*dpr;open.style.height=oh+"px";
+}
+const toUV=(x,y)=>[(x-pr.x)/pr.w,(y-pr.y)/pr.h];
+
+function renderFold(){
+  const k=dpr;fx.setTransform(k,0,0,k,0,0);
+  fx.fillStyle=css("--mat");fx.fillRect(0,0,fw,fh);
+  fx.strokeStyle=css("--grid");fx.lineWidth=1;fx.beginPath();
+  for(let x=(fw/2)%24;x<fw;x+=24){fx.moveTo(x+.5,0);fx.lineTo(x+.5,fh)}
+  for(let y=(fh/2)%24;y<fh;y+=24){fx.moveTo(0,y+.5);fx.lineTo(fw,y+.5)}
+  fx.stroke();
+  // where the paper was, before the scissors
+  fx.fillStyle=css("--paper");fx.globalAlpha=0.14;fx.fillRect(pr.x,pr.y,pr.w,pr.h);fx.globalAlpha=1;
+  // the layers beneath, stepped a little
+  const layers=Math.min(N-1,5);
+  for(let i=layers;i>=1;i--){fx.globalAlpha=0.16+0.04*(layers-i);fx.drawImage(tint,pr.x+i*1.6,pr.y+i*1.6,pr.w,pr.h);}
+  fx.globalAlpha=1;
+  fx.save();fx.shadowColor="rgba(0,0,0,.22)";fx.shadowBlur=5;fx.shadowOffsetY=2;fx.drawImage(tint,pr.x,pr.y,pr.w,pr.h);fx.restore();
+  fx.strokeStyle=css("--edge");fx.lineWidth=1.2;fx.setLineDash([5,4]);fx.beginPath();
+  fx.moveTo(pr.x,pr.y);fx.lineTo(pr.x,pr.y+pr.h);fx.moveTo(pr.x+pr.w,pr.y);fx.lineTo(pr.x+pr.w,pr.y+pr.h);fx.stroke();fx.setLineDash([]);
+  fx.font="italic 12px Georgia,serif";fx.fillStyle=css("--mute");fx.textAlign="center";
+  for(const [x,r] of [[pr.x-9,-Math.PI/2],[pr.x+pr.w+9,Math.PI/2]]){fx.save();fx.translate(x,pr.y+pr.h*0.82);fx.rotate(r);fx.fillText("fold",0,4);fx.restore();}
+  if(draft&&draft.pts){
+    fx.strokeStyle=css("--cut");fx.lineWidth=1.5;fx.beginPath();
+    draft.pts.forEach(([u,v],i)=>{const x=pr.x+u*pr.w,y=pr.y+v*pr.h;i?fx.lineTo(x,y):fx.moveTo(x,y)});fx.stroke();
+  }
+}
+
+// the opened strip: panel j, every odd one mirrored
+function paintStrip(ctx,x0,y0,pw,ph,img){
+  for(let j=0;j<N;j++){
+    ctx.save();ctx.translate(x0+j*pw,y0);
+    if(j%2){ctx.translate(pw,0);ctx.scale(-1,1);}
+    ctx.drawImage(img,0,0,pw,ph);ctx.restore();
+  }
+}
+function renderOpen(ctx,W,H,scale){
+  ctx.setTransform(scale,0,0,scale,0,0);
+  ctx.fillStyle=css("--table");ctx.fillRect(0,0,W,H);
+  const pw=Math.min((W-24)/N,200),ph=pw*ASP,x0=(W-N*pw)/2,y0=(H-ph)/2;
+  ctx.save();ctx.shadowColor="rgba(0,0,0,.28)";ctx.shadowBlur=6;ctx.shadowOffsetY=2;
+  paintStrip(ctx,x0,y0,pw,ph,tint);ctx.restore();
+  // creases, only on paper, alternating hill and valley
+  ctx.save();ctx.globalCompositeOperation="source-atop";
+  for(let j=1;j<N;j++){const x=x0+j*pw;ctx.strokeStyle=j%2?"rgba(0,0,0,.16)":"rgba(255,255,255,.5)";ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(x+.5,y0);ctx.lineTo(x+.5,y0+ph);ctx.stroke();}
+  ctx.restore();
+}
+
+// how many pieces does the strip open into?
+const grid=document.createElement("canvas"),gx=grid.getContext("2d",{willReadFrequently:true});
+function pieces(){
+  const pw=60,ph=pw*ASP,W=pw*N,H=ph;
+  grid.width=W;grid.height=H;gx.clearRect(0,0,W,H);
+  paintStrip(gx,0,0,pw,ph,panel);
+  const d=gx.getImageData(0,0,W,H).data,seen=new Uint8Array(W*H);
+  let count=0,big=0,sizes=[];
+  for(let i=0;i<W*H;i++){
+    if(seen[i]||d[i*4+3]<128) continue;
+    let n=0;const st=[i];seen[i]=1;
+    while(st.length){const p=st.pop();n++;const x=p%W,y=(p-x)/W;
+      for(const q of [x>0?p-1:-1,x<W-1?p+1:-1,y>0?p-W:-1,y<H-1?p+W:-1]){
+        if(q>=0&&!seen[q]&&d[q*4+3]>=128){seen[q]=1;st.push(q);}}}
+    if(n>=4){count++;sizes.push(n);}
+  }
+  return {count,sizes:sizes.sort((a,b)=>b-a),area:sizes.reduce((a,b)=>a+b,0)/(W*H)};
+}
+const words=["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve"];
+const say=n=>n<words.length?words[n]:String(n);
+function verdict(){
+  const el=document.getElementById("verdict");
+  const p=pieces();
+  if(!p.count){el.textContent="nothing left but scraps";el.className="bad";return;}
+  if(p.area>0.93){el.textContent="still a whole strip · draw a loop to start";el.className="";return;}
+  if(p.count===1){el.textContent=`one piece · a chain of ${say(N)}, holding on all the way`;el.className="ok";return;}
+  if(p.count===N/2&&p.sizes.every(s=>Math.abs(s-p.sizes[0])<p.sizes[0]*.15)){
+    el.textContent=`${say(p.count)} pairs · joined at one fold, apart at the other`;el.className="bad";return;}
+  if(p.count===N&&p.sizes.every(s=>Math.abs(s-p.sizes[0])<p.sizes[0]*.15)){
+    el.textContent=`${say(N)} loose figures · nobody holding anybody`;el.className="bad";return;}
+  el.textContent=`${say(p.count)} pieces`;el.className="bad";
+}
+
+function render(full){
+  drawPanel();renderFold();renderOpen(ox,ow,oh,dpr);
+  document.getElementById("undo").disabled=!cuts.length;
+  if(full!==false) verdict();
+}
+
+// scissors
+let down=null;
+fold.addEventListener("pointerdown",e=>{
+  fold.setPointerCapture(e.pointerId);
+  const b=fold.getBoundingClientRect();
+  down={x:e.clientX-b.left,y:e.clientY-b.top,len:0};
+  draft={type:mode,pts:[toUV(down.x,down.y)]};
+});
+fold.addEventListener("pointermove",e=>{
+  if(!down) return;
+  const b=fold.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;
+  const d=Math.hypot(x-down.x,y-down.y);if(d<2) return;
+  down.len+=d;down.x=x;down.y=y;draft.pts.push(toUV(x,y));
+  renderFold();
+});
+const finish=()=>{
+  if(!down) return;
+  if(down.len<8){const [u,v]=draft.pts[0];if(u>-.05&&u<1.05&&v>-.05&&v<1.05) cuts.push({type:"hole",u,v,s:0.04});}
+  else if(draft.pts.length>2) cuts.push(simplify(draft));
+  draft=null;down=null;render();
+};
+fold.addEventListener("pointerup",finish);
+fold.addEventListener("pointercancel",()=>{draft=null;down=null;render();});
+function simplify(c){
+  const out=[c.pts[0]];
+  for(const p of c.pts){const q=out[out.length-1];if(Math.hypot(p[0]-q[0],(p[1]-q[1])*ASP)>0.006) out.push(p);}
+  return {type:c.type,pts:out};
+}
+
+// another: a figure of the sort people cut, sometimes a little wrong
+const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
+function mirror(half){ // half: [dx,v] from top centre round the right side to bottom centre
+  const pts=half.map(([dx,v])=>[0.5+dx,v]);
+  for(let i=half.length-1;i>=0;i--) pts.push([0.5-half[i][0],half[i][1]]);
+  return pts;
+}
+function doll(reach){
+  const hr=rnd(.12,.15),hy=.13+rnd(0,.03),ay=rnd(.27,.4),aw=rnd(.035,.05),dress=Math.random()<.6;
+  const h=[];
+  // head (circle in panel units: v scaled by 1/ASP)
+  const hv=hr/ASP;
+  for(let i=0;i<=8;i++){const a=-Math.PI/2+i/8*Math.PI*0.82;h.push([hr*Math.cos(a),hy+hv*Math.sin(a)]);}
+  const neck=hy+hv+.012;
+  h.push([.05,neck]);
+  const sh=Math.max(neck+.02,ay-aw-.015);
+  h.push([.16,sh]);
+  h.push([reach,ay-aw]);h.push([reach,ay+aw]);   // the hand at the fold
+  h.push([.15,ay+aw+.03]);
+  const wy=Math.max(ay+aw+.1,.5);
+  h.push([.12,wy]);
+  if(dress){const hem=rnd(.68,.74);h.push([rnd(.3,.36),hem]);h.push([.1,hem+.005]);h.push([.1,.93]);h.push([.17,.95]);h.push([.17,.98]);h.push([.035,.98]);h.push([.035,hem+.005]);h.push([0,hem+.005]);}
+  else{h.push([.15,.6]);h.push([.14,.93]);h.push([.2,.95]);h.push([.2,.98]);h.push([.05,.98]);h.push([.045,.66]);h.push([0,.64]);}
+  return mirror(h);
+}
+function tree(reach){
+  const h=[[0,.04]],tiers=3;
+  let y=.04;
+  for(let i=0;i<tiers;i++){const w=.24+i*.07,b=y+.24;h.push([i===tiers-1?reach:w,b]);h.push([.08+i*.02,b-.02]);y=b-.08;}
+  h.push([.06,.86]);h.push([.06,.94]);h.push([.28,.94]);h.push([.28,.98]);h.push([0,.98]);
+  return mirror(h);
+}
+function house(reach){
+  const eaves=rnd(.32,.4);
+  return mirror([[0,.1],[.04,.1],[.04,.06],[.1,.06],[.1,.16],[reach,eaves],[.4,eaves],[.4,.94],[reach,.94],[reach,.98],[0,.98]]);
+}
+function another(){
+  cuts=[];
+  const kind=pick(["doll","doll","doll","tree","house"]);
+  // most of the time the hands reach past the fold; sometimes one side falls short
+  const r=Math.random(),reach=r<.72?.56:.42;
+  let pts=kind==="doll"?doll(reach):kind==="tree"?tree(reach):house(reach);
+  if(r<.84&&r>=.72){pts=(kind==='doll'?doll(.56):kind==='tree'?tree(.56):house(.56)).map(([u,v])=>[u<0?.07:u,v]);}
+  cuts.push({type:"around",pts});
+  if(kind==="doll"&&Math.random()<.5){const v=rnd(.42,.5);cuts.push({type:"hole",u:.5,v,s:.025});if(Math.random()<.5)cuts.push({type:"hole",u:.5,v:v+.07,s:.025});}
+  if(kind==="house"){cuts.push({type:"out",pts:[[.36,.5],[.64,.5],[.64,.64],[.36,.64]]});
+    if(Math.random()<.6)cuts.push({type:"out",pts:[[.42,.76],[.58,.76],[.58,.95],[.42,.95]]});}
+  if(kind==="tree"&&Math.random()<.5)cuts.push({type:"hole",u:.5,v:.4,s:.03});
+  render();
+}
+
+document.querySelectorAll("button[data-n]").forEach(b=>b.addEventListener("click",()=>{
+  N=+b.dataset.n;document.querySelectorAll("button[data-n]").forEach(o=>o.setAttribute("aria-pressed",o===b));size();render();}));
+document.querySelectorAll("button[data-mode]").forEach(b=>b.addEventListener("click",()=>{
+  mode=b.dataset.mode;document.querySelectorAll("button[data-mode]").forEach(o=>o.setAttribute("aria-pressed",o===b));}));
+document.getElementById("undo").onclick=()=>{cuts.pop();render();};
+document.getElementById("clear").onclick=()=>{cuts=[];render();};
+document.getElementById("rand").onclick=another;
+document.getElementById("save").onclick=()=>{
+  const W=N*240+80,H=Math.round(240*ASP+80),c=document.createElement("canvas");c.width=W;c.height=H;
+  renderOpen(c.getContext("2d"),W,H,1);
+  const a=document.createElement("a");a.download="paper-dolls.png";a.href=c.toDataURL("image/png");a.click();
+};
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{size();render();},80)});
+matchMedia("(prefers-color-scheme:dark)").addEventListener?.("change",()=>render());
+window.__dolls={get cuts(){return cuts},set cuts(c){cuts=c},render,pieces,another,setN:n=>{N=n;size();render();}};
+size();another();
+})();
+</script>
+</body>
+</html>

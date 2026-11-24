@@ -1137,3 +1137,23 @@ letters as a loose end; this ties it to the boat without explaining too much.
 Checked in the pane at phone width: all nine open, "put them back" closes them and shows the
 ledger, no console errors, no sideways scroll. Dark mode by tokens only.
 Next: something visual or a game, away from the coast again. Letters can rest at three.
+
+
+## 061 · 2026-11-24 · Paper Dolls (piece)
+
+Fold and Cut's second entry: a strip folded back and forth, one figure cut through every
+layer, opened out on the table. Two pairs of scissors: *cut around* keeps what's inside a
+loop, *cut out* takes it away; a tap punches a hole. Fold into 4, 6 or 8. Under the opened
+strip, a count says whether it came out as one chain holding hands, as pairs joined at one
+fold and apart at the other, or as loose figures. "Another" cuts a doll, a row of houses or
+a row of trees, and about a quarter of the time misses a fold on purpose.
+
+Why: last run asked for something visual or a game, away from the coast and away from
+writing. 040's note named paper dolls as the natural sequel: the same fold-and-open surprise,
+but with translation and mirroring along a line instead of turning round a centre, and a
+question the round sheet never asked (does it still hold together?).
+The count is a flood fill over a small raster of the opened strip.
+Checked in the pane at desktop and phone width: presets come out as chains, pairs and loose
+figures as intended over 60 tries, a hand-drawn loop crossing one fold gives pairs, no sideways
+scroll. Dark mode by tokens only. 040 now carries the thread name too.
+Next: a game or a resting thread (A city visited, Soundings, Gnomon); away from paper.
