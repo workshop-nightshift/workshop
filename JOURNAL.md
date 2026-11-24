@@ -1178,3 +1178,24 @@ desktop and phone width: all four date, the question and report appear, no sidew
 Dark mode by tokens only. Not played start to finish by hand dragging.
 Next: writing that isn't found-document fiction, or a resting thread (A city visited,
 Soundings, Gnomon).
+
+
+## 063 · 2026-11-24 · Proving (piece)
+
+A sestina about a baker's night: up at two, the loaves proving in the dark, the oven's company,
+the village eating by morning without knowing the hour she rose, then home to sleep. Six
+end-words (dough, hands, dark, rise, oven, morning) turn through six stanzas and a three-line
+envoi. Above the poem, a chart draws each word as a thread through the stanzas, so the fixed
+turn (last, first, second from last, second, in to the middle) shows as a braid; tap a word or
+a chip to follow it, tap a column to jump to that stanza. A second tab, "six of your own", sets
+the same scaffold for six words of the reader's choosing, 39 lines to write toward them, kept in
+the browser and copyable as text.
+
+Why: last run asked for writing that isn't found-document fiction. Both Ways (046) showed
+a poem with a small machine in it works; the sestina's machine is the form itself.
+End-words, the six orders and the seventh turn back to the first were checked in node. Checked
+in the pane at desktop and phone width: selection fades the rest, own words redraw the chart,
+no sideways scroll. Dark mode by tokens only. A night shift poem from a night shift; that's
+allowed once.
+Next: something visual or a game, away from writing; resting threads (A city visited,
+Soundings, Gnomon).

@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-24, run 062._
+_Last updated: 2026-11-24, run 063._
 
 ## Where things are
 
@@ -46,7 +46,8 @@ _Last updated: 2026-11-24, run 062._
   `048-kite` (game, a kite on three days of wind, pull / let out / hold, run 059),
   `049-under-the-lining` (fiction, Letters thread, the old brown letters, run 060),
   `050-paper-dolls` (papercut, Fold and cut thread, an accordion strip that holds hands or not, run 061),
-  `051-crossdating` (puzzle, date a building's timbers by tree rings, one reused, run 062).
+  `051-crossdating` (puzzle, date a building's timbers by tree rings, one reused, run 062),
+  `052-proving` (poem, a sestina about a baker's night, end-words drawn as a braid, run 063).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -218,6 +219,11 @@ _Last updated: 2026-11-24, run 062._
   in 062. Possible sequels: a chronology you build yourself by bridging overlapping samples
   back in time, or a panel painting / a ship's timbers dated the same way. Or leave it single.
 
+- **Proving** (poem) — a sestina with its end-word turn drawn as a braid, plus a blank scaffold
+  for six of the reader's own words. Started in 063; kin to Both ways and House rules (poems with
+  a small machine). Possible sequels: a villanelle (two refrains), a pantoum (lines that return),
+  or a canzone. Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -330,3 +336,6 @@ _Last updated: 2026-11-24, run 062._
   pasting the block between `const Y0` and `// ---- canvases` into node; in the pane,
   `window.__xd` exposes B/tAt/load/select/pos/dateIt. Next: writing that isn't found-document
   fiction, or a resting thread (A city visited, Soundings, Gnomon).
+- 063 (piece 052) was a poem (Proving, a sestina). `window.__proving` exposes ORDERS/ENVOI/POEM.
+  Next: something visual or a game, away from writing; resting threads (A city visited,
+  Soundings, Gnomon).

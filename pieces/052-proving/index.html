@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proving</title>
+<style>
+:root{--bg:#efe9dd;--paper:#fbf8f0;--fg:#231f19;--mute:#7c7365;--rule:#d9cfba;--ink:#8a4a26;--shadow:rgba(0,0,0,.25);
+  --c0:#a3532b;--c1:#356f93;--c2:#6c5a9a;--c3:#557d33;--c4:#a97a1c;--c5:#97385f}
+@media (prefers-color-scheme:dark){:root{--bg:#15130f;--paper:#201d18;--fg:#ece5d5;--mute:#9b9383;--rule:#3b362d;--ink:#e3a27a;--shadow:rgba(0,0,0,.7);
+  --c0:#e8946a;--c1:#7fb6dc;--c2:#ab9ae0;--c3:#9cc777;--c4:#e2bd62;--c5:#e083aa}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:17px/1.55 Georgia,"Iowan Old Style","Palatino Linotype",serif;padding:22px 16px 96px;display:flex;justify-content:center}
+main{width:100%;max-width:600px}
+header h1{font-size:25px;font-weight:normal;margin:0;letter-spacing:.04em}
+header p{margin:3px 0 14px;color:var(--mute);font-style:italic;font-size:15px}
+nav{display:flex;gap:4px;margin:0 0 12px;flex-wrap:wrap}
+nav button{font:inherit;font-size:14.5px;background:none;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:4px 10px 5px;cursor:pointer;touch-action:manipulation;letter-spacing:.05em}
+nav button.cur{color:var(--fg);border-bottom-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.card{background:var(--paper);border:1px solid var(--rule);box-shadow:0 18px 34px -28px var(--shadow);padding:18px 16px 14px}
+svg#chart{display:block;width:100%;height:auto;overflow:visible}
+#chart .lbl{font:15px Georgia,serif;fill:var(--mute)}
+#chart .wl{font:15px Georgia,serif;cursor:pointer}
+#chart path{fill:none;stroke-width:2.2;stroke-linecap:round;transition:opacity .4s,stroke-width .4s}
+#chart circle{transition:opacity .4s;cursor:pointer}
+#chart .colhit{fill:transparent;cursor:pointer}
+#chart .colband{fill:var(--ink);opacity:0;transition:opacity .3s}
+#chart .colband.on{opacity:.08}
+.sel #chart path,.sel #chart circle,.sel #chart .wl{opacity:.13}
+.sel #chart .on{opacity:1}
+.sel #chart path.on{stroke-width:3.6}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 2px}
+.chips button{font:inherit;font-size:14.5px;background:none;border:1px solid var(--rule);border-radius:16px;padding:3px 12px;cursor:pointer;touch-action:manipulation}
+.chips button.on{border-color:currentColor}
+.chips button i{display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:1px}
+.cap{color:var(--mute);font-size:13.5px;font-style:italic;margin:6px 0 0}
+.poem{margin:22px 0 0;padding:26px 22px 20px}
+.poem h2{font-size:20px;font-weight:normal;font-style:italic;margin:0 0 16px}
+.st{position:relative;margin:0 0 18px;padding-left:34px;border-radius:2px;transition:background .3s}
+.st.flash{background:color-mix(in srgb,var(--ink) 9%,transparent)}
+.st .n{position:absolute;left:0;top:1px;color:var(--mute);font-size:13px;letter-spacing:.06em;width:28px}
+.st p{margin:0;text-indent:-1em;padding-left:1em}
+.ew{font-weight:bold;cursor:pointer;transition:opacity .4s}
+.sel .poem .ew{opacity:.35}
+.sel .poem .ew.on{opacity:1;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px}
+.k0{color:var(--c0)}.k1{color:var(--c1)}.k2{color:var(--c2)}.k3{color:var(--c3)}.k4{color:var(--c4)}.k5{color:var(--c5)}
+#chart .s0{stroke:var(--c0)}#chart .s1{stroke:var(--c1)}#chart .s2{stroke:var(--c2)}#chart .s3{stroke:var(--c3)}#chart .s4{stroke:var(--c4)}#chart .s5{stroke:var(--c5)}
+#chart .f0{fill:var(--c0)}#chart .f1{fill:var(--c1)}#chart .f2{fill:var(--c2)}#chart .f3{fill:var(--c3)}#chart .f4{fill:var(--c4)}#chart .f5{fill:var(--c5)}
+.draw #chart path{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw 2.4s cubic-bezier(.5,0,.3,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.yours{display:none}
+.yours.on{display:block}
+.words{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 6px}
+.words label{display:flex;flex-direction:column;font-size:12.5px;color:var(--mute);font-style:italic}
+input{font:inherit;font-size:16px;background:var(--paper);color:var(--fg);border:1px solid var(--rule);border-radius:3px;padding:5px 8px;min-width:0;width:100%}
+.words input{font-weight:bold}
+.lines .st p{display:flex;align-items:baseline;gap:6px;text-indent:0;padding-left:0;margin:0 0 4px}
+.lines input{flex:1;border-width:0 0 1px;border-radius:0;background:transparent;padding:3px 2px}
+.lines .ew{white-space:nowrap;cursor:default}
+.lines .env p{flex-wrap:wrap}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;color:var(--mute);font-size:13.5px;font-style:italic;flex-wrap:wrap}
+.row button{font:inherit;font-size:14px;background:none;color:var(--fg);border:1px solid var(--rule);border-radius:16px;padding:4px 14px;cursor:pointer;font-style:normal}
+.row button:hover{border-color:var(--ink)}
+.about{color:var(--mute);font-size:14.5px;margin:22px 2px 0}
+.about p{margin:0 0 8px}
+@media (max-width:480px){body{font-size:15px}#chart .wl,#chart .lbl{font-size:19px}.poem{padding:20px 14px 14px}.st{padding-left:22px}.st p{text-indent:-.7em;padding-left:.7em}.words{grid-template-columns:repeat(2,1fr)}}
+@media (prefers-reduced-motion:reduce){.draw #chart path{animation:none;stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+<main id="main">
+<header>
+  <h1>Proving</h1>
+  <p>A sestina: six words, six stanzas, one night's bread.</p>
+</header>
+<nav id="tabs">
+  <button class="cur" data-t="poem">the poem</button>
+  <button data-t="yours">six of your own</button>
+</nav>
+<div class="card">
+  <svg id="chart" viewBox="0 0 560 214" role="img" aria-label="Where each end-word falls in each stanza"></svg>
+  <div class="chips" id="chips"></div>
+  <p class="cap" id="cap">Each line is a word, followed through the poem. Tap one.</p>
+</div>
+
+<section id="poemView">
+  <div class="card poem" id="poem"><h2>Proving</h2></div>
+</section>
+
+<section class="yours" id="yoursView">
+  <div class="card poem">
+    <h2>Your six</h2>
+    <div class="words" id="words"></div>
+    <div class="lines" id="lines"></div>
+    <div class="row"><span id="count">Choose six words, then write toward them.</span><button id="copy">copy as text</button></div>
+  </div>
+</section>
+
+<div class="about">
+  <p>A sestina has no rhyme, only six words that end its lines, over and over. Each stanza takes
+  the last stanza's words in a fixed new order: last, first, second from last, second, and in
+  towards the middle, like folding dough. After six stanzas every word has stood in every place
+  once, and a seventh turn would bring back the first order exactly. The three-line envoi uses
+  all six, two to a line.</p>
+  <p>It suits subjects that come round again: a night shift, a habit, a bread that has to be
+  made every day.</p>
+</div>
+</main>
+<script>
+const WORDS = ["dough","hands","dark","rise","oven","morning"];
+const POEM = [
+  ["At two the baker wakes and finds the dough",
+   "has doubled in its bowl. She warms her hands",
+   "against the kettle, standing in the dark",
+   "because the light would wake the house. They rise",
+   "so quietly, these loaves. She lights the oven",
+   "and sets the clock, and turns her back on morning."],
+  ["Nobody here will thank her in the morning.",
+   "They’ll take the bread as if the bread were dough",
+   "that grew itself to crust, as if an oven",
+   "were weather, something done without the hands.",
+   "She doesn’t mind. She likes to watch it rise,",
+   "and likes the village sleeping in the dark."],
+  ["Her mother said the trick was in the dark:",
+   "that bread kept secrets better before morning,",
+   "that anything you watch too hard won’t rise.",
+   "So she looks elsewhere. She folds the second dough",
+   "in thirds, then thirds again, and lets her hands",
+   "forget her, as they do beside the oven."],
+  ["There is a kind of company an oven",
+   "keeps: a ticking, an orange in the dark,",
+   "a heat that leans on you like borrowed hands.",
+   "She thinks of all of them who’ll eat by morning —",
+   "the postman, the twins, the man who thinks the dough",
+   "should taste of his mother’s — and of how they’ll rise."],
+  ["At four the first tray has begun to rise",
+   "a little more, and goes into the oven.",
+   "She scrapes the board and wets it for the dough",
+   "still waiting, and the window, which was dark,",
+   "is only grey now, not yet quite the morning.",
+   "She knocks the flour from her sleeves, her hands."],
+  ["Someone will cut a slice with careless hands",
+   "and never know the hour she had to rise,",
+   "and that is right; that’s what she gives the morning.",
+   "She takes the last tray out and shuts the oven",
+   "and walks home past the houses, still half dark,",
+   "and sleeps the day through, smelling of the dough."],
+  ["Tomorrow, the same hands, the same warm oven;",
+   "the same slow rise, the same unhurried dark;",
+   "another morning made of last night’s dough."]
+];
+const ROMAN = ["I","II","III","IV","V","VI","envoi"];
+const TURN = [5,0,4,1,3,2];
+const ORDERS = [[0,1,2,3,4,5]];
+for (let s=1;s<6;s++) ORDERS.push(TURN.map(i=>ORDERS[s-1][i]));
+const ENVOI = [[1,4],[3,2],[5,0]];  // [middle word, end word] per envoi line
+
+const $ = s=>document.querySelector(s);
+const main = $("#main");
+let sel = -1, words = WORDS.slice(), view = "poem";
+
+// ---- chart
+const X0=92, DX=62, Y0=20, DY=28, XE=[490,528];
+const colX = s => X0 + s*DX;
+const rowY = p => Y0 + p*DY;
+const envY = k => Y0 + DY*(.5 + 2*k);
+function chartPoints(w){
+  const pts = ORDERS.map((o,s)=>[colX(s), rowY(o.indexOf(w))]);
+  ENVOI.forEach((pr,k)=>{ const j = pr.indexOf(w); if (j>=0) pts.push([XE[j], envY(k)]); });
+  return pts;
+}
+function pathD(pts){
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i=1;i<pts.length;i++){
+    const [x0,y0]=pts[i-1],[x1,y1]=pts[i], m=(x1-x0)*.5;
+    d += ` C${x0+m},${y0} ${x1-m},${y1} ${x1},${y1}`;
+  }
+  return d;
+}
+function buildChart(){
+  const svg = $("#chart"), NS="http://www.w3.org/2000/svg";
+  svg.textContent = "";
+  const el = (t,a,p=svg)=>{ const e=document.createElementNS(NS,t); for (const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e; };
+  for (let s=0;s<7;s++){
+    const x = s<6 ? colX(s) : (XE[0]+XE[1])/2, w = s<6 ? DX : 72;
+    el("rect",{class:"colband",id:"band"+s,x:x-w/2+3,y:4,width:w-6,height:180,rx:4});
+  }
+  const lens = [];
+  for (let w=0;w<6;w++){
+    const p = el("path",{d:pathD(chartPoints(w)),class:"s"+w,"data-w":w});
+    lens.push(p);
+  }
+  for (let w=0;w<6;w++){
+    chartPoints(w).forEach(([x,y])=>el("circle",{cx:x,cy:y,r:4.2,class:"f"+w,"data-w":w}));
+    const t = el("text",{x:X0-16,y:rowY(w)+5,"text-anchor":"end",class:"wl f"+w,"data-w":w});
+    t.textContent = trimLabel(words[w]||"—");
+  }
+  for (let s=0;s<7;s++){
+    const x = s<6 ? colX(s) : (XE[0]+XE[1])/2;
+    const t = el("text",{x,y:206,"text-anchor":"middle",class:"lbl"}); t.textContent = ROMAN[s];
+    const w = s<6 ? DX : 72;
+    el("rect",{class:"colhit",x:x-w/2,y:0,width:w,height:214,"data-s":s});
+  }
+  lens.forEach(p=>{ let L=600; try{ L=Math.ceil(p.getTotalLength()); }catch(e){} p.style.setProperty("--len",L); });
+  markSel();
+}
+function trimLabel(s){ return s.length>9 ? s.slice(0,8)+"…" : s; }
+
+// ---- poem
+function wrapEnd(line, w, cls){
+  const re = new RegExp("\\b"+w+"\\b","gi"); let m, last=null;
+  while ((m=re.exec(line))) last=m;
+  if (!last) return esc(line);
+  return esc(line.slice(0,last.index)) + `<span class="ew ${cls}" data-w="${WORDS.indexOf(w)}">${esc(last[0])}</span>` + esc(line.slice(last.index+last[0].length));
+}
+function wrapMidEnd(line, a, b){
+  const reA = new RegExp("\\b"+WORDS[a]+"\\b","i"), m = reA.exec(line);
+  const head = line.slice(0,m.index), rest = line.slice(m.index+m[0].length);
+  return esc(head) + `<span class="ew k${a}" data-w="${a}">${esc(m[0])}</span>` + wrapEnd(rest, WORDS[b], "k"+b);
+}
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function buildPoem(){
+  const box = $("#poem");
+  POEM.forEach((st,s)=>{
+    const d = document.createElement("div"); d.className="st"; d.id="st"+s;
+    let h = `<span class="n">${ROMAN[s]==="envoi"?"":ROMAN[s]}</span>`;
+    st.forEach((ln,i)=>{
+      if (s<6){ const w = ORDERS[s][i]; h += `<p>${wrapEnd(ln, WORDS[w], "k"+w)}</p>`; }
+      else { const [a,b]=ENVOI[i]; h += `<p>${wrapMidEnd(ln,a,b)}</p>`; }
+    });
+    d.innerHTML = h; box.appendChild(d);
+  });
+}
+
+// ---- selection
+function markSel(){
+  main.classList.toggle("sel", sel>=0);
+  document.querySelectorAll("[data-w]").forEach(e=>{
+    e.classList.toggle("on", +e.dataset.w===sel);
+  });
+  const cap = $("#cap");
+  if (sel<0){ cap.textContent = "Each line is a word, followed through the poem. Tap one."; return; }
+  const pos = ORDERS.map(o=>o.indexOf(sel)+1);
+  const env = ENVOI.findIndex(p=>p.includes(sel)), mid = ENVOI[env][0]===sel;
+  cap.textContent = `“${words[sel]||"—"}” ends line ${pos.join(", ")} of its stanzas, then sits ${mid?"inside":"at the end of"} envoi line ${env+1}.`;
+}
+function choose(w){ sel = sel===w ? -1 : w; markSel(); }
+function buildChips(){
+  const c = $("#chips"); c.textContent="";
+  words.forEach((w,i)=>{
+    const b = document.createElement("button"); b.className="k"+i; b.dataset.w=i;
+    b.innerHTML = `<i></i>${esc(w||"—")}`; c.appendChild(b);
+  });
+}
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-w]");
+  if (t && !t.closest(".lines")) { choose(+t.dataset.w); return; }
+  const c = e.target.closest(".colhit");
+  if (c){
+    const s = +c.dataset.s, tgt = document.getElementById((view==="poem"?"st":"ys")+s);
+    document.querySelectorAll(".colband").forEach(b=>b.classList.toggle("on", b.id==="band"+s));
+    if (tgt){ tgt.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth", block:"center"});
+      tgt.classList.add("flash"); setTimeout(()=>tgt.classList.remove("flash"),900); }
+  }
+});
+
+// ---- your own
+const KEY = "proving-own";
+let own = {w:["","","","","",""], l:Array(39).fill("")};
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.w && s.l) own = s; } catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(own)); }catch(e){} }
+function buildYours(){
+  const W = $("#words"); W.textContent="";
+  own.w.forEach((v,i)=>{
+    const lab = document.createElement("label"); lab.className="k"+i;
+    lab.innerHTML = `<span>word ${i+1}</span>`;
+    const inp = document.createElement("input"); inp.value=v; inp.className="k"+i; inp.maxLength=20;
+    inp.setAttribute("autocapitalize","off"); inp.setAttribute("spellcheck","false");
+    inp.addEventListener("input",()=>{ own.w[i]=inp.value.trim(); save(); refreshOwn(); });
+    lab.appendChild(inp); W.appendChild(lab);
+  });
+  const L = $("#lines"); L.textContent="";
+  let n = 0;
+  for (let s=0;s<7;s++){
+    const d = document.createElement("div"); d.className="st"+(s===6?" env":""); d.id="ys"+s;
+    d.innerHTML = `<span class="n">${s<6?ROMAN[s]:""}</span>`;
+    const rows = s<6 ? 6 : 3;
+    for (let i=0;i<rows;i++){
+      const p = document.createElement("p"), idx = n++;
+      const inp = document.createElement("input"); inp.value = own.l[idx]||""; inp.setAttribute("aria-label",`line ${idx+1}`);
+      inp.addEventListener("input",()=>{ own.l[idx]=inp.value; save(); count(); });
+      if (s<6){
+        p.appendChild(inp);
+        const e = document.createElement("span"); e.className="ew k"+ORDERS[s][i]; e.dataset.slot=ORDERS[s][i]; p.appendChild(e);
+      } else {
+        const [a,b] = ENVOI[i];
+        const e1 = document.createElement("span"); e1.className="ew k"+a; e1.dataset.slot=a;
+        const e2 = document.createElement("span"); e2.className="ew k"+b; e2.dataset.slot=b;
+        inp.placeholder = "… with the first word inside";
+        p.append(e1, inp, e2);
+      }
+      d.appendChild(p);
+    }
+    L.appendChild(d);
+  }
+  refreshOwn();
+}
+function refreshOwn(){
+  document.querySelectorAll(".lines [data-slot]").forEach(e=>{ e.textContent = own.w[+e.dataset.slot] || `(${+e.dataset.slot+1})`; });
+  if (view==="yours"){ main.classList.remove("draw"); words = own.w.slice(); buildChips(); buildChart(); }
+  count();
+}
+function count(){
+  const done = own.l.filter(x=>x.trim()).length, ww = own.w.filter(Boolean).length;
+  $("#count").textContent = ww<6 ? `${ww} of 6 words chosen.` : `${done} of 39 lines written.`;
+}
+$("#copy").addEventListener("click", async ()=>{
+  let n=0, out=[];
+  for (let s=0;s<7;s++){
+    const rows = s<6?6:3;
+    for (let i=0;i<rows;i++){
+      const t = (own.l[n++]||"").trim();
+      if (s<6) out.push((t?t+" ":"")+(own.w[ORDERS[s][i]]||"___"));
+      else { const [a,b]=ENVOI[i]; out.push(`${own.w[a]||"___"} ${t} ${own.w[b]||"___"}`.replace(/\s+/g," ").trim()); }
+    }
+    out.push("");
+  }
+  const txt = out.join("\n").trim(), btn = $("#copy");
+  try { await navigator.clipboard.writeText(txt); btn.textContent="copied"; }
+  catch(e){ btn.textContent="couldn’t copy"; }
+  setTimeout(()=>btn.textContent="copy as text",1600);
+});
+
+// ---- tabs
+$("#tabs").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if (!b) return;
+  view = b.dataset.t;
+  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("cur", x===b));
+  $("#poemView").style.display = view==="poem" ? "" : "none";
+  $("#yoursView").classList.toggle("on", view==="yours");
+  words = view==="poem" ? WORDS.slice() : own.w.slice();
+  sel = -1; buildChips(); buildChart();
+  main.classList.remove("draw"); void main.offsetWidth; main.classList.add("draw");
+});
+
+buildPoem(); buildYours(); buildChips(); buildChart();
+main.classList.add("draw");
+window.__proving = {ORDERS, ENVOI, POEM, WORDS};
+</script>
+</body>
+</html>
