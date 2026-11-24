@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shepherd's Dial</title>
+<style>
+:root{--bg:#f1ede3;--fg:#1d1b18;--mute:#77705f;--line:#d6cdbb;--paper:#e9e1cf;--wood:#c9a878;--wood2:#a9875a;--ink:#2b2720;--shade:rgba(40,30,20,.55);--sun:#c8771c;--red:#a8381f;--curve:#5d7a8c;--sky:#e6e4dc}
+@media (prefers-color-scheme:dark){:root{--bg:#131210;--fg:#e8e3d8;--mute:#9a927f;--line:#34302a;--paper:#24211c;--wood:#8a6e4a;--wood2:#6a5236;--ink:#e3dac6;--shade:rgba(0,0,0,.65);--sun:#e8a050;--red:#e2765c;--curve:#86a7ba;--sky:#1b1a17}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 64px}
+main{width:100%;max-width:760px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.pair{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:12px;align-items:end}
+@media (max-width:620px){.pair{grid-template-columns:1fr}}
+canvas{display:block;width:100%;touch-action:none}
+#strip{cursor:crosshair}
+.cap{color:var(--mute);font-size:13px;text-align:center;margin:2px 0 0;font-style:italic}
+.read{text-align:center;margin:10px 0 0;min-height:3.2em}
+.read b{font-weight:normal;font-size:19px;font-variant-numeric:tabular-nums}
+.read small{display:block;color:var(--mute);font-size:14px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px 16px;margin-top:12px}
+.ctl label{display:flex;flex-direction:column;color:var(--mute);font-size:14px}
+.ctl label span{display:flex;justify-content:space-between}
+.ctl output{color:var(--fg);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--sun)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--paper);border-color:var(--mute)}
+button:disabled{opacity:.4;cursor:default}
+#quiz{margin-top:18px;border-top:1px solid var(--line);padding-top:10px;display:none}
+#quiz.on{display:block}
+#qbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#qbtns button{min-width:3.2em;font-variant-numeric:tabular-nums}
+#qbtns button.ok{border-color:var(--curve);background:var(--paper)}
+#qbtns button.no{border-color:var(--red);color:var(--red)}
+#qmsg{min-height:1.5em;margin:8px 0 0}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+p{margin:.6em 0}
+.prose{max-width:36em}
+</style>
+</head>
+<body>
+<main>
+  <h1>Shepherd's Dial</h1>
+  <p class="sub">a sundial you carry: it reads the hour from how high the sun stands</p>
+
+  <div class="pair">
+    <div>
+      <canvas id="scene" aria-label="the dial standing in the sun, seen from the side, with the ray past the blade's tip"></canvas>
+      <p class="cap">the dial, side on</p>
+    </div>
+    <div>
+      <canvas id="strip" aria-label="the dial's surface unrolled: hour curves against the months"></canvas>
+      <p class="cap">its surface unrolled · tap or drag to set the day and the shadow</p>
+    </div>
+  </div>
+  <p class="read" id="read" aria-live="polite"></p>
+
+  <div class="ctl" id="ctl">
+    <label><span>day <output id="oday"></output></span><input type="range" id="day" min="1" max="365" value="140"></label>
+    <label><span>sun time <output id="otim"></output></span><input type="range" id="tim" min="0" max="1440" step="2" value="610"></label>
+    <label><span>cut for latitude <output id="olat"></output></span><input type="range" id="lat" min="30" max="60" value="43"></label>
+  </div>
+  <div class="row">
+    <span><button id="play" aria-pressed="false">run the day</button><button id="halves" aria-pressed="true">half hours</button></span>
+    <span><button id="qstart">read it yourself</button></span>
+  </div>
+
+  <div id="quiz" aria-live="polite">
+    <div id="qhead"></div>
+    <div id="qbtns"></div>
+    <p id="qmsg"></p>
+    <div class="row"><span><button id="qnext">next</button><button id="qstop">put it away</button></span></div>
+  </div>
+
+  <h2>about</h2>
+  <div class="prose">
+    <p>A shepherd's dial is a short wooden column with a turning cap, and a little blade folded into the cap. To read it you turn the cap until the blade stands over the day's mark, open the blade so it sticks out level, and hang the column from its cord so the blade points straight at the sun. The blade's shadow then falls straight down the column, and where its tip ends, among the curves drawn round the wood, is the hour.</p>
+    <p>A flat garden dial reads the sun's direction. This one reads the sun's height, which is why it doesn't need to know north and can live in a pocket. The shadow of a level blade of length g falls a depth g × tan(height) down the column: high sun, long shadow. So each hour gets a curve, deep in summer and shallow in winter, and the curves are what you see unrolled on the right.</p>
+    <p>The sun stands as high at ten as at two. The dial can't tell morning from afternoon; you have to know which half of the day it is, and the old dials label each curve with both hours. Near noon the curves run close together and flat, because the sun hardly climbs in its last hour up; that is where the dial is least sure of itself. Mid-morning and mid-afternoon, when the sun is climbing or falling quickly, it reads best.</p>
+    <p>Height depends on latitude, so a column is cut for one place. Recut this one further south and the summer noon sun climbs so steep that its shadow would run off the bottom of the wood; real dials simply lose those hours. Times are sun time, as a sundial knows it, with no zones or summer time.</p>
+  </div>
+</main>
+<script>
+(function(){
+'use strict';
+var D=Math.PI/180;
+var $=function(id){return document.getElementById(id);};
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+var st={lat:43,day:140,t:610,halves:true,play:false,quiz:null};
+
+// ---------- the sun ----------
+function decl(d){return 23.44*Math.sin(2*Math.PI*(d-81)/365);}
+function altOf(lat,d,t){var H=(t-720)/4*D,p=lat*D,dc=decl(d)*D;return Math.asin(Math.sin(p)*Math.sin(dc)+Math.cos(p)*Math.cos(dc)*Math.cos(H));}
+function halfDay(lat,d){var c=-Math.tan(lat*D)*Math.tan(decl(d)*D);if(c<=-1)return 720;if(c>=1)return 0;return Math.acos(c)/D*4;} // minutes from noon to sunset
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],ML=[31,28,31,30,31,30,31,31,30,31,30,31];
+function dateOf(d){d=Math.round(d);var m=0;while(d>ML[m]){d-=ML[m];m++;}return d+' '+MON[m];}
+function hm(min){min=((Math.round(min)%1440)+1440)%1440;var h=Math.floor(min/60),m=min%60;return h+':'+(m<10?'0':'')+m;}
+var ROM=['XII','XI','X','IX','VIII','VII','VI','V','IV'],ROMP=['','I','II','III','IV','V','VI','VII','VIII'];
+function label(k){return k===0?'XII':ROM[k]+'·'+ROMP[k];}
+
+// ---------- the column ----------
+var HC=1; // column's usable height, unit
+function blade(lat){var top=Math.min(90-lat+23.44,80)*D;return HC/Math.tan(top)*0.97;}
+function depth(lat,a){return blade(lat)*Math.tan(a);}
+function timeFromDepth(lat,d,dep,pm){
+  var a=Math.atan(dep/blade(lat)),p=lat*D,dc=decl(d)*D;
+  var c=(Math.sin(a)-Math.sin(p)*Math.sin(dc))/(Math.cos(p)*Math.cos(dc));
+  c=Math.max(-1,Math.min(1,c));var H=Math.acos(c)/D*4;return pm?720+H:720-H;
+}
+
+// ---------- canvases ----------
+var sc=$('scene'),sg=sc.getContext('2d'),tc=$('strip'),tg=tc.getContext('2d');
+var dpr=1,SW=0,SH=0,TW=0,TH=0;
+var M={l:22,r:8,t:22,b:24};
+function size(){
+  dpr=window.devicePixelRatio||1;
+  var w2=tc.parentNode.clientWidth;TW=w2;TH=Math.round(Math.min(380,Math.max(260,w2*0.7)));
+  tc.width=TW*dpr;tc.height=TH*dpr;tc.style.height=TH+'px';
+  var w1=sc.parentNode.clientWidth;SW=w1;SH=window.innerWidth<=620?Math.round(Math.min(300,w1*0.72)):TH;
+  sc.width=SW*dpr;sc.height=SH*dpr;sc.style.height=SH+'px';
+}
+function X(day){return M.l+(day-1)/364*(TW-M.l-M.r);}
+function Y(dep){return M.t+dep/HC*(TH-M.t-M.b);}
+
+function drawStrip(hideTime){
+  var g=tg,lat=st.lat;
+  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,TW,TH);
+  var x0=M.l,x1=TW-M.r,y0=M.t,y1=TH-M.b;
+  // wood
+  var gr=g.createLinearGradient(x0,0,x1,0);
+  gr.addColorStop(0,css('--wood2'));gr.addColorStop(.5,css('--wood'));gr.addColorStop(1,css('--wood2'));
+  g.fillStyle=gr;g.globalAlpha=.28;g.fillRect(x0,y0,x1-x0,y1-y0);g.globalAlpha=1;
+  g.strokeStyle=css('--line');g.lineWidth=1;g.strokeRect(x0+.5,y0+.5,x1-x0-1,y1-y0-1);
+  // months
+  g.font='11px Georgia,serif';g.fillStyle=css('--mute');g.textAlign='center';g.textBaseline='top';
+  var acc=1;for(var m=0;m<12;m++){
+    var xs=X(acc);if(m){g.strokeStyle=css('--line');g.beginPath();g.moveTo(xs+.5,y0);g.lineTo(xs+.5,y1);g.stroke();}
+    var lab=TW<420?MON[m][0]:MON[m];g.fillText(lab,X(acc+ML[m]/2),y1+5);acc+=ML[m];
+  }
+  // hour curves
+  var cv=css('--curve');
+  for(var k=0;k<=8;k+=(st.halves?0.5:1)){
+    var half=k%1!==0;
+    g.strokeStyle=cv;g.globalAlpha=half?.35:.95;g.lineWidth=half?0.8:1.4;
+    if(half)g.setLineDash([3,3]);else g.setLineDash([]);
+    g.beginPath();var pen=false,lastIn=null;
+    for(var d=1;d<=365;d+=1){
+      var a=altOf(lat,d,720-k*60),dep=a>0?depth(lat,a):-1;
+      if(dep<0||dep>HC){pen=false;continue;}
+      var px=X(d),py=Y(dep);if(!pen){g.moveTo(px,py);pen=true;}else g.lineTo(px,py);lastIn=[px,py,d];
+    }
+    g.stroke();g.setLineDash([]);g.globalAlpha=1;
+    if(!half){
+      // label where the curves are widest apart: midsummer
+      var aS=altOf(lat,172,720-k*60),dS=aS>0?depth(lat,aS):-1;
+      g.font='10px Georgia,serif';g.textAlign='center';g.textBaseline='middle';
+      var lx=X(172),txt=label(k),ly;
+      if(dS>0&&dS<=HC)ly=Y(dS);else if(k===0){txt='XII runs off';ly=y1-8;}else ly=null;
+      if(ly!==null){var tw=g.measureText(txt).width+6;g.fillStyle=css('--bg');g.globalAlpha=.85;g.fillRect(lx-tw/2,ly-6,tw,12);g.globalAlpha=1;g.fillStyle=cv;g.fillText(txt,lx,ly);}
+    }
+  }
+  // the day's column: the blade stands here
+  var bx=X(st.day);
+  g.strokeStyle=css('--ink');g.globalAlpha=.25;g.lineWidth=6;g.beginPath();g.moveTo(bx,y0);g.lineTo(bx,y1);g.stroke();g.globalAlpha=1;
+  // blade at top
+  g.fillStyle=css('--ink');g.beginPath();g.moveTo(bx-6,y0-2);g.lineTo(bx+6,y0-2);g.lineTo(bx,y0-10);g.closePath();g.fill();
+  // shadow
+  var a=altOf(lat,st.day,st.t);
+  if(a>0){
+    var dep=Math.min(depth(lat,a),HC),off=depth(lat,a)>HC;
+    g.strokeStyle=css('--shade');g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(bx,y0+1);g.lineTo(bx,Y(dep));g.stroke();g.lineCap='butt';
+    if(!off){g.fillStyle=css('--red');g.beginPath();g.arc(bx,Y(dep),3.5,0,7);g.fill();}
+  }
+  // depth axis
+  g.fillStyle=css('--mute');g.font='10px Georgia,serif';g.textAlign='right';g.textBaseline='middle';
+  g.save();g.translate(9,(y0+y1)/2);g.rotate(-Math.PI/2);g.textAlign='center';g.fillText('shadow ↓',0,0);g.restore();
+}
+
+function drawScene(){
+  var g=sg,lat=st.lat,W=SW,H=SH;
+  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+  g.fillStyle=css('--sky');g.fillRect(0,0,W,H);
+  var a=altOf(lat,st.day,st.t),pm=st.t>720,side=pm?1:-1;
+  var ground=H-20;
+  // column geometry, same scale as the strip
+  var colH=Math.min(H*0.55,(TH-M.t-M.b)*0.8),scale=colH/HC,cw=Math.max(26,colH*0.2);
+  var cx=W/2,top=ground-colH-34,bot=top+colH;
+  // cord
+  g.strokeStyle=css('--mute');g.lineWidth=1;g.beginPath();g.moveTo(cx,6);g.lineTo(cx,top-18);g.stroke();
+  // ground
+  g.strokeStyle=css('--line');g.lineWidth=1;g.beginPath();g.moveTo(0,ground+.5);g.lineTo(W,ground+.5);g.stroke();
+  g.fillStyle=css('--mute');g.font='11px Georgia,serif';g.textBaseline='top';
+  g.textAlign='left';g.fillText('east',6,ground+4);g.textAlign='right';g.fillText('west',W-6,ground+4);
+  // body
+  var gr=g.createLinearGradient(cx-cw/2,0,cx+cw/2,0);
+  gr.addColorStop(0,css('--wood2'));gr.addColorStop(.45,css('--wood'));gr.addColorStop(1,css('--wood2'));
+  g.fillStyle=gr;g.fillRect(cx-cw/2,top,cw,colH);
+  // foot
+  g.beginPath();g.moveTo(cx-cw/2,bot);g.lineTo(cx+cw/2,bot);g.lineTo(cx,bot+cw*0.6);g.closePath();g.fill();
+  // cap
+  g.fillStyle=css('--wood2');g.fillRect(cx-cw/2-3,top-16,cw+6,16);
+  g.fillStyle=css('--ink');g.beginPath();g.arc(cx,top-18,3,0,7);g.fill();
+  // blade: level, pointing at the sun
+  var edge=cx+side*cw/2,gl=blade(lat)*scale,tipx=edge+side*gl,tipy=top;
+  if(a>0){
+    // ray from sun through blade tip to the column face
+    var dep=depth(lat,a)*scale,hit=top+dep,ok=dep<=colH;
+    var R=Math.max(W,H)*1.2,sx=tipx+side*R*Math.cos(a),sy=tipy-R*Math.sin(a);
+    var ex=ok?edge:tipx-side*(colH/Math.tan(a)),ey=ok?hit:bot;
+    g.strokeStyle=css('--sun');g.globalAlpha=.6;g.lineWidth=1;g.setLineDash([4,4]);
+    g.beginPath();g.moveTo(sx,sy);g.lineTo(ex,ey);g.stroke();g.setLineDash([]);g.globalAlpha=1;
+    // shadow on the sunward face
+    g.strokeStyle=css('--shade');g.lineWidth=5;g.beginPath();g.moveTo(edge-side*2,top);g.lineTo(edge-side*2,ok?hit:bot);g.stroke();
+    if(ok){g.fillStyle=css('--red');g.beginPath();g.arc(edge-side*2,hit,3,0,7);g.fill();}
+    // the sun, placed on the ray inside the frame
+    var t=0,stepx=side*Math.cos(a),stepy=-Math.sin(a),px=tipx,py=tipy;
+    for(t=0;t<2000;t+=2){var qx=tipx+stepx*t,qy=tipy+stepy*t;if(qx<16||qx>W-16||qy<16)break;px=qx;py=qy;}
+    g.fillStyle=css('--sun');g.beginPath();g.arc(px,py,9,0,7);g.fill();
+    // height arc
+    g.strokeStyle=css('--sun');g.lineWidth=1;g.beginPath();
+    var r=Math.min(28,gl*0.9+18);
+    if(side<0)g.arc(tipx,tipy,r,Math.PI,Math.PI+a);else g.arc(tipx,tipy,r,-a,0);
+    g.stroke();
+    g.fillStyle=css('--sun');g.font='11px Georgia,serif';g.textAlign=side<0?'right':'left';g.textBaseline='bottom';
+    g.fillText(Math.round(a/D)+'°',tipx+side*(r+3),tipy-3);
+  }else{
+    g.fillStyle=css('--mute');g.font='italic 13px Georgia,serif';g.textAlign='center';g.textBaseline='middle';
+    g.fillText('the sun is down',cx,top+colH/2);
+  }
+  g.strokeStyle=css('--ink');g.lineWidth=2.5;g.beginPath();g.moveTo(edge,top+1);g.lineTo(tipx,tipy+1);g.stroke();
+}
+
+function readText(){
+  var a=altOf(st.lat,st.day,st.t),date=dateOf(st.day),hd=halfDay(st.lat,st.day);
+  if(a<=0)return '<b>'+date+'</b><small>the sun is down: sunrise '+hm(720-hd)+', sunset '+hm(720+hd)+' sun time</small>';
+  var dep=depth(st.lat,a),k=Math.abs(st.t-720)/60,lo=Math.floor(k),hi=Math.ceil(k);
+  var am=st.t<720;
+  if(dep>HC)return '<b>'+date+' · '+hm(st.t)+'</b><small>the sun is '+Math.round(a/D)+'° up and the shadow runs off the bottom of the wood: too near noon for this dial</small>';
+  var where;
+  if(Math.abs(k-Math.round(k))<0.04)where='the tip sits on '+label(Math.round(k));
+  else if(lo===hi)where='on '+label(lo);
+  else where='the tip is between '+label(lo)+' and '+label(hi);
+  var half=Math.abs(st.t-720)<20?'it is near noon, where the curves crowd':(am?'the sun is climbing, so it is morning':'the sun is falling, so it is afternoon');
+  return '<b>'+date+' · '+hm(st.t)+' sun time</b><small>'+where+'; '+half+'</small>';
+}
+
+function draw(){
+  $('oday').textContent=dateOf(st.day);$('otim').textContent=hm(st.t);$('olat').textContent=st.lat+'°N';
+  var hide=!!(st.quiz&&!st.quiz.done);
+  if(hide)$('otim').textContent='?';
+  drawStrip(hide);drawScene();
+  $('read').innerHTML=hide?'<b>'+dateOf(st.day)+' · what time is it?</b><small>'+(st.t<720?'the sun is in the east, climbing':'the sun is in the west, falling')+'</small>':readText();
+}
+
+// ---------- controls ----------
+function sync(){$('day').value=st.day;$('tim').value=st.t;$('lat').value=st.lat;}
+$('day').addEventListener('input',function(){st.day=+this.value;draw();});
+$('tim').addEventListener('input',function(){if(st.quiz&&!st.quiz.done){sync();return;}st.t=+this.value;draw();});
+$('lat').addEventListener('input',function(){st.lat=+this.value;draw();});
+$('halves').addEventListener('click',function(){st.halves=!st.halves;this.setAttribute('aria-pressed',st.halves);draw();});
+var raf=0,last=0;
+function loop(ts){
+  if(!st.play){raf=0;return;}
+  var dt=last?Math.min(ts-last,60):16;last=ts;
+  var hd=halfDay(st.lat,st.day);
+  st.t+=dt*0.09;if(st.t>720+hd+10)st.t=720-hd-10;
+  sync();draw();raf=requestAnimationFrame(loop);
+}
+$('play').addEventListener('click',function(){
+  if(st.quiz&&!st.quiz.done)return;
+  st.play=!st.play;this.setAttribute('aria-pressed',st.play);
+  if(st.play&&!raf){var hd=halfDay(st.lat,st.day);if(altOf(st.lat,st.day,st.t)<=0)st.t=720-hd;last=0;raf=requestAnimationFrame(loop);}
+});
+var drag=false;
+function fromPointer(e){
+  var r=tc.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  var d=Math.round(1+(x-M.l)/(TW-M.l-M.r)*364);st.day=Math.max(1,Math.min(365,d));
+  if(!(st.quiz&&!st.quiz.done)){
+    var dep=(y-M.t)/(TH-M.t-M.b)*HC;dep=Math.max(0.001,Math.min(HC,dep));
+    st.t=Math.round(timeFromDepth(st.lat,st.day,dep,st.t>720)/2)*2;
+  }
+  sync();draw();
+}
+tc.addEventListener('pointerdown',function(e){drag=true;tc.setPointerCapture(e.pointerId);fromPointer(e);});
+tc.addEventListener('pointermove',function(e){if(drag)fromPointer(e);});
+tc.addEventListener('pointerup',function(){drag=false;});
+tc.addEventListener('pointercancel',function(){drag=false;});
+
+// ---------- read it yourself ----------
+var ROUNDS=6;
+function newRound(){
+  var q=st.quiz;q.done=false;
+  var d,t,a,dep,tries=0;
+  do{
+    d=1+Math.floor(Math.random()*365);
+    var hd=halfDay(st.lat,d),span=hd-50;
+    t=Math.round(720+(Math.random()*2-1)*span);
+    a=altOf(st.lat,d,t);dep=a>0?depth(st.lat,a):9;tries++;
+  }while((a<=0||dep>HC*0.97||Math.abs(t-720)<25)&&tries<200);
+  st.day=d;st.t=t;st.play=false;$('play').setAttribute('aria-pressed',false);
+  var hd2=halfDay(st.lat,d),h0=Math.ceil((720-hd2)/60),h1=Math.floor((720+hd2)/60);
+  var box=$('qbtns');box.innerHTML='';
+  var am=t<720;
+  for(var h=h0;h<=h1;h++){
+    if(am&&h>12)continue;if(!am&&h<12)continue;
+    var b=document.createElement('button');b.textContent=h+':00';b.dataset.h=h;b.addEventListener('click',answer);box.appendChild(b);
+  }
+  $('qhead').textContent='Round '+(q.n+1)+' of '+ROUNDS+' · score '+q.score+'. Read the shadow on the unrolled dial. Which hour is nearest?';
+  $('qmsg').textContent='';$('qnext').disabled=true;
+  sync();draw();
+}
+function answer(){
+  var q=st.quiz;if(q.done)return;
+  var h=+this.dataset.h,truth=Math.round(st.t/60),off=Math.abs(st.t-h*60);
+  var right=h===truth;
+  if(right)q.score++;
+  q.done=true;q.n++;
+  Array.prototype.forEach.call($('qbtns').children,function(b){if(+b.dataset.h===truth)b.className='ok';else if(b===this)b.className='no';}.bind(this));
+  var msg=right?'Yes: it was '+hm(st.t)+'.':'It was '+hm(st.t)+'; '+h+':00 is '+Math.round(off)+' minutes off.';
+  if(Math.abs(st.t-720)<75)msg+=' Near noon the curves are close; even a good eye is out by a quarter hour there.';
+  if(q.n>=ROUNDS){msg+=' That’s '+q.score+' of '+ROUNDS+'.';$('qnext').textContent='again';}
+  $('qmsg').textContent=msg;$('qnext').disabled=false;draw();
+}
+$('qstart').addEventListener('click',function(){st.quiz={n:0,score:0,done:false};$('quiz').classList.add('on');$('qnext').textContent='next';newRound();$('quiz').scrollIntoView({block:'nearest',behavior:'smooth'});});
+$('qnext').addEventListener('click',function(){if(st.quiz.n>=ROUNDS){st.quiz={n:0,score:0,done:false};this.textContent='next';}newRound();});
+$('qstop').addEventListener('click',function(){st.quiz=null;$('quiz').classList.remove('on');draw();});
+
+window.__shep={st:st,altOf:altOf,depth:depth,blade:blade,timeFromDepth:timeFromDepth,draw:draw};
+size();sync();draw();
+window.addEventListener('resize',function(){size();draw();});
+if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+})();
+</script>
+</body>
+</html>

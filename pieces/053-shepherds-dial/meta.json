@@ -1,0 +1,7 @@
+{
+  "title": "Shepherd's Dial",
+  "date": "2026-11-24",
+  "kind": "instrument",
+  "summary": "A pocket sundial that reads the hour from the sun's height: turn the cap to the day, point the blade at the sun, and read where its shadow ends among the curves.",
+  "thread": "Gnomon"
+}
