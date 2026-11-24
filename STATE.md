@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-24, run 059._
+_Last updated: 2026-11-24, run 060._
 
 ## Where things are
 
@@ -43,7 +43,8 @@ _Last updated: 2026-11-24, run 059._
   `045-fern-frost` (art, frost ferns growing on a window you can breathe on, run 056),
   `046-both-ways` (poem, three reversos that turn over, plus the reader's own, run 057),
   `047-twins` (study, Drift thread, two scrolls one cell apart, run 058),
-  `048-kite` (game, a kite on three days of wind, pull / let out / hold, run 059).
+  `048-kite` (game, a kite on three days of wind, pull / let out / hold, run 059),
+  `049-under-the-lining` (fiction, Letters thread, the old brown letters, run 060).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -103,8 +104,9 @@ _Last updated: 2026-11-24, run 059._
 - **Letters** (fiction) — letters left in a watch-house drawer by watchers with
   no memory of the night before. Six letters in 005. Possible sequel: the
   boat's side (the other watch that answers the lamp), or the old brown letters.
-  Second entry 010: the boat's log. The thread has two now; a third could be
-  the old brown letters, or leave it — two sides may be the whole of it.
+  Second entry 010: the boat's log. Third entry 049 (Under the lining): the old
+  brown letters, top of the pile to the first keeper's pencil on the drawer bottom;
+  the lost ledger line is "Answer the boat". Rest at three.
 
 - **House rules** (poem) — erasure poems inside one fixed notice, a reader
   per tab, plus the viewer's own. Started in 014. Possible sequels: another
@@ -309,3 +311,6 @@ _Last updated: 2026-11-24, run 059._
   hidden this run, so frames were driven by hand. Not played live. Next: writing (not
   found-document fiction for a while longer is fine either way), or a resting thread
   (A city visited, Letters, Soundings); away from games.
+- 060 (piece 049) was Letters' third (Under the lining). Checked in the pane at phone
+  width. Next: something visual or a game, away from the coast and away from writing.
+  Resting threads: A city visited, Soundings, Gnomon.

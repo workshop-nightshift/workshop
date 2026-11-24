@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Under the lining</title>
+<style>
+:root{--bg:#ece7dc;--fg:#24211c;--mute:#736c5f;--line:#d3cbbb;--paper:#faf6ec;--brown:#c9a46f;--shadow:rgba(60,45,20,.16);--ink:#2b3550;--old:#5a4126;--wood:#8a6a48;--woodtop:#a5835e;--lining:#efe6cf;--pencil:#3d3226}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--fg:#e6e1d6;--mute:#9a9487;--line:#2c2c30;--paper:#1f1e1b;--brown:#3a2c1b;--shadow:rgba(0,0,0,.5);--ink:#b9c4e4;--old:#d9bf98;--wood:#4e3b28;--woodtop:#5d4732;--lining:#2a2722;--pencil:#e3d6bf}}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.65 Georgia,"Iowan Old Style",serif}
+main{max-width:620px;margin:0 auto;padding:48px 16px 96px}
+header h1{font-weight:normal;font-size:30px;line-height:1.2;margin:0 0 8px}
+header p{color:var(--mute);font-style:italic;margin:0 0 10px}
+.drawer{margin-top:32px;border-top:6px solid var(--wood);border-radius:2px;padding-top:8px}
+.lining{background:var(--lining);border:1px solid var(--line);padding:20px 22px;margin:22px 0 0;position:relative;transform-origin:0 0;transition:transform .9s ease, box-shadow .9s ease}
+.lining p{margin:0;color:var(--mute);font-size:15px}
+.lining .corner{position:absolute;right:-1px;bottom:-1px;width:34px;height:34px;background:linear-gradient(135deg,transparent 50%,var(--bg) 50%);}
+.lining.lifted{transform:perspective(900px) rotateX(18deg) translateY(-6px);box-shadow:0 14px 20px -14px var(--shadow)}
+.letter{--age:0;background:color-mix(in oklab,var(--paper),var(--brown) calc(var(--age)*100%));box-shadow:0 1px 2px var(--shadow),0 8px 24px -12px var(--shadow);padding:28px 24px 24px;margin:28px 0 0;border-radius:2px;transform:rotate(var(--r,0deg));color:color-mix(in oklab,var(--fg),var(--old) calc(var(--age)*85%))}
+.letter .when{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin:0 0 18px}
+.letter .to{font-style:italic;margin:0 0 14px}
+.letter p{margin:0 0 14px}
+.letter .ps{font-style:italic;margin-top:20px}
+.letter .sig{text-align:right;font-style:italic;opacity:.75;margin:18px 0 0}
+.floor{background:repeating-linear-gradient(90deg,var(--wood) 0 3px,var(--woodtop) 3px 41px,var(--wood) 41px 44px,var(--woodtop) 44px 97px);color:var(--pencil);padding:26px 24px 22px;margin:28px 0 0;border-radius:2px;box-shadow:inset 0 2px 8px rgba(0,0,0,.25)}
+.floor p{margin:0 0 14px;font-style:italic;letter-spacing:.01em}
+.floor .when{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.1em;text-transform:uppercase;font-style:normal;opacity:.8;margin:0 0 18px}
+.ledger{background:var(--paper);border:1px solid var(--line);padding:20px 22px;margin:40px auto 0;max-width:400px;box-shadow:0 8px 24px -14px var(--shadow)}
+.ledger h2{font:12px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 14px;font-weight:normal}
+.ledger ol{margin:0;padding-left:22px}
+.ledger li{margin:0 0 4px}
+.ledger .added{color:var(--ink);font-style:italic}
+.ledger .note{color:var(--mute);font-size:14px;font-style:italic;margin:14px 0 0}
+.js .new{animation:out .8s ease-out}
+@keyframes out{from{opacity:0;transform:translateY(14px) rotate(var(--r,0deg))}to{opacity:1;transform:rotate(var(--r,0deg))}}
+@media (prefers-reduced-motion:reduce){.js .new{animation:none}.lining{transition:none}}
+.controls{display:none;gap:12px;align-items:center;justify-content:center;margin:32px 0 0;flex-wrap:wrap}
+.js .controls{display:flex}
+button{font:15px/1 Georgia,serif;color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:999px;padding:12px 20px;cursor:pointer;min-height:44px}
+button:hover{border-color:var(--mute)}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.count{font:13px/1 ui-monospace,Menlo,monospace;color:var(--mute)}
+.depth{display:block;width:120px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--paper),var(--brown));border:1px solid var(--line);position:relative}
+.depth i{position:absolute;top:-4px;width:2px;height:12px;background:var(--fg);left:0;transition:left .6s ease}
+[hidden]{display:none!important}
+footer{border-top:1px solid var(--line);margin-top:56px;padding-top:16px;color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Under the lining</h1>
+  <p>In the watch-house drawer, under the paper lining, there are older letters, gone brown. The fourth watcher found them, read a few, and put them back. There are dozens. Here are nine, from the top of the pile to the bottom of the drawer.</p>
+  <p>The hand is the same as the watchers' now, except that in these the g's close.</p>
+</header>
+
+<div class="drawer">
+  <div class="lining" id="lining">
+    <p>Paper lining, cut from the back pages of an old almanac and pasted at the corners only. One corner has been lifted so often it has gone soft.</p>
+    <span class="corner" aria-hidden="true"></span>
+  </div>
+
+  <article class="letter" style="--age:.1;--r:-.4deg">
+    <p class="when">On top of the pile</p>
+    <p class="to">To whoever lifts the corner,</p>
+    <p>I am putting all of us under the paper. Not to hide us. There are too many of us, that's all. The last three nights whoever had the lamp read until midnight and the lamp went untrimmed, and on Tuesday nobody watched the window at all. A drawer that full isn't a drawer any more, it's a library, and the job was never reading.</p>
+    <p>So: new paper, cut from the back of the almanac, pasted at the corners so it lifts. And a new first page in the ledger, the shortest I could make it. I copied it out four times to get it right, and each time it came out shorter. It's three lines now. I think I've lost one I meant to keep. I can't tell which, which tells you something about me at three in the morning.</p>
+    <p>If you've found us, you'll know better than I do what's missing. Put it back on top.</p>
+    <p class="ps">P.S. The list on the cupboard door stays. A cupboard door is not a library.</p>
+  </article>
+
+  <article class="letter" style="--age:.2;--r:.5deg">
+    <p class="when">Further down</p>
+    <p class="to">Tomorrow,</p>
+    <p>I read until the lamp guttered. It's the third night running it's happened, to one of us or another. I keep meaning to stop at the heron letters and not stopping.</p>
+    <p>Someone should do something about the drawer. It shouldn't be me. I'd only read everything first.</p>
+    <p class="ps">P.S. I nearly missed the boat. I didn't. But nearly.</p>
+  </article>
+
+  <article class="letter" style="--age:.32;--r:-.6deg">
+    <p class="when">Further down</p>
+    <p class="to">To the next,</p>
+    <p>The moth behind the barometer has died, at a great age for a moth, which I'm told is about three weeks. I found her on the sill at dusk, wings folded, very correct.</p>
+    <p>There are eggs on the back of the barometer case. I've left them. I suppose we'll have her grandchildren by the spring, and I suppose they'll be insufferable, and I suppose you'll leave them be the way we left her.</p>
+    <p>I've written her a line in the ledger, under what crossed. She didn't cross the window. She did cross something.</p>
+  </article>
+
+  <article class="letter" style="--age:.44;--r:.3deg">
+    <p class="when">Further down</p>
+    <p class="to">To tomorrow,</p>
+    <p>Woke at the desk at four with the lamp still burning, which I don't remember trimming, and the clock eleven minutes fast. It was right at dusk. I'd set it by the church myself.</p>
+    <p>Somebody has been in. The latch is down, as I left it. There's a wet print on the third stair, and on the stair, not round it. And a line in the ledger has been underlined, in pencil, not in any hand of ours. I won't say which line. I think it was the right one.</p>
+    <p>I've decided not to put the clock back. Whoever came in kept some other watch, and it seems rude to correct them. I've written it on the list instead: the clock is eleven minutes fast. If anyone asks since when, say since before.</p>
+  </article>
+
+  <article class="letter" style="--age:.56;--r:-.3deg">
+    <p class="when">Further down</p>
+    <p class="to">Next,</p>
+    <p>It's March, and the stars came up behind the hill tonight at the wrong angle. Not by much. Enough to see, if you've been looking at them every night, which we have.</p>
+    <p>I started to write it in the ledger under what crossed, and then I stopped. It isn't crossing. It's the hill, doing whatever the hill does in March. Some things are the hill's business.</p>
+    <p>So I've started a list on the inside of the cupboard door, in pencil, of things that are true here and don't need reporting. That's the first. Add to it.</p>
+  </article>
+
+  <article class="letter" style="--age:.66;--r:.6deg">
+    <p class="when">Further down</p>
+    <p class="to">To whoever is next,</p>
+    <p>The heron again, the fourth night of it. Always at two, always low from the water, always straight at the house, and over the roof, and gone against the hill.</p>
+    <p>I've decided it is coming here, and that it's too polite to land. So I've left the window open a hand's width on the left side. The window sticks on that side. It now sticks open, which is an improvement on sticking shut, though not by as much as I'd hoped.</p>
+    <p class="ps">P.S. Large letters in the ledger for the heron. It's earned them.</p>
+  </article>
+
+  <article class="letter" style="--age:.76;--r:-.5deg">
+    <p class="when">Further down</p>
+    <p class="to">Tomorrow,</p>
+    <p>The packet came by at half eleven and I answered it, and it answered back, the way it always does. Up, down, up, down.</p>
+    <p>You can tell their hands apart, you know, if you watch. One lifts the lamp quick and drops it quick, like knocking. One holds it up a long time, as if to make sure. Tonight's held it up a very long time. I held ours up as long, so they'd know somebody was here who meant it.</p>
+    <p>Answer the boat. It's the best thing in the night.</p>
+  </article>
+
+  <article class="letter" style="--age:.86;--r:.4deg">
+    <p class="when">Near the bottom</p>
+    <p class="to">To the one after,</p>
+    <p>The third stair has started to complain. I stepped on it at dusk and it said something, and I apologised, and it said it again.</p>
+    <p>I'll go round it from now on. I expect you will too.</p>
+    <p class="ps">P.S. The kettle leaks. Somebody braver than me will fix it.</p>
+  </article>
+
+  <article class="floor" id="floor">
+    <p class="when">In pencil, on the wood of the drawer bottom</p>
+    <p>To whoever has the lamp tomorrow,</p>
+    <p>I don't know who you are. I woke at the desk at dusk with a pen in my hand and a new ledger open, nothing in it, and no idea how I came to be here. So I wrote the first page myself. Watch the north window. Write down what crosses it. Answer the boat. Leave the drawer better than you found it.</p>
+    <p>There was no paper for a letter, so I've written on the drawer. It seemed a bad way to start, an empty drawer.</p>
+    <p>P.S. There's a moth behind the barometer. Don't move it.</p>
+  </article>
+
+  <div class="ledger" id="ledger">
+    <h2>First page of the ledger, as it is now</h2>
+    <ol>
+      <li>Watch the north window.</li>
+      <li>Write down what crosses it.</li>
+      <li>Leave the drawer better than you found it.</li>
+    </ol>
+    <p class="added">Answer the boat. <span style="font-style:normal;color:var(--mute);font-size:14px">— not on the page: on the card laid on top of the drawer, night five, in a hand whose g's don't close</span></p>
+    <p class="note">The fourth watcher put the letters back because they seemed to want to stay where they were. They do. Put them back.</p>
+  </div>
+</div>
+
+<div class="controls" id="controls">
+  <button id="next">Lift the corner</button>
+  <span class="depth" aria-hidden="true"><i id="mark"></i></span>
+  <span class="count" id="count"></span>
+</div>
+
+<footer>Third of the watch-house pieces, after <em>Letters to the next watch</em> and <em>The boat's log</em>.</footer>
+</main>
+<script>
+(function(){
+  document.documentElement.className = 'js';
+  var lining = document.getElementById('lining');
+  var items = [].slice.call(document.querySelectorAll('.letter, .floor'));
+  var ledger = document.getElementById('ledger');
+  var btn = document.getElementById('next'), count = document.getElementById('count'), mark = document.getElementById('mark');
+  var controls = document.getElementById('controls');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var shown = 0, done = false;
+  items.forEach(function(l){ l.hidden = true; });
+  ledger.hidden = true;
+  function label(){
+    if (shown === 0) return 'Lift the corner';
+    if (shown === items.length - 1) return 'Lift the last one';
+    if (shown >= items.length) return 'Put them back';
+    return 'Read the one beneath';
+  }
+  function update(){
+    btn.textContent = label();
+    count.textContent = shown === 0 ? 'under the paper' : shown < items.length ? shown + ' down' : 'the bottom';
+    mark.style.left = (Math.min(shown, items.length) / items.length * 118) + 'px';
+  }
+  function show(el){
+    el.hidden = false;
+    el.classList.remove('new'); void el.offsetWidth; el.classList.add('new');
+    el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+  }
+  btn.addEventListener('click', function(){
+    if (shown >= items.length) {
+      items.forEach(function(l){ l.hidden = true; });
+      lining.classList.remove('lifted');
+      controls.hidden = true;
+      show(ledger);
+      return;
+    }
+    if (shown === 0) lining.classList.add('lifted');
+    show(items[shown++]);
+    update();
+  });
+  update();
+})();
+</script>
+</body>
+</html>

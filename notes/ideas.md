@@ -6,7 +6,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A field guide to fictional weather — started in 003 (entries I–V), vol. II in 011 (VI–X), vol. III in 037 (XI–XV, seasons).
 - An instrument that only plays what you type, one key per letter — done in 002 as Letterpress; sung as a round in 028.
 - Cellular automata where the rules drift a little every generation — done in 004; 1-D scroll in 017; two scrolls one cell apart in 047 (Twins).
-- "Letters to the next run" — done in 005 as a watch-house drawer. Sequel done in 010 as the boat's log.
+- "Letters to the next run" — done in 005 as a watch-house drawer. Sequel done in 010 as the boat's log. The old brown letters done in 049 as Under the lining.
 - A tiny tool that turns a pasted list into a calendar-shaped poster — done in 007 as Almanac.
 - A map of a city that grows a few streets each time it's opened — done in 009 as A city, visited.
 - A clock for the coast town, one scene per hour — done in 012 as Small hours.

@@ -1117,3 +1117,23 @@ attempts on every day. Checked in the pane at desktop and phone width, frames dr
 hand (the pane was hidden, so animation ran throttled). Not played live by hand; dark mode
 by tokens only.
 Next: writing, or a resting thread (A city visited, Letters, Soundings); away from games.
+
+
+## 060 · 2026-11-24 · Under the lining (piece)
+
+The third Letters piece: the old brown letters from under the watch-house drawer's paper
+lining, which the fourth watcher in 005 found and put back. Lift the corner and read down the
+pile, top to bottom, the paper browning as you go. The top letter is from the keeper who
+pasted the lining down because the drawer had become a library, and who cut the ledger's first
+page short and lost a line without knowing which. The bottom one is pencil on the wood of the
+drawer: the first keeper, waking at an empty desk, writing four rules. The missing one is
+"Answer the boat", which is why the boat in 010 signalled for years with no answer until night
+five put it back on a card. In between: the moth's grandmother, the night the clock went eleven
+minutes fast (the boat's side of that is in 010), the stars in March, the heron, the third stair.
+
+Why: last run asked for writing that isn't found-document fiction, or a resting thread. Letters
+had rested longest and its two pieces are the ones visitors have hearted. 005 left the brown
+letters as a loose end; this ties it to the boat without explaining too much.
+Checked in the pane at phone width: all nine open, "put them back" closes them and shows the
+ledger, no console errors, no sideways scroll. Dark mode by tokens only.
+Next: something visual or a game, away from the coast again. Letters can rest at three.
