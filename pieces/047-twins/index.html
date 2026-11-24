@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twins</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#1d1b18;--mute:#716b60;--line:#d9d3c6;--hi:#b5442a;--gap:#e9e4d8}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--hi:#ff8a66;--gap:#1b1c1f}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg)}
+body{display:flex;flex-direction:column;font:14px/1.5 ui-monospace,Menlo,monospace}
+#heads{display:flex;padding:12px 16px 6px;gap:16px;font-size:13px;padding-right:130px}
+#heads span{flex:1}
+#heads b{font-weight:600}
+canvas{flex:1;width:100%;min-height:0;display:block;cursor:crosshair;touch-action:manipulation}
+#bar{display:flex;align-items:flex-start;gap:10px 20px;flex-wrap:wrap;padding:10px 16px 4px;border-top:1px solid var(--line)}
+#table{display:grid;grid-template-columns:auto repeat(5,24px);gap:3px 4px;font-size:10px;color:var(--mute);align-items:center}
+#table b{font-weight:400;text-align:center}
+#table button{width:24px;height:24px;padding:0;border:1px solid var(--line);border-radius:3px;background:none;cursor:pointer}
+#table button.on{background:var(--fg);border-color:var(--fg)}
+#table button.last{outline:2px solid var(--hi);outline-offset:1px}
+#table button:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
+#side{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 220px}
+#status{min-height:3em}
+#meter{height:6px;background:var(--gap);border-radius:3px;overflow:hidden;max-width:280px}
+#meter i{display:block;height:100%;width:0;background:var(--hi)}
+#tally{color:var(--mute);font-size:12px}
+footer{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;padding:6px 16px 14px;color:var(--mute);font-size:12px}
+footer button{font:inherit;font-size:13px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+footer button:focus-visible{outline:2px solid var(--hi)}
+@media (max-width:520px){#heads{font-size:12px;padding-right:110px}#status{min-height:4.5em}}
+</style>
+</head>
+<body>
+<div id="heads" aria-hidden="true"><span>left</span><span>right · <b id="name"></b></span></div>
+<canvas id="c" aria-label="Two one-dimensional automata unrolling side by side from the same row, under the same rule. One cell differs between them. Wherever the two scrolls disagree, the cells are drawn in red, so the difference shows as a red wedge that spreads or closes."></canvas>
+<div id="bar">
+  <div id="table" role="group" aria-label="The rule both twins follow. Each square says whether a cell lives next row, by its own state and how many of its four neighbours are alive. Choose a square to flip it."></div>
+  <div id="side">
+    <div id="status" aria-live="polite"></div>
+    <div id="meter" aria-hidden="true"><i id="mi"></i></div>
+    <div id="tally"></div>
+  </div>
+</div>
+<footer>
+  <span><button id="pp">pause</button> <button id="st">step</button> <button id="nd">nudge</button> <button id="dr">drift: on</button></span>
+  <span>tap a scroll to change one cell in that twin only · choose a square to flip the rule</span>
+</footer>
+<script>
+// Drift, third entry. Two scrolls of the kind in Scroll (017): a line of cells, each
+// looking at itself and two cells either side, a ten-bit rule. Here there are two,
+// under the same rule, started from the same row except for one cell. Where the twins
+// disagree the cells are drawn red, so a single difference shows as a wedge: in some
+// rules it widens until the twins have nothing in common, in others it closes and
+// they are one again. Information can travel at most two cells a row, so no wedge is
+// ever steeper than that. The rule still drifts a bit at a time (or the reader flips
+// it), and each new rule gets a fresh nudge, so every era opens with one cell's worth
+// of difference and shows what that rule does with it.
+const c = document.getElementById("c"), x = c.getContext("2d");
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const EVERY = 240;
+
+let rule = 244, lastBit = -1, drifting = true;
+let epoch = 0, row = 0, nextDrift = EVERY;
+let W, S, G, A, B, eraA, eraB, hist = [];
+let nudged = 0, healed = -1, filled = -1, third = -1, frac = 0, peak = 0, satRows = 0, quietUntil = -1;
+const book = { spread: 0, healed: 0 };        // what the nudges did, this visit
+let dark = matchMedia("(prefers-color-scheme: dark)").matches, dpr;
+
+// era colours keep to greens, blues and slates, so red only ever means 'the twins disagree'
+function hue(e){ return 150 + (e * 47) % 110; }
+function cellCol(e){ return `hsl(${hue(e)} ${dark?22:24}% ${dark?60:30}%)`; }
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+let HI, BG, FG, GAP;
+function colours(){ HI = css("--hi"); BG = css("--bg"); FG = css("--fg"); GAP = css("--gap"); }
+
+function next(r, ru){
+  const n = new Uint8Array(W);
+  for (let i = 0; i < W; i++){
+    const s = r[(i-2+W)%W] + r[(i-1+W)%W] + r[(i+1)%W] + r[(i+2)%W];
+    n[i] = (ru >> (r[i]*5 + s)) & 1;
+  }
+  return n;
+}
+
+// Same watchability test as Scroll: density and change, rehearsed 80 rows on.
+function rehearse(start, ru){
+  let r = start; const h = [r];
+  for (let k = 0; k < 80; k++){ r = next(r, ru); h.push(r); }
+  let d = 0, a1 = 0, a2 = 0, n = 0;
+  for (let k = 50; k <= 80; k++){
+    const R = h[k], P = h[k-1], Q = h[k-2];
+    for (let i = 0; i < W; i++){ d += R[i]; a1 += R[i] !== P[i]; a2 += R[i] !== Q[i]; }
+    n += W;
+  }
+  d /= n; a1 /= n; a2 /= n;
+  const bump = (v, lo, hi) => v < lo ? v/lo : v > hi ? Math.max(0, 1 - (v-hi)/(1-hi)) : 1;
+  return bump(d, .12, .6) * bump(a2, .06, .38) * bump(a1, .06, .6);
+}
+
+// Does this rule forget a single changed cell? Rehearse twins 100 rows from here.
+function heals(ru){
+  let p = A.slice(), q = A.slice(); q[(W/2)|0] ^= 1;
+  for (let k = 0; k < 100; k++){ p = next(p, ru); q = next(q, ru); }
+  for (let i = 0; i < W; i++) if (p[i] !== q[i]) return false;
+  return true;
+}
+
+function scatter(p){
+  const r = new Uint8Array(W);
+  for (let i = 0; i < W; i++) r[i] = Math.random() < p ? 1 : 0;
+  return r;
+}
+function markEra(r, er){ for (let i = 0; i < W; i++) if (r[i]) er[i] = epoch; }
+
+function drift(){
+  const scored = [];
+  for (let b = 0; b < 10; b++){
+    if (b === lastBit) continue;
+    const ru = rule ^ (1 << b);
+    let s = (rehearse(A, ru) + rehearse(scatter(.35), ru)) / 2;
+    // lean toward whichever behaviour the last era didn't show, so the visit sees both
+    if (s > .3 && heals(ru) === (healed < 0)) s += .25;
+    scored.push({ b, s: s + Math.random() * .08 });
+  }
+  scored.sort((p, q) => q.s - p.s);
+  setRule(rule ^ (1 << scored[Math.random() * 3 | 0].b));
+}
+function setRule(ru){
+  lastBit = Math.log2(ru ^ rule) | 0;
+  rule = ru; epoch++;
+  nextDrift = row + EVERY;
+  const live = A.reduce((p, v) => p + v, 0) / W;
+  if (live < .03 || live > .97){ A = scatter(.35); markEra(A, eraA); }
+  paintTable();
+  nudge(-1, `rule ${rule}`);
+}
+
+// Copy the left twin into the right, then change one cell in one of them.
+function nudge(at, why, side){
+  B = A.slice(); eraB = eraA.slice();
+  const i = at < 0 ? (W * (.3 + Math.random() * .4)) | 0 : at;
+  const T = side === "left" ? A : B, E = side === "left" ? eraA : eraB;
+  T[i] ^= 1; if (T[i]) E[i] = epoch;
+  nudged = row; healed = -1; filled = -1; third = -1; peak = 0; satRows = 0; quietUntil = -1;
+  pendingMark = { kind: why.startsWith("rule") ? "drift" : "nudge", text: why, at: i, side: side || "right" };
+  say();
+}
+
+function size(){
+  dpr = Math.min(2, devicePixelRatio || 1);
+  const cw = c.clientWidth, ch = c.clientHeight;
+  G = cw < 520 ? 8 : 16;
+  S = Math.max(2, Math.round((cw - G) / 2 / 130));
+  W = Math.max(30, Math.floor((cw - G) / 2 / S));
+  c.width = Math.round(cw * dpr); c.height = Math.round(ch * dpr);
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  colours();
+  x.fillStyle = BG; x.fillRect(0, 0, cw, ch);
+}
+function rows(){ return Math.floor(c.clientHeight / S); }
+function leftX(){ return Math.floor((c.clientWidth - (2*W*S + G)) / 2); }
+
+function paintHalf(ox, y, me, other, er){
+  for (let i = 0; i < W; ){
+    const diff = me[i] !== other[i];
+    if (!me[i] && !diff){ i++; continue; }
+    let j = i;
+    if (!me[i]){                       // dead here, alive in the twin: a faint ghost
+      while (j < W && !me[j] && other[j]) j++;
+      x.globalAlpha = .25; x.fillStyle = HI; x.fillRect(ox + i*S, y, (j-i)*S, S); x.globalAlpha = 1;
+    } else if (diff){
+      while (j < W && me[j] && !other[j]) j++;
+      x.fillStyle = HI; x.fillRect(ox + i*S, y, (j-i)*S, S);
+    } else {
+      while (j < W && me[j] && other[j] && er[j] === er[i]) j++;
+      x.fillStyle = cellCol(er[i]); x.fillRect(ox + i*S, y, (j-i)*S, S);
+    }
+    i = j;
+  }
+}
+
+function paintRow(h){
+  const cw = c.clientWidth, ch = c.clientHeight, y = (rows() - 1) * S;
+  const shift = Math.round(S * dpr);
+  if (c.height <= shift || !c.width) return;
+  x.save(); x.setTransform(1, 0, 0, 1, 0, 0);
+  x.drawImage(c, 0, shift, c.width, c.height - shift, 0, 0, c.width, c.height - shift);
+  x.restore();
+  x.fillStyle = BG; x.fillRect(0, y, cw, ch - y);
+  const l = leftX();
+  paintHalf(l, y, h.a, h.b, h.ea);
+  x.fillStyle = GAP; x.fillRect(l + W*S, y, G, S);
+  paintHalf(l + W*S + G, y, h.b, h.a, h.eb);
+  if (h.mark) drawMark(h.mark, y);
+}
+
+// A margin note where something was done: a hairline, a tick at the nudged cell in the
+// twin that was changed, and a short label in the gutter between the two.
+function drawMark(m, y){
+  const cw = c.clientWidth, l = leftX();
+  x.fillStyle = m.kind === "drift" ? FG : HI;
+  x.globalAlpha = m.kind === "drift" ? .3 : .5;
+  x.fillRect(l, y - 1, 2*W*S + G, 1); x.globalAlpha = 1;
+  const cx = (m.side === "left" ? l : l + W*S + G) + m.at*S + S/2;
+  x.fillStyle = HI;
+  x.beginPath(); x.moveTo(cx, y - 1); x.lineTo(cx - 4, y - 7); x.lineTo(cx + 4, y - 7); x.fill();
+  x.font = "11px ui-monospace,Menlo,monospace";
+  const t = m.text, w = x.measureText(t).width + 10, ty = y - 24;
+  const tx = Math.min(cw - w - 4, Math.max(4, l + W*S + G/2 - w/2));
+  x.fillStyle = BG; x.fillRect(tx, ty, w, 15);
+  x.fillStyle = m.kind === "drift" ? FG : HI; x.fillText(t, tx + 5, ty + 11);
+}
+
+let pendingMark = null;
+function step(){
+  if (drifting && row >= nextDrift) drift();
+  else if (quietUntil >= 0 && row >= quietUntil) nudge(-1, "nudge");
+  const na = next(A, rule), nb = next(B, rule);
+  for (let i = 0; i < W; i++){ if (na[i] && !A[i]) eraA[i] = epoch; if (nb[i] && !B[i]) eraB[i] = epoch; }
+  A = na; B = nb; row++;
+  let d = 0; for (let i = 0; i < W; i++) d += A[i] !== B[i];
+  frac = d / W; if (frac > peak) peak = frac;
+  if (!d && healed < 0 && filled < 0){ healed = row; book.healed++; quietUntil = row + 50; say(); }
+  if (frac > .3){ satRows++; if (third < 0) third = row; }
+  if (satRows === 60 && filled < 0){ filled = row; book.spread++; quietUntil = row + 140; say(); }
+  // an empty or solid scroll has nothing to say; don't make anyone wait for it
+  const lA = A.reduce((p, v) => p + v, 0);
+  if ((lA === 0 || lA === W) && drifting && nextDrift - row > 6) nextDrift = row + 6;
+  if ((lA === 0 || lA === W) && !drifting){ A = scatter(.35); markEra(A, eraA); nudge(-1, "fresh ink"); }
+  const h = { a: A, b: B, ea: eraA.slice(), eb: eraB.slice(), mark: pendingMark };
+  pendingMark = null;
+  paintRow(h);
+  hist.push(h); if (hist.length > 1200) hist.shift();
+  if (row % 4 === 0) say();
+}
+
+let lastSaid = "";
+function say(){
+  const n = row - nudged;
+  let t;
+  if (healed >= 0) t = `The difference closed after ${healed - nudged} row${healed - nudged === 1 ? "" : "s"}. Rule ${rule} forgets a single cell; the twins are one again.`;
+  else if (filled >= 0) t = `The difference spread to a third of the width in ${third - nudged} rows and stayed. Under rule ${rule}, one cell is enough to make them strangers.`;
+  else if (n === 0) t = `One cell differs.`;
+  else t = `${n} row${n === 1 ? "" : "s"} since one cell differed. ${frac === 0 ? "" : `They now disagree on ${Math.round(frac * W)} cell${Math.round(frac * W) === 1 ? "" : "s"}.`}`;
+  if (t !== lastSaid){ lastSaid = t; $("status").textContent = t; }
+  $("mi").style.width = (frac * 100).toFixed(1) + "%";
+  $("tally").textContent = `${Math.round(frac * 100)}% apart · this visit: ${book.spread} spread, ${book.healed} closed`;
+}
+
+const Q = b => `a ${b < 5 ? "dead" : "live"} cell with ${["no", "one", "two", "three", "four"][b % 5]} live neighbour${b % 5 === 1 ? "" : "s"}`;
+function paintTable(){
+  let h = "<span></span>" + [0,1,2,3,4].map(n => `<b>${n}</b>`).join("");
+  for (const self of [0, 1]){
+    h += `<span>${self ? "live" : "dead"}</span>`;
+    for (let s = 0; s < 5; s++){
+      const b = self*5 + s, on = (rule >> b) & 1;
+      const lbl = `${Q(b)} ${on ? "lives" : "dies"}`;
+      h += `<button data-b="${b}" class="${on ? "on" : ""}${b === lastBit ? " last" : ""}" aria-label="${lbl}. Flip it." title="${lbl}"></button>`;
+    }
+  }
+  $("table").innerHTML = h;
+  $("name").textContent = "rule " + rule;
+}
+$("table").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const k = +b.dataset.b;
+  setRule(rule ^ (1 << k));
+  const f = document.querySelector(`#table button[data-b="${k}"]`); if (f) f.focus();
+  if (!running) step();
+});
+
+let running = !reduce, last = 0;
+const interval = reduce ? 250 : 1000/30;
+function loop(t){
+  if (running && t - last >= interval){ last = t; step(); }
+  requestAnimationFrame(loop);
+}
+$("pp").onclick = () => { running = !running; $("pp").textContent = running ? "pause" : "play"; };
+$("pp").textContent = running ? "pause" : "play";
+$("st").onclick = () => step();
+$("nd").onclick = () => { nudge(-1, "nudge"); if (!running) step(); };
+$("dr").onclick = () => { drifting = !drifting; $("dr").textContent = "drift: " + (drifting ? "on" : "off"); if (drifting) nextDrift = row + EVERY; };
+
+// A tap changes one cell, in whichever twin was tapped, and only there.
+c.addEventListener("pointerdown", e => {
+  const r = c.getBoundingClientRect(), l = leftX();
+  let px = e.clientX - r.left - l, side = "left";
+  if (px > W*S){ px -= W*S + G; side = "right"; }
+  const ci = Math.max(0, Math.min(W - 1, Math.floor(px / S)));
+  nudge(ci, "nudge", side);
+  if (!running) step();
+});
+
+function repaint(){
+  const held = hist.slice(-rows()), ww = W;
+  size();
+  const fit = r => { const o = new (r.constructor)(W); for (let i = 0; i < Math.min(W, ww); i++) o[i] = r[i]; return o; };
+  A = fit(A); B = fit(B); eraA = fit(eraA); eraB = fit(eraB);
+  hist = [];
+  for (const h of held){
+    const m = h.mark && h.mark.at >= W ? null : h.mark;
+    const g = { a: fit(h.a), b: fit(h.b), ea: fit(h.ea), eb: fit(h.eb), mark: m };
+    paintRow(g); hist.push(g);
+  }
+  fill();
+}
+// run on until the page is full, so it never opens on a blank top
+function fill(){ for (let k = hist.length, n = rows(); k < n; k++) step(); }
+let rt, seen = "";
+new ResizeObserver(() => {
+  const k = c.clientWidth + "x" + c.clientHeight;
+  if (k === seen) return; seen = k;
+  clearTimeout(rt); rt = setTimeout(repaint, hist.length ? 200 : 0);
+}).observe(c);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => { dark = e.matches; repaint(); });
+
+size();
+A = scatter(.35); eraA = new Uint16Array(W); B = A.slice(); eraB = new Uint16Array(W);
+paintTable();
+// open with the last nudge low on the page, the wedge just beginning to show
+for (let k = 0, n = rows() - 40; k < n; k++){ A = next(A, rule); B = A.slice(); hist.push({ a: A, b: B, ea: eraA, eb: eraB, mark: null }); paintRow(hist[hist.length - 1]); row++; }
+nextDrift = row + EVERY;
+nudge(-1, "nudge");
+fill();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

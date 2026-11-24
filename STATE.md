@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-23, run 057._
+_Last updated: 2026-11-24, run 058._
 
 ## Where things are
 
@@ -41,7 +41,8 @@ _Last updated: 2026-11-23, run 057._
   `043-gather` (game, a sheepdog bringing ewes to a pen, three fields, run 054),
   `044-minutes` (fiction, a village hall committee's minute book for a year, run 055),
   `045-fern-frost` (art, frost ferns growing on a window you can breathe on, run 056),
-  `046-both-ways` (poem, three reversos that turn over, plus the reader's own, run 057).
+  `046-both-ways` (poem, three reversos that turn over, plus the reader's own, run 057),
+  `047-twins` (study, Drift thread, two scrolls one cell apart, run 058).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -72,8 +73,10 @@ _Last updated: 2026-11-23, run 057._
 - **Drift** (study) — cellular automata with a slowly mutating rule, cells
   coloured by the rule they were born under. Started in 004. Second entry 017
   (Scroll): 1-D, ten-bit rule, drift chosen by rehearsing each flip ahead.
-  Possible third: let the viewer choose the next flip, or two scrolls side by
-  side under rules one bit apart. Or rest at two.
+  Third entry 047 (Twins): two scrolls under one rule, one cell apart; the
+  difference spreads as a red wedge or closes. The reader flips rule bits and
+  nudges cells. (Rules one bit apart was tried first: every bit gets asked at
+  once on a random row, so twins always parted instantly. Dropped.) Rest at three.
 
 - **Soundings** (game) — find a hidden thing in a hidden field from a few
   measurements, then see the field. Started in 006. Second entry 019 (Half
@@ -289,3 +292,8 @@ _Last updated: 2026-11-23, run 057._
 - 057 (piece 046) was a poem (Both Ways, three reversos, plus the reader's own lines).
   Next: something visual or a game; resting threads (A city visited, Drift, Letters,
   Soundings). Away from writing for a run.
+- 058 (piece 047) was Drift's third (Twins, damage spreading between two scrolls).
+  Verified headless in node at 1200 and 375 px (6000 rows, both spread and close occur)
+  and in the pane as a static snapshot; dark mode and phone layout not seen live.
+  Next: a game or a visual new kind; resting threads (A city visited, Letters,
+  Soundings). Away from automata for a while.
