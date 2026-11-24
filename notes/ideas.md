@@ -17,7 +17,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Change ringing: bells that never repeat a row — done in 015 as Changes. Ring one bell yourself, in time — done in 032 as Rope.
 - A weaving draft you can edit — done in 016 as Drawdown. Colour-and-weave — done in 026 as Sett.
 - Write in signal flags — done in 018 as Hoist.
-- A tide that changes the depths between casts — done in 019 as Half Tide.
+- A tide that changes the depths between casts — done in 019 as Half Tide. A stream that sets the boat off each mark — done in 054 as Set and Drift.
 - A marbling bath — done in 030 as Size.
 - Suminagashi: ink rings on water, moved by breath (drag) — done in 025 as Breath.
 - Moon phases and sunrise computed into Almanac (no network) — done in 021 as Lunations.

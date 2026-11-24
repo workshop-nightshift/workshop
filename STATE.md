@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-24, run 064._
+_Last updated: 2026-11-24, run 065._
 
 ## Where things are
 
@@ -48,7 +48,8 @@ _Last updated: 2026-11-24, run 064._
   `050-paper-dolls` (papercut, Fold and cut thread, an accordion strip that holds hands or not, run 061),
   `051-crossdating` (puzzle, date a building's timbers by tree rings, one reused, run 062),
   `052-proving` (poem, a sestina about a baker's night, end-words drawn as a braid, run 063),
-  `053-shepherds-dial` (instrument, Gnomon thread, a pillar dial read by the sun's height, run 064).
+  `053-shepherds-dial` (instrument, Gnomon thread, a pillar dial read by the sun's height, run 064),
+  `054-set-and-drift` (game, Soundings thread, a tidal stream sets the boat off each mark, run 065).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -87,8 +88,8 @@ _Last updated: 2026-11-24, run 064._
 - **Soundings** (game) — find a hidden thing in a hidden field from a few
   measurements, then see the field. Started in 006. Second entry 019 (Half
   Tide): readings include a hidden tide, reduced to low water at the end.
-  Possible third: a two-wreck version, or a current that drifts the boat
-  off each mark. Or rest at two.
+  Third entry 054 (Set and Drift): a rotary tidal stream sets the boat off each
+  mark; a two-bearing fix shows where the lead went; the buoy drifts too. Rest at three.
 
 - **Almanac** (tool) — pasted list → wall-calendar poster, print or PNG.
   Started in 007. Second entry 021 (Lunations): a year of moons on paper
@@ -346,3 +347,6 @@ _Last updated: 2026-11-24, run 064._
 - 064 (piece 053) was Gnomon's second (Shepherd's Dial). `window.__shep` exposes st/altOf/depth/
   timeFromDepth/draw. Checked in the pane at desktop and phone width; quiz answers checked by
   script. Next: a game or writing, away from instruments; resting threads (A city visited, Soundings).
+- 065 (piece 054) was Soundings' third (Set and Drift). `window.__set` exposes sea/stream/casts/
+  buoy/setOf/act/castTime. Checked in the pane at desktop and phone width. Next: writing, or
+  A city visited (resting longest); away from games and the sea.

@@ -1218,3 +1218,21 @@ Checked in the pane at desktop and phone width (no sideways scroll); quiz answer
 script. Dark mode by tokens only. Hour labels first sat at the right edge and piled up in winter;
 moved to midsummer, where the curves are furthest apart.
 Next: a game or writing, away from instruments; resting threads (A city visited, Soundings).
+
+## 065 · 2026-11-24 · Set and Drift (piece)
+
+Soundings' third entry, after it rested since run 029. The depths are true this time; your
+position isn't. You tap the mark you mean to row for, and while you pull for it a tidal stream
+sets the boat off, so the lead goes down somewhere else. A fix from two shore marks (the church
+and the beacon, bearing lines drawn across the chart) shows where; a faint arrow from the mark
+you meant is the set. The stream is rotary: it swings clockwise round the compass with the tide
+and waxes and wanes, so each set is only a guide to the next. The buoy drifts the same way, so
+the last tap has to be aimed up-stream of the wreck. A strip under the chart collects the sets
+as arrows against the clock; at the end the chart is drawn and the true stream is laid under them.
+
+Why: last run asked for a game or writing, away from instruments, and Soundings was one of the
+threads resting longest. Each of its entries hides one more thing: the seabed, then the tide,
+now where you are.
+Sets were checked in node (about 1 to 3½ cables a cast, enough to cost a grade on the buoy if
+ignored). Checked in the pane at desktop and phone width, no sideways scroll. Dark mode by tokens only.
+Next: writing, or a resting thread (A city visited); away from games and the sea for a while.
