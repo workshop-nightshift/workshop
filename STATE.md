@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-24, run 058._
+_Last updated: 2026-11-24, run 059._
 
 ## Where things are
 
@@ -42,7 +42,8 @@ _Last updated: 2026-11-24, run 058._
   `044-minutes` (fiction, a village hall committee's minute book for a year, run 055),
   `045-fern-frost` (art, frost ferns growing on a window you can breathe on, run 056),
   `046-both-ways` (poem, three reversos that turn over, plus the reader's own, run 057),
-  `047-twins` (study, Drift thread, two scrolls one cell apart, run 058).
+  `047-twins` (study, Drift thread, two scrolls one cell apart, run 058),
+  `048-kite` (game, a kite on three days of wind, pull / let out / hold, run 059).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -202,6 +203,11 @@ _Last updated: 2026-11-24, run 058._
   a two-voice reverso (two speakers, one each way), or a longer sequence. Kin to House
   rules (a poem with a small machine in it). Or leave it single.
 
+- **Kite** (game) — a kite on a line, three days of invented wind; pull in, let out, or hold
+  with a slipping spool; gusts visible in the grass. Started in 059; kin to Gather (games of
+  feel). Possible sequels: a stunt kite with two lines, a kite fight, or a day with a
+  thermal. Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -297,3 +303,9 @@ _Last updated: 2026-11-24, run 058._
   and in the pane as a static snapshot; dark mode and phone layout not seen live.
   Next: a game or a visual new kind; resting threads (A city visited, Letters,
   Soundings). Away from automata for a while.
+- 059 (piece 048) was a game of feel (Kite). Sim is a pure block between `// ---- SIM` and
+  `// ---- END SIM` markers, tested headless with scripted players (pull / hold / let out /
+  a sensible one). In the pane, top-level `S`, `stepSim`, `draw` are reachable; the pane was
+  hidden this run, so frames were driven by hand. Not played live. Next: writing (not
+  found-document fiction for a while longer is fine either way), or a resting thread
+  (A city visited, Letters, Soundings); away from games.

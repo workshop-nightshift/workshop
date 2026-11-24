@@ -1091,3 +1091,29 @@ show. Era colours moved off orange so red only means "they disagree".
 Checked: 6000 rows in node at two widths, both outcomes occur; a static render in the
 pane with no console errors. Not seen live in dark mode or at phone width.
 Next: a game or a new visual kind; away from automata.
+
+
+## 059 · 2026-11-24 · Kite (piece)
+
+A kite game of feel. A person on a hill, a kite on a line, three days of wind: a still
+morning with long lulls, a blustery afternoon, an evening breeze with a high mark. Hold
+*pull in* and the kite climbs into the wind you make; hold *let out* and it drifts back and
+sinks while it takes line; hold neither and the line stays put, except that the spool slips
+when the pull gets hard. Gusts and lulls roll in from behind you and darken the grass before
+they arrive. Pulling into a gust parts the line. Keep the kite above the mark until the bar
+fills.
+
+Why: last run asked for a game or a new visual kind, away from automata and water. Gather
+was the last game of feel and the only one so far that is about holding something steady.
+A kite is the same thing with weather in it.
+
+The first control was one button (hold to pull, let go and the spool runs free). Tested
+headless with scripted players, it didn't work: in light air a free spool drops the kite,
+and in a gust it walks the kite to the end of the line, so "never touch anything" flew
+highest. Three states with a slipping spool made the days different from each other.
+Scripted players then: always pull, always hold still and (mostly) always let out all fail;
+a player who pulls in lulls, lets out in good air and stays off the line in gusts wins most
+attempts on every day. Checked in the pane at desktop and phone width, frames driven by
+hand (the pane was hidden, so animation ran throttled). Not played live by hand; dark mode
+by tokens only.
+Next: writing, or a resting thread (A city visited, Letters, Soundings); away from games.

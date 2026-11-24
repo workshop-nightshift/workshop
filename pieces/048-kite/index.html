@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kite</title>
+<style>
+:root{--bg:#eeebe2;--fg:#1d1b18;--mute:#746d5e;--line:#d3cbb7;--sky1:#c9d9e2;--sky2:#eef0e8;--hill:#b7c3a6;--hill2:#a3b292;--ground:#9fb173;--ground2:#8c9f62;--blade:#6f8247;--gust:#4f6131;--cloud:#ffffffb0;--kite:#b4472b;--kite2:#e0b24a;--string:#3a332c;--tail:#b4472b;--man:#2b2620;--meter:#3a332c;--warn:#b4472b;--ok:#4d6b33;--hud:#1d1b18}
+@media (prefers-color-scheme:dark){:root{--bg:#121311;--fg:#e6e2d7;--mute:#958e7e;--line:#2c2d27;--sky1:#1a2330;--sky2:#2a2e33;--hill:#232b22;--hill2:#1d241c;--ground:#2f3a26;--ground2:#283220;--blade:#4a5a35;--gust:#8da066;--cloud:#ffffff1c;--kite:#e0805f;--kite2:#d8b45c;--string:#cfc8b8;--tail:#e0805f;--man:#0c0c0b;--meter:#cfc8b8;--warn:#ee8a68;--ok:#9bbf78;--hud:#e6e2d7}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 28px}
+main{width:100%;max-width:680px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em;font-style:italic}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+canvas{display:block;width:100%;aspect-ratio:4/3;border:1px solid var(--line);border-radius:3px;touch-action:none;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.status{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:8px 0 0;font-size:15px}
+.status .m{color:var(--mute);font-style:italic}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:12px;color:var(--mute);font-size:14px}
+.row span{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+.prose{max-width:36em}
+p{margin:.6em 0}
+.key{color:var(--mute);font-size:14px;margin:8px 0 0}
+.ctl{display:flex;gap:10px;margin-top:10px}
+.big{flex:1;padding:12px 10px;font-size:16px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.big.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Kite</h1>
+  <p class="sub">three days of wind on the same hill</p>
+
+  <canvas id="c" aria-label="a hillside seen from the side, a person holding a kite line, the kite in the sky downwind; press and hold to pull the line in"></canvas>
+  <div class="status"><span id="st">—</span><span class="m" id="note"></span></div>
+
+  <div class="ctl"><button id="out" class="big">let out</button><button id="pull" class="big">pull in</button></div>
+  <p class="key">Hold <i>pull in</i> (or the kite, or the up arrow) to bring line in: the kite climbs into the wind you make. Hold <i>let out</i> (or the down arrow) and the wind takes line away while the kite sinks back. Hold neither and the line stays put, except that the spool slips when the pull gets hard. Gusts come from behind you, left to right: the grass darkens before they reach you. Pulling into a gust can part the line. Keep the kite above the mark until the bar fills.</p>
+
+  <div class="row">
+    <span id="days"></span>
+    <span><button id="again">again</button></span>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="prose">
+    <p>A kite stands in the wind it feels, which is the wind plus however fast you walk it backwards. Pull and the kite feels more wind, lifts, and climbs toward the top of the sky; let line out and it feels less, and sinks back toward the horizon while it goes further away. In a lull the kite has too little to stand on and starts to come down, and the only cure is to pull.</p>
+    <p>Pulling is also how lines break. The tension goes with the square of the wind the kite feels, so a gust on top of a pull is far more than either alone. The spool's slip is the safety valve: left alone, it lets the kite take line until the pull eases, which is also how a gusty day walks your kite away from you, a few metres at a time, until you pull it back in a lull. It can't slip once the line is all out. Kites high overhead pull less than kites near the horizon, and long lines sag under their own weight, so a kite on a lot of line sits lower in the sky.</p>
+    <p>The wind is invented: a slow swell, with gusts and lulls that roll across the hill at their own speed, a little stronger the higher you go.</p>
+  </div>
+</main>
+<script>
+// ---- SIM (no DOM; tested headless) ----
+const DAYS = [
+  { name: "Still morning", note: "light air, long lulls", goal: 20, hold: 15, base: 3.9, swell: [0.9, 0.5], gustEvery: [7, 12], gustAmp: [-2.4, 1.6], gustW: [30, 55], seed: 3 },
+  { name: "Blustery afternoon", note: "gusts on gusts", goal: 40, hold: 30, base: 5.0, swell: [1.2, 0.6], gustEvery: [3, 6], gustAmp: [-4.6, 6], gustW: [16, 30], seed: 11 },
+  { name: "Evening on the down", note: "a steady breeze and a high mark", goal: 80, hold: 30, base: 4.6, swell: [1.4, 0.7], gustEvery: [4, 8], gustAmp: [-3.4, 5], gustW: [20, 45], seed: 29 },
+];
+const K = { wmin: 2.4, reel: 3.5, slip: 0.95, outK: 15, outMax: 8, drift: 0.4, gustC: 7.5, breakAt: 0.3, spool: 160, minL: 4 };
+
+function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+
+function newSim(di, seed) {
+  const D = DAYS[di];
+  if (seed === undefined) seed = (Math.random() * 1e9) | 0;
+  return { di, D, r: rng(seed), t: 0, L: 18, th: 0, v: 0, wa: 0, wk: 0, T: 0, strain: 0, gusts: [], nextGust: 1.5,
+    ph: [D.seed * 1.7, D.seed * 2.3], state: "ready", aloft: false, above: 0, best: 0, won: false, kx: 18, ky: 0, free: null, wob: 0 };
+}
+
+function baseWind(S, t) { const D = S.D; return D.base + D.swell[0] * Math.sin(t / 17 + S.ph[0]) + D.swell[1] * Math.sin(t / 6.9 + S.ph[1]); }
+function windAt(S, x, t) {
+  let w = baseWind(S, t);
+  for (const g of S.gusts) { const c = g.x0 + K.gustC * (t - g.t0); const d = (x - c) / g.w; if (d > -3 && d < 3) w += g.a * Math.exp(-d * d); }
+  return Math.max(0, w);
+}
+const profile = (h) => Math.pow(Math.max(h, 1.5) / 20, 0.14);
+
+function stepSim(S, dt, ctrl) {
+  S.t += dt;
+  const D = S.D, r = S.r;
+  // gusts spawn upwind and roll across
+  S.nextGust -= dt;
+  if (S.nextGust <= 0) {
+    const a = D.gustAmp[0] + r() * (D.gustAmp[1] - D.gustAmp[0]);
+    S.gusts.push({ x0: -140, t0: S.t, a, w: D.gustW[0] + r() * (D.gustW[1] - D.gustW[0]) });
+    S.nextGust = D.gustEvery[0] + r() * (D.gustEvery[1] - D.gustEvery[0]);
+  }
+  S.gusts = S.gusts.filter((g) => g.x0 + K.gustC * (S.t - g.t0) < 420);
+  if (S.state === "free") { // line parted: kite blows away and down
+    const f = S.free; const w = windAt(S, f.x, S.t) * profile(f.y);
+    f.vx += (w * 0.9 - f.vx) * dt * 1.2; f.vy += (-3 - f.vy) * dt * 0.8; f.x += f.vx * dt; f.y = Math.max(0, f.y + f.vy * dt); f.rot += dt * 3;
+    return;
+  }
+  if (S.state !== "flying") return;
+  S.kx = S.L * Math.cos(S.th * Math.PI / 180); S.ky = S.L * Math.sin(S.th * Math.PI / 180);
+  S.wk = windAt(S, S.kx, S.t) * profile(S.ky);
+  // line speed: + pulling in, - running out. ctrl: 1 pull, 0 hold still, -1 let out
+  const h0 = S.L * Math.sin(Math.max(0, S.th) * Math.PI / 180);
+  const T0 = Math.pow(S.wk / 10, 2) * (1.15 - 0.55 * Math.max(0, S.th) / 90);
+  if (ctrl > 0) S.v = S.L > K.minL ? K.reel : 0;
+  else if (h0 < 3) S.v = 0; // nothing to take the line out yet
+  else if (ctrl < 0) S.v = -Math.min(K.outMax, 1 + S.wk * 0.45 + T0 * K.outK);
+  else S.v = T0 > K.slip ? -Math.min(K.outMax, (T0 - K.slip) * 20) : 0; // the spool slips under a hard pull
+  if (S.L >= K.spool && S.v < 0) S.v = 0;
+  S.wa = Math.max(0, S.wk + (S.v > 0 ? S.v : S.v * K.drift));
+  S.L = Math.min(K.spool, Math.max(K.minL, S.L - S.v * dt));
+  // where the kite wants to sit in the sky
+  const s = Math.min(1, Math.max(0, (S.wa - K.wmin) / 5));
+  const eq = 86 * Math.sqrt(s) - 0.12 * S.L;
+  if (S.wa < K.wmin) S.th -= (4 + (K.wmin - S.wa) * 9) * dt;
+  else S.th += (eq - S.th) * Math.min(1.4, 0.22 * S.wa) * dt;
+  // turbulence wobble
+  S.wob += (r() - 0.5) * dt * 30 - S.wob * dt * 2;
+  S.th += S.wob * dt * Math.min(1, S.wa / 8);
+  S.th = Math.min(88, S.th);
+  S.T = Math.pow(S.wa / 10, 2) * (1.15 - 0.55 * Math.max(0, S.th) / 90);
+  if (S.T > 1) S.strain += (S.T - 1) * dt * 2.2; else S.strain = Math.max(0, S.strain - dt * 0.6);
+  const h = S.L * Math.sin(Math.max(0, S.th) * Math.PI / 180);
+  if (h > 3) S.aloft = true;
+  S.best = Math.max(S.best, h);
+  if (h >= D.goal) S.above += dt;
+  if (!S.won && S.above >= D.hold) S.won = true;
+  if (S.strain > K.breakAt) {
+    S.state = "free"; S.freeAt = S.t; S.free = { x: S.kx, y: h, vx: S.wa, vy: 1, rot: 0 }; return;
+  }
+  if (S.th <= 0) {
+    S.th = 0;
+    if (S.aloft) { S.state = "landed"; }
+  }
+}
+function startSim(S) { if (S.state === "ready") S.state = "flying"; }
+// ---- END SIM ----
+
+const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+const st = document.getElementById("st"), note = document.getElementById("note");
+let col = {}, S = null, ctrl = 0, held = { kp: false, kd: false, cv: false, bp: false, bo: false }, view = { w: 70 }, last = 0, tailPts = [];
+const grassSeed = rng(5); const blades = Array.from({ length: 900 }, () => [grassSeed(), grassSeed(), grassSeed()]);
+const clouds = Array.from({ length: 7 }, (_, i) => ({ x: grassSeed() * 600 - 200, y: 0.12 + grassSeed() * 0.35, s: 0.6 + grassSeed() * 0.9 }));
+
+function readCols() {
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ["sky1", "sky2", "hill", "hill2", "ground", "ground2", "blade", "gust", "cloud", "kite", "kite2", "string", "tail", "man", "meter", "warn", "ok", "hud", "mute", "line", "bg"]) col[k] = cs.getPropertyValue("--" + k).trim();
+}
+readCols();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readCols);
+
+function best(di, v) {
+  const k = "kite-best-" + di;
+  try { if (v !== undefined) localStorage.setItem(k, v); return +localStorage.getItem(k) || 0; } catch (e) { return 0; }
+}
+
+function load(di) {
+  S = newSim(di); view.w = 70; tailPts = [];
+  document.querySelectorAll("#days button").forEach((b, i) => b.setAttribute("aria-pressed", i === di));
+  note.textContent = DAYS[di].note;
+  status();
+}
+
+const daysEl = document.getElementById("days");
+DAYS.forEach((D, i) => { const b = document.createElement("button"); b.textContent = D.name.toLowerCase(); b.onclick = () => load(i); daysEl.appendChild(b); });
+document.getElementById("again").onclick = () => load(S.di);
+
+function status() {
+  const D = S.D, h = S.state === "flying" ? S.ky : 0, b = best(S.di);
+  let s;
+  if (S.state === "ready") s = `${D.name} · above ${D.goal} m for ${D.hold} s`;
+  else if (S.state === "landed") s = `It came down · highest ${Math.round(S.best)} m`;
+  else if (S.state === "free") s = `The line parted · highest ${Math.round(S.best)} m`;
+  else s = `${Math.round(h)} m up on ${Math.round(S.L)} m of line` + (S.won ? " · flown" : ` · ${Math.min(D.hold, Math.floor(S.above))} of ${D.hold} s above ${D.goal} m`);
+  if (b) s += ` · best ${b} m`;
+  if (st.textContent !== s) st.textContent = s;
+}
+
+const bPull = document.getElementById("pull"), bOut = document.getElementById("out");
+function setCtrl() {
+  const p = held.kp || held.cv || held.bp, o = held.kd || held.bo;
+  ctrl = p ? 1 : o ? -1 : 0;
+  if (ctrl > 0 && S && S.state === "ready") startSim(S);
+  bPull.classList.toggle("on", ctrl > 0); bOut.classList.toggle("on", ctrl < 0);
+}
+const over = () => S.state === "landed" || (S.state === "free" && S.t - S.freeAt > 1.2);
+function holdOn(el, key) {
+  el.addEventListener("pointerdown", (e) => { e.preventDefault(); el.setPointerCapture(e.pointerId);
+    if (over()) { load(S.di); return; } held[key] = true; setCtrl(); });
+  const up = () => { held[key] = false; setCtrl(); };
+  el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up); el.addEventListener("lostpointercapture", up);
+  el.addEventListener("contextmenu", (e) => e.preventDefault());
+}
+holdOn(cv, "cv"); holdOn(bPull, "bp"); holdOn(bOut, "bo");
+const KEYS = { Space: "kp", ArrowUp: "kp", ArrowDown: "kd" };
+addEventListener("keydown", (e) => {
+  const k = KEYS[e.code]; if (!k || (e.code === "Space" && e.target.tagName === "BUTTON")) return;
+  e.preventDefault(); if (e.repeat) return;
+  if (over()) { load(S.di); return; }
+  held[k] = true; setCtrl();
+});
+addEventListener("keyup", (e) => { const k = KEYS[e.code]; if (k) { held[k] = false; setCtrl(); } });
+addEventListener("blur", () => { for (const k in held) held[k] = false; setCtrl(); });
+
+function size() {
+  const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d);
+}
+addEventListener("resize", size); size();
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000 || 0); last = now;
+  if (S.state !== "ready") {
+    const sub = 4; for (let i = 0; i < sub; i++) stepSim(S, dt / sub, ctrl);
+  } else S.t += dt; // let the wind move before the start
+  if (S.won && Math.round(S.best) > best(S.di)) best(S.di, Math.round(S.best));
+  draw(dt);
+  status();
+  requestAnimationFrame(frame);
+}
+
+function draw(dt) {
+  const Wp = cv.width, Hp = cv.height, u = Wp / 600, dpr = Wp / Math.max(1, cv.clientWidth), fu = Math.max(u, dpr * 0.95);
+  // camera: flyer at 26% across, ground at 86% down; zoom to keep kite in view
+  const kx = S.state === "free" ? S.free.x : S.kx, ky = S.state === "free" ? S.free.y : S.ky;
+  const want = Math.max(70, (kx + 14) / 0.68, (ky + 12) / (0.78 * Hp / Wp), (S.state === "free" ? 0 : S.L * 0.75));
+  view.w += (Math.min(want, 360) - view.w) * Math.min(1, dt * 1.5);
+  const sc = Wp / view.w, ox = Wp * 0.26, gy = Hp * 0.86;
+  const X = (x) => ox + x * sc, Y = (y) => gy - y * sc;
+  const t = S.t;
+
+  // sky
+  const g = ctx.createLinearGradient(0, 0, 0, gy);
+  g.addColorStop(0, col.sky1); g.addColorStop(1, col.sky2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, Wp, Hp);
+  // clouds drift with the base wind (slow parallax)
+  ctx.fillStyle = col.cloud;
+  for (const c of clouds) {
+    c.x += baseWind(S, t) * dt * 0.8; if (c.x > 520) c.x -= 760;
+    const cx = (c.x / 520) * Wp, cy = c.y * gy, s = c.s * 26 * u;
+    ctx.beginPath(); ctx.ellipse(cx, cy, s * 2.2, s * 0.6, 0, 0, 7); ctx.ellipse(cx - s, cy + s * 0.1, s * 1.2, s * 0.5, 0, 0, 7); ctx.ellipse(cx + s * 0.8, cy - s * 0.2, s * 1.1, s * 0.55, 0, 0, 7); ctx.fill();
+  }
+  // far hills (fixed in screen space)
+  ctx.fillStyle = col.hill2; ctx.beginPath(); ctx.moveTo(0, gy);
+  for (let x = 0; x <= Wp; x += 8 * u) ctx.lineTo(x, gy - Hp * (0.13 + 0.05 * Math.sin(x / Wp * 4.1 + 1) + 0.03 * Math.sin(x / Wp * 9.7)));
+  ctx.lineTo(Wp, gy); ctx.fill();
+  ctx.fillStyle = col.hill; ctx.beginPath(); ctx.moveTo(0, gy);
+  for (let x = 0; x <= Wp; x += 8 * u) ctx.lineTo(x, gy - Hp * (0.06 + 0.03 * Math.sin(x / Wp * 6.3 + 2.4)));
+  ctx.lineTo(Wp, gy); ctx.fill();
+  // ground
+  ctx.fillStyle = col.ground; ctx.fillRect(0, gy, Wp, Hp - gy);
+  ctx.fillStyle = col.ground2; ctx.fillRect(0, gy + (Hp - gy) * 0.45, Wp, Hp - gy);
+  // grass: lean with the local wind; strong wind darker
+  const x0 = -ox / sc, x1 = (Wp - ox) / sc;
+  ctx.lineCap = "round";
+  for (const [a, b, c] of blades) {
+    const sx = a * Wp, wx = (sx - ox) / sc;
+    const w = windAt(S, wx, t), lean = Math.min(1.3, w / 9) + 0.12 * Math.sin(t * (3 + w * 0.4) + c * 20);
+    const by = gy + b * (Hp - gy) * 0.9 + 2 * u, len = (5 + c * 9) * u * (0.6 + b * 0.7);
+    ctx.strokeStyle = w > baseWind(S, t) + 1.5 ? col.gust : col.blade;
+    ctx.lineWidth = (0.8 + b) * u;
+    ctx.beginPath(); ctx.moveTo(sx, by); ctx.quadraticCurveTo(sx + lean * len * 0.3, by - len * 0.7, sx + lean * len * 0.8, by - len * (1 - lean * 0.4)); ctx.stroke();
+  }
+
+  // flyer
+  const fx = X(0), fy = gy, lean = S.state === "flying" ? Math.min(0.5, S.T * 0.45) : 0, hu = 11 * u;
+  const hx = fx + Math.sin(lean) * hu * 2.1 + 3 * u, hy = fy - hu * 2.4;
+  ctx.strokeStyle = col.man; ctx.fillStyle = col.man; ctx.lineWidth = 2.2 * u;
+  ctx.beginPath(); ctx.moveTo(fx - 3 * u, fy); ctx.lineTo(fx - Math.sin(lean) * hu * 0.3, fy - hu * 1.3); ctx.lineTo(fx + 4 * u, fy); ctx.stroke();
+  const sx = fx - Math.sin(lean) * hu * 0.3, sy = fy - hu * 1.3, tx = sx - Math.sin(lean) * hu * 1.2, ty = sy - hu * 1.25;
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.stroke();
+  ctx.beginPath(); ctx.arc(tx - Math.sin(lean) * 3 * u, ty - 4.5 * u, 3.6 * u, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(tx, ty + 2 * u); ctx.lineTo(hx, hy); ctx.stroke();
+  // spool
+  ctx.beginPath(); ctx.arc(hx, hy, 2.6 * u, 0, 7); ctx.fill();
+
+  // kite
+  let px, py, ang;
+  if (S.state === "free") { px = X(S.free.x); py = Y(S.free.y); ang = S.free.rot; }
+  else {
+    px = X(S.kx); py = Y(Math.max(0.6, S.ky));
+    const lineAng = Math.atan2(py - hy, px - hx);
+    ang = lineAng + Math.PI / 2 - 0.35 + S.wob * 0.02; // nose up, facing into the wind
+    if (S.state === "ready" || S.ky < 0.7) ang = -0.2;
+    // line, with sag that grows with length and eases with tension
+    const sag = Math.min(0.16, S.L / 700) * (1 - Math.min(0.9, S.T * 2.5)) * Math.hypot(px - hx, py - hy);
+    ctx.strokeStyle = col.string; ctx.lineWidth = Math.max(1, 0.9 * u);
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo((hx + px) / 2 + sag * 0.15, (hy + py) / 2 + sag, px, py); ctx.stroke();
+  }
+  const ks = Math.max(9 * u, Math.min(22 * u, 1.3 * sc));
+  // tail: follows the kite, blown downwind
+  const tx0 = px - Math.sin(ang) * ks * 0.9, ty0 = py + Math.cos(ang) * ks * 0.9;
+  tailPts.unshift([tx0, ty0]); const wTail = S.state === "flying" ? S.wa : 3;
+  const tl = 14;
+  for (let i = 1; i < tailPts.length && i < tl; i++) {
+    const p = tailPts[i], q = tailPts[i - 1];
+    p[0] += (wTail * 0.7 * u) * dt * 30 * 0.12; p[1] += 1.2 * u * dt * 30 * 0.12;
+    const d = Math.hypot(p[0] - q[0], p[1] - q[1]), seg = ks * 0.32;
+    if (d > seg) { p[0] = q[0] + (p[0] - q[0]) * seg / d; p[1] = q[1] + (p[1] - q[1]) * seg / d; }
+    p[1] += Math.sin(t * 9 + i * 0.9) * 0.5 * u * Math.min(1, wTail / 5);
+  }
+  tailPts.length = Math.min(tailPts.length, tl);
+  const tail0 = [tx0, ty0];
+  ctx.strokeStyle = col.string; ctx.lineWidth = Math.max(1, 0.7 * u);
+  ctx.beginPath(); ctx.moveTo(...tail0); for (let i = 1; i < tailPts.length; i++) ctx.lineTo(...tailPts[i]); ctx.stroke();
+  ctx.fillStyle = col.tail;
+  for (let i = 3; i < tailPts.length; i += 3) { const [bx, by] = tailPts[i]; ctx.beginPath(); ctx.moveTo(bx - 3 * u, by - 2 * u); ctx.lineTo(bx + 3 * u, by + 2 * u); ctx.lineTo(bx + 3 * u, by - 2 * u); ctx.lineTo(bx - 3 * u, by + 2 * u); ctx.closePath(); ctx.fill(); }
+  // the kite itself: a diamond, two colours
+  ctx.save(); ctx.translate(px, py); ctx.rotate(ang);
+  const top = [0, -ks * 1.25], rt = [ks * 0.75, -ks * 0.35], bot = [0, ks * 0.9], lf = [-ks * 0.75, -ks * 0.35];
+  ctx.fillStyle = col.kite; ctx.beginPath(); ctx.moveTo(...top); ctx.lineTo(...rt); ctx.lineTo(0, -ks * 0.35); ctx.lineTo(...lf); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = col.kite2; ctx.beginPath(); ctx.moveTo(...lf); ctx.lineTo(0, -ks * 0.35); ctx.lineTo(...rt); ctx.lineTo(...bot); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = col.string; ctx.lineWidth = Math.max(0.8, 0.6 * u);
+  ctx.beginPath(); ctx.moveTo(...top); ctx.lineTo(...bot); ctx.moveTo(...lf); ctx.lineTo(...rt); ctx.stroke();
+  ctx.restore();
+
+  // the mark: a dashed line at the goal height
+  const D = S.D, my = Y(D.goal);
+  if (my > 0) {
+    ctx.setLineDash([6 * u, 6 * u]); ctx.strokeStyle = S.won ? col.ok : col.mute; ctx.lineWidth = Math.max(1, u);
+    ctx.beginPath(); ctx.moveTo(X(4), my); ctx.lineTo(Wp, my); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = S.won ? col.ok : col.mute; ctx.font = `italic ${12 * fu}px Georgia,serif`; ctx.textAlign = "right";
+    ctx.fillText(`${D.goal} m`, Wp - 8 * u, my - 5 * u);
+  } else {
+    ctx.fillStyle = col.mute; ctx.font = `italic ${12 * fu}px Georgia,serif`; ctx.textAlign = "right"; ctx.fillText(`mark ${D.goal} m ↑`, Wp - 8 * fu, 18 * fu);
+  }
+
+  // meters, top left: tension and time above the mark
+  const mx = 12 * fu, mw = 120 * fu, mh = 7 * fu;
+  ctx.textAlign = "left"; ctx.font = `${12 * fu}px Georgia,serif`; ctx.fillStyle = col.hud;
+  ctx.fillText("pull", mx, 18 * fu);
+  ctx.strokeStyle = col.meter; ctx.lineWidth = Math.max(1, 0.8 * u);
+  const T = S.state === "flying" ? S.T : 0, bx = mx + 34 * fu;
+  ctx.strokeRect(bx, 10 * fu, mw, mh);
+  ctx.fillStyle = T > 1 ? col.warn : col.meter; ctx.fillRect(bx, 10 * fu, mw * Math.min(1.2, T) / 1.2, mh);
+  ctx.fillStyle = col.warn; ctx.fillRect(bx + mw / 1.2 - 0.5 * fu, 7 * fu, 1.5 * fu, mh + 6 * fu);
+  ctx.fillStyle = col.hud; ctx.fillText("held", mx, 36 * fu);
+  ctx.strokeRect(bx, 28 * fu, mw, mh);
+  ctx.fillStyle = col.ok; ctx.fillRect(bx, 28 * fu, mw * Math.min(1, S.above / D.hold), mh);
+
+  // messages
+  ctx.textAlign = "center"; ctx.fillStyle = col.hud; ctx.font = `italic ${16 * fu}px Georgia,serif`;
+  if (S.state === "ready") ctx.fillText("hold pull in to get the kite up", Wp / 2, Hp * 0.42);
+  else if (S.state === "landed") ctx.fillText("it came down · tap to try again", Wp / 2, Hp * 0.42);
+  else if (S.state === "free") ctx.fillText(over() ? "the line parted · tap to try again" : "the line parted", Wp / 2, Hp * 0.42);
+  else if (S.won && S.above < D.hold + 4) ctx.fillText("flown · keep it up as long as you like", Wp / 2, Hp * 0.42);
+}
+
+load(0);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
