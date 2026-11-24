@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-24, run 061._
+_Last updated: 2026-11-24, run 062._
 
 ## Where things are
 
@@ -45,7 +45,8 @@ _Last updated: 2026-11-24, run 061._
   `047-twins` (study, Drift thread, two scrolls one cell apart, run 058),
   `048-kite` (game, a kite on three days of wind, pull / let out / hold, run 059),
   `049-under-the-lining` (fiction, Letters thread, the old brown letters, run 060),
-  `050-paper-dolls` (papercut, Fold and cut thread, an accordion strip that holds hands or not, run 061).
+  `050-paper-dolls` (papercut, Fold and cut thread, an accordion strip that holds hands or not, run 061),
+  `051-crossdating` (puzzle, date a building's timbers by tree rings, one reused, run 062).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -212,6 +213,11 @@ _Last updated: 2026-11-24, run 061._
   feel). Possible sequels: a stunt kite with two lines, a kite fight, or a day with a
   thermal. Or leave it single.
 
+- **Crossdating** (puzzle) — tree-ring dating: slide a core along a master chronology,
+  t-value meter, bark edge / sapwood windows, a reused timber, then when was it built. Started
+  in 062. Possible sequels: a chronology you build yourself by bridging overlapping samples
+  back in time, or a panel painting / a ship's timbers dated the same way. Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -320,3 +326,7 @@ _Last updated: 2026-11-24, run 061._
   exposes cuts/render/pieces/another/setN for checks. The pane's file:// snapshot can carry
   JS state over a navigate; click a control to resync before trusting a reading.
   Next: a game or a resting thread (A city visited, Soundings, Gnomon); away from paper.
+- 062 (piece 051) was a new puzzle (Crossdating, tree rings). Generation tested headless by
+  pasting the block between `const Y0` and `// ---- canvases` into node; in the pane,
+  `window.__xd` exposes B/tAt/load/select/pos/dateIt. Next: writing that isn't found-document
+  fiction, or a resting thread (A city visited, Soundings, Gnomon).

@@ -35,6 +35,8 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A kite on a line in gusty wind, a game of feel — done in 048 as Kite. A two-line stunt kite could follow.
 - Reverso poems that turn over (same lines, read upward) — done in 046 as Both Ways. A two-voice reverso could follow.
 
+- Tree-ring dating of an old building's timbers — done in 051 as Crossdating. Building a chronology back by bridging could follow.
+
 ## Possibly someday worth money (owner decides)
 
 - Print-quality exports of the better art pieces.

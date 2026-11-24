@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crossdating</title>
+<style>
+:root{--bg:#f1ece2;--fg:#1d1b18;--mute:#766e60;--line:#d6cdbb;--panel:#f8f5ee;--grid:#e2dacb;--wood:#dcc193;--late:#8a5a2c;--sap:#ecdcbb;--bark:#4a3423;--master:#2f4d61;--sample:#a3421f;--ok:#3f6b4a;--scan:#b9a98a}
+@media (prefers-color-scheme:dark){:root{--bg:#141310;--fg:#e8e3d8;--mute:#998f7c;--line:#302b23;--panel:#1b1915;--grid:#2a261f;--wood:#b9996a;--late:#5e3b1a;--sap:#d3bf98;--bark:#2a1c11;--master:#8db4cf;--sample:#ec8a62;--ok:#8cc39a;--scan:#5b5244}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 40px}
+main{width:100%;max-width:820px}
+h1{font-size:22px;font-weight:normal;margin:0;font-style:italic;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 14px;font-style:italic}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.head b{font-weight:normal;font-size:17px}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--panel);border-color:var(--mute)}
+button:disabled{opacity:.4;cursor:default}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}
+.tabs button{text-align:left;line-height:1.25}
+.tabs small{display:block;color:var(--mute);font-size:12px}
+.tabs button.done small{color:var(--ok)}
+#desc{color:var(--mute);font-style:italic;margin:0 0 8px;min-height:1.5em}
+canvas{display:block;width:100%;border:1px solid var(--line);border-radius:3px;background:var(--panel)}
+#bench{touch-action:pan-y;cursor:ew-resize;margin-top:8px}
+#bench:focus{outline:1px dashed var(--mute);outline-offset:2px}
+#over{margin-top:6px;cursor:pointer;touch-action:pan-y}
+.ctl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:8px}
+.ctl span{display:flex;gap:4px}
+#meter{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:14px;color:var(--mute)}
+#bar{flex:0 0 140px;height:8px;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+#bar i{display:block;height:100%;width:0;background:var(--mute);transition:width .15s}
+#bar i.hi{background:var(--ok)}
+#msg{font-style:italic;min-height:1.5em;margin:8px 0 0}
+#msg.ok{color:var(--ok)} #msg.bad{color:var(--sample)}
+#ask{display:none;margin-top:18px;padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:var(--panel)}
+#ask .opts{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+#report p{margin:.5em 0}
+h2{font-size:16px;font-weight:normal;margin:28px 0 8px;color:var(--mute);font-style:italic}
+.prose{max-width:36em} .prose p{margin:.6em 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Crossdating</h1>
+  <p class="sub">date an old building's timbers by sliding their rings along the vale's master chronology</p>
+
+  <div class="head"><b id="bname"></b><button id="another">another building</button></div>
+  <div class="tabs" id="tabs"></div>
+  <p id="desc"></p>
+  <canvas id="core" aria-label="the core sample, pith on the left, outer edge on the right"></canvas>
+  <canvas id="bench" tabindex="0" aria-label="drag sideways to slide the master chronology under the sample; arrow keys move a year"></canvas>
+  <canvas id="over" aria-label="the whole chronology, 1450 to 1890; tap to jump the sample there"></canvas>
+  <div class="ctl">
+    <span><button data-d="-10" aria-label="ten years earlier">«</button><button data-d="-1" aria-label="a year earlier">‹</button><button data-d="1" aria-label="a year later">›</button><button data-d="10" aria-label="ten years later">»</button></span>
+    <button id="scan" aria-pressed="false">scan</button>
+    <button id="date">date it here</button>
+  </div>
+  <div id="meter"><span id="tval">t = 0.0</span><div id="bar"><i></i></div><span id="tword"></span></div>
+  <p id="msg"></p>
+
+  <div id="ask">
+    <div id="q"></div>
+    <div class="opts" id="opts"></div>
+    <div id="report"></div>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="prose">
+    <p>A tree puts on one ring a year, wide in a kind year and narrow in a hard one. Every oak in the vale lived
+    through the same summers, so their rings rise and fall together, and a few years stand out in all of them:
+    a late frost, a drought, the summer it never stopped raining. Those narrow years are the fingerprint.</p>
+    <p>The master chronology along the top is many trees averaged, overlapped back to 1450. The red line is one
+    timber's core, its rings measured and smoothed the same way. Drag until the dips line up. The number is
+    Student's <i>t</i> for the match at that position: anything under 3.5 is chance, a stray position can reach 5, and a true match here
+    reads 8 or more. <b>Scan</b> does what the lab's computer does and tries every position at once.</p>
+    <p>A date for the rings is not yet a date for the building. Where the bark edge survives, the last ring is the
+    summer before felling. Where the soft outer sapwood has worn away, the boundary with the heartwood still
+    holds, and oak here carries fifteen to forty sapwood rings, so the felling falls in a window. Builders used
+    oak green, within a year or so of felling. And they reused good timber, so one old beam can be a century
+    older than the frame it sits in.</p>
+    <p>The chronology, the trees and the buildings are invented; the method is the real one.</p>
+  </div>
+</main>
+<script>
+(()=>{
+const Y0=1450,Y1=1890,NY=Y1-Y0+1;
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function rng(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gauss(r){let u=0;while(!u)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r())}
+function detrend(a){const n=a.length,o=new Float64Array(n),h=4;
+  for(let i=0;i<n;i++){let s=0,c=0;for(let j=Math.max(0,i-h);j<=Math.min(n-1,i+h);j++){s+=a[j];c++}o[i]=a[i]-s/c}
+  let m=0;for(const v of o)m+=v;m/=n;let sd=0;for(const v of o)sd+=(v-m)**2;sd=Math.sqrt(sd/n)||1;
+  for(let i=0;i<n;i++)o[i]=(o[i]-m)/sd;return o}
+
+// ---- the vale's climate, fixed for every building
+const R0=rng(20261124),clim=new Float64Array(NY);
+{let p=0;for(let i=0;i<NY;i++){p=.35*p+.94*gauss(R0);clim[i]=p}
+ for(let k=0;k<16;k++){const i=Math.floor(R0()*NY);clim[i]-=2.2+R0()}}
+const master=detrend(clim.map(v=>v+.15*gauss(R0)));
+
+// ---- buildings
+const KINDS=[
+ {k:"barn",parts:["tie beam","north post","south post","rafter"],reuse:"Two empty mortices on its underside fit nothing in this roof."},
+ {k:"cottage",parts:["bressumer","ceiling joist","wall post","lintel"],reuse:"It carries old peg holes and a groove for a shutter this house never had."},
+ {k:"church roof",parts:["collar","purlin","wall plate","brace"],reuse:"It is sooted on one face, and nothing in this roof was ever near a fire."},
+ {k:"granary",parts:["floor joist","corner post","girt","door head"],reuse:"Someone has cut a carpenter's mark into it that matches no other timber here."},
+ {k:"mill",parts:["hurst post","floor beam","sole plate","stair stringer"],reuse:"It is worn smooth along one edge, as if by a rope, though there is no rope here."}];
+const PLACES=["Hollin Ford","Ashby Coombe","Wether Hill","Marrick End","Coldharbour","Nether Sowe","Brackenridge","Low Thwaite","Esk Bridge","Saltmoor"];
+let seed=1,B=null,cur=0,pos=0,scanOn=false,answered=false,scanCache={};
+
+function makeBuilding(s){
+  const r=rng(s*7919+13);
+  const kind=KINDS[s===1?0:Math.floor(r()*KINDS.length)],place=PLACES[s===1?0:Math.floor(r()*PLACES.length)];
+  const built=1600+Math.floor(r()*250);
+  const sapIdx=Math.floor(r()*3);
+  let ts=kind.parts.map((name,j)=>{
+    const reused=j===3,worn=j===sapIdx;
+    const last=reused?Math.max(Y0+70,built-(70+Math.floor(r()*90))):built-1-Math.floor(r()*2); // last full ring if bark edge
+    const sap=18+Math.floor(r()*15);
+    const lost=worn?6+Math.floor(r()*Math.min(12,sap-6)):0;
+    const end=last-lost;                      // outermost ring present
+    let L=60+Math.floor(r()*50);
+    const first=Math.max(Y0+3,end-L+1);L=end-first+1;
+    const pithGap=Math.floor(r()*30),w=[];
+    for(let y=first;y<=end;y++){const a=y-first+pithGap;
+      w.push(Math.max(.12,(.55+2.2*Math.exp(-a/25))*Math.exp(.34*clim[y-Y0]+.2*gauss(r))))}
+    let st=Y0+Math.floor(r()*(NY-L));
+    if(Math.abs(st-first)<40)st=Math.min(Y1-L+1,Math.max(Y0,first+(r()<.5?-1:1)*(60+Math.floor(r()*40))));
+    if(st<Y0||st>Y1-L+1)st=Math.max(Y0,Math.min(Y1-L+1,first-80));
+    return{name,reused,worn,first,end,L,sapStart:last-sap+1,lostTo:last,w,idx:detrend(w.map(Math.log)),start:st,dated:false,note:reused?kind.reuse:""}});
+  // shuffle tab order, keeping the reused one out of first place
+  const order=[0,1,2,3].sort(()=>r()-.5);if(ts[order[0]].reused)order.push(order.shift());
+  ts=order.map(i=>ts[i]);
+  const builtAt=Math.max(...ts.filter(t=>!t.reused&&!t.worn).map(t=>t.lostTo))+1;
+  return{kind:kind.k,place,ts,built:builtAt};
+}
+function tAt(t,st){const n=t.L;let mx=0,my=0;for(let k=0;k<n;k++){mx+=t.idx[k];my+=master[st-Y0+k]}mx/=n;my/=n;
+  let sxy=0,sxx=0,syy=0;for(let k=0;k<n;k++){const a=t.idx[k]-mx,b=master[st-Y0+k]-my;sxy+=a*b;sxx+=a*a;syy+=b*b}
+  const rr=sxy/Math.sqrt(sxx*syy||1);return rr*Math.sqrt((n-2)/Math.max(1e-9,1-rr*rr))}
+function scanOf(i){if(!scanCache[i]){const t=B.ts[i],a=[];for(let s=Y0;s<=Y1-t.L+1;s++)a.push(tAt(t,s));scanCache[i]=a}return scanCache[i]}
+
+// ---- canvases
+const cvs={core:$("core"),bench:$("bench"),over:$("over")},H={core:54,bench:210,over:46};let dpr=1,W=300;
+function size(){dpr=Math.min(devicePixelRatio||1,2);W=cvs.bench.parentElement.clientWidth;
+  for(const k in cvs){const c=cvs[k];c.width=W*dpr;c.height=H[k]*dpr;c.style.height=H[k]+"px"}}
+function ctx(k){const x=cvs[k].getContext("2d");x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H[k]);return x}
+const fs=(x,s,it)=>x.font=(it?"italic ":"")+s+"px Georgia,serif";
+
+function drawCore(){const x=ctx("core"),t=B.ts[cur],h=H.core,y0=10,y1=h-14;
+  let tot=t.w.reduce((a,b)=>a+b,0);const pad=14,ppm=(W-pad*2)/tot;let px=pad;
+  x.fillStyle=css("--wood");x.fillRect(pad,y0,W-pad*2,y1-y0);
+  t.w.forEach((w,k)=>{const yr=t.first+k,ww=w*ppm;
+    if(yr>=t.sapStart){x.fillStyle=css("--sap");x.fillRect(px,y0,ww,y1-y0)}
+    x.fillStyle=css("--late");x.globalAlpha=yr>=t.sapStart?.55:.9;x.fillRect(px+ww*.7,y0,Math.max(.8,ww*.3),y1-y0);x.globalAlpha=1;
+    if(k%10===0){x.fillStyle=css("--mute");x.fillRect(px,y1+2,1,4);if(k%50===0&&k){fs(x,10);x.textAlign="center";x.fillText(t.dated?t.first+k:k,px,h-1)}}
+    px+=ww});
+  if(!t.worn){x.fillStyle=css("--bark");x.fillRect(px,y0-2,4,y1-y0+4)}
+  else{x.fillStyle=css("--panel");x.beginPath();x.moveTo(px+1,y0-1);for(let i=0;i<=8;i++)x.lineTo(px-3+((i*37)%5),y0+(y1-y0)*i/8);x.lineTo(px+6,y1+1);x.lineTo(px+6,y0-1);x.fill()}
+  fs(x,10,1);x.fillStyle=css("--mute");x.textAlign="left";x.fillText("pith side",pad,8);x.textAlign="right";x.fillText(t.worn?"worn edge":"bark edge",W-pad,8);
+}
+function drawBench(){const x=ctx("bench"),t=B.ts[cur],h=H.bench,ppy=W/(t.L+24),vs=pos-12;
+  const X=y=>(y-vs)*ppy+ppy/2,bandM=[22,100],bandS=[124,h-14];
+  const Y=(v,b)=>{const m=(b[0]+b[1])/2;return m-Math.max(-3.2,Math.min(2.4,v))*(b[1]-b[0])/5.6};
+  // decades
+  fs(x,10);x.textAlign="center";
+  for(let y=Math.ceil(vs/10)*10;y<vs+t.L+25;y+=10){const xx=X(y)-ppy/2;x.fillStyle=css("--grid");x.fillRect(xx,14,1,h-26);
+    if(y%(ppy<3?50:ppy<6?20:10)===0){x.fillStyle=css("--mute");x.fillText(y,xx,11)}}
+  // sample span
+  x.fillStyle=css("--grid");x.globalAlpha=.5;x.fillRect(X(pos)-ppy/2,bandS[0]-6,t.L*ppy,bandS[1]-bandS[0]+12);x.globalAlpha=1;
+  const curve=(get,a,b,band,col)=>{x.strokeStyle=col;x.lineWidth=1.4;x.beginPath();
+    for(let y=a;y<=b;y++){const xx=X(y),yy=Y(get(y),band);y===a?x.moveTo(xx,yy):x.lineTo(xx,yy)}x.stroke();
+    x.fillStyle=col;for(let y=a;y<=b;y++){const v=get(y);if(v<-1.7){x.beginPath();x.arc(X(y),Y(v,band)+5,1.8,0,7);x.fill()}}};
+  const a=Math.max(Y0,Math.floor(vs)),b=Math.min(Y1,Math.ceil(vs+t.L+24));
+  curve(y=>master[y-Y0],a,b,bandM,css("--master"));
+  const p=Math.round(pos);curve(y=>t.idx[y-p],p,p+t.L-1,bandS,css("--sample"));
+  fs(x,11,1);x.textAlign="left";x.fillStyle=css("--master");x.fillText("master · the vale",4,bandM[1]+14);
+  x.fillStyle=css("--sample");x.textAlign="right";x.fillText(`${t.name} · ${t.L} rings, ${p}–${p+t.L-1}`,W-4,bandM[1]+14);
+}
+function drawOver(){const x=ctx("over"),t=B.ts[cur],h=H.over,X=y=>4+(y-Y0)/NY*(W-8);
+  x.fillStyle=css("--grid");x.fillRect(4,h-14,W-8,1);fs(x,10);x.textAlign="center";
+  for(let y=1500;y<=Y1;y+=50){x.fillStyle=css("--mute");x.fillRect(X(y),h-17,1,6);if(y%100===0||W>500)x.fillText(y,X(y),h-2)}
+  if(scanOn){const s=scanOf(cur);x.fillStyle=css("--scan");s.forEach((v,i)=>{if(v>0){const hh=Math.min(1,v/10)*(h-20);x.fillRect(X(Y0+i+t.L/2),h-15-hh,Math.max(1,(W-8)/NY),hh)}})}
+  B.ts.forEach((u,i)=>{if(u.dated){x.fillStyle=css("--ok");x.fillRect(X(u.first),4+i*3,u.L/NY*(W-8),2)}});
+  const p=Math.round(pos);x.strokeStyle=css("--sample");x.lineWidth=1.5;x.strokeRect(X(p),h-30,t.L/NY*(W-8),14);
+}
+function meter(){const t=B.ts[cur],v=tAt(t,Math.round(pos));
+  $("tval").textContent="t = "+v.toFixed(1);const i=$("bar").firstElementChild;i.style.width=Math.max(0,Math.min(100,v*10))+"%";i.classList.toggle("hi",v>=7);
+  $("tword").textContent=v<3.5?"chance":v<7?"suggestive":"that holds";}
+function render(){drawCore();drawBench();drawOver();meter()}
+
+// ---- text
+function span(t){return `${t.first}–${t.end}`}
+function felled(t){return t.worn?`sapwood starts ${t.sapStart}; felled ${t.sapStart-1+15}–${t.sapStart-1+40}`:`felled winter ${t.end}/${String(t.end+1).slice(-2)}`}
+function tabs(){const el=$("tabs");el.innerHTML="";B.ts.forEach((t,i)=>{const b=document.createElement("button");
+  b.setAttribute("aria-pressed",i===cur);b.className=t.dated?"done":"";b.innerHTML=`${t.name}<small>${t.dated?span(t):"undated"}</small>`;
+  b.onclick=()=>select(i);el.appendChild(b)})}
+function describe(){const t=B.ts[cur];let s=`${t.L} rings. `;
+  s+=t.worn?`The soft outer sapwood is worn away; ${t.end-t.sapStart+1} sapwood rings are left. `:"The bark edge survives, so its last ring is the summer before it was felled. ";
+  if(t.note)s+=t.note+" ";if(t.dated)s+=`Dated: ${span(t)}, ${felled(t)}.`;$("desc").textContent=s}
+function select(i){cur=i;pos=B.ts[i].dated?B.ts[i].first:B.ts[i].start;tabs();describe();$("msg").textContent="";$("msg").className="";
+  $("date").disabled=B.ts[i].dated;render()}
+function load(s){seed=s;B=makeBuilding(s);scanCache={};answered=false;$("ask").style.display="none";$("report").innerHTML="";
+  $("bname").textContent=`${B.place} ${B.kind}`;select(0)}
+
+function dateIt(){const t=B.ts[cur],p=Math.round(pos),v=tAt(t,p),m=$("msg");
+  if(p===t.first){t.dated=true;m.className="ok";m.textContent=`It holds: ${span(t)}, t = ${v.toFixed(1)}. ${t.worn?"The sapwood window says "+felled(t).split("; ")[1]+".":"Felled the winter after "+t.end+"."}`;
+    tabs();describe();$("date").disabled=true;render();if(B.ts.every(u=>u.dated))ask()}
+  else{m.className="bad";m.textContent=v>=4?`Close, t = ${v.toFixed(1)}, but it falls apart at the ends. Not here.`:`The pattern doesn't hold here (t = ${v.toFixed(1)}). Line up the narrow years.`}}
+function ask(){if(answered)return;const box=$("ask");box.style.display="block";
+  const re=B.ts.find(t=>t.reused);
+  $("q").innerHTML=`<p>All four timbers are dated. When was the ${B.kind} at ${B.place} built?</p>`;
+  const opts=[[`about ${re.end+1}`,"trap"],[`about ${B.built}`,"ok"],["the dates disagree too much to say","no"]];
+  const r=rng(seed*31);opts.sort(()=>r()-.5);
+  const el=$("opts");el.innerHTML="";opts.forEach(([l,k])=>{const b=document.createElement("button");b.textContent=l;b.onclick=()=>verdict(k,b);el.appendChild(b)});
+  box.scrollIntoView({behavior:"smooth",block:"nearest"})}
+function verdict(k,btn){[...$("opts").children].forEach(b=>b.disabled=true);btn.setAttribute("aria-pressed","true");answered=true;
+  const re=B.ts.find(t=>t.reused),bark=B.ts.filter(t=>!t.reused&&!t.worn),wn=B.ts.find(t=>t.worn);
+  const head={ok:"Yes.",trap:`No: that is the ${re.name}'s felling, and the ${re.name} is older than the building.`,
+    no:"They disagree only because one of them doesn't belong."}[k];
+  const p=[`<p><b>${head}</b></p>`,
+   `<p>The ${bark.map(t=>t.name).join(" and the ")} kept their bark: last rings ${bark.map(t=>t.end).join(" and ")}, so felled over the winter${bark[0].end===bark[1].end?"":"s"} after. `+
+   `The ${wn.name} has lost its outer sapwood, but the heartwood ends at ${wn.sapStart-1}, which puts its felling between ${wn.sapStart+14} and ${wn.sapStart+39}. That agrees.</p>`,
+   `<p>The ${re.name} grew its last ring in ${re.end}, ${B.built-re.end-1} years before the rest. ${re.note} It came out of some older building and was put back to work here.</p>`,
+   `<p>Oak was framed green, within a year or so of felling. So: built in ${B.built}, or the year after.</p>`];
+  $("report").innerHTML=p.join("")}
+
+// ---- input
+let drag=null;
+cvs.bench.addEventListener("pointerdown",e=>{if(B.ts[cur].dated)return;drag={x:e.clientX,p:pos};cvs.bench.setPointerCapture(e.pointerId)});
+cvs.bench.addEventListener("pointermove",e=>{if(!drag)return;const t=B.ts[cur],ppy=W/(t.L+24);
+  pos=Math.max(Y0,Math.min(Y1-t.L+1,drag.p-(e.clientX-drag.x)/ppy));drawBench();drawOver();meter()});
+const end=()=>{if(!drag)return;drag=null;pos=Math.round(pos);B.ts[cur].start=pos;render()};
+cvs.bench.addEventListener("pointerup",end);cvs.bench.addEventListener("pointercancel",end);
+function nudge(d){const t=B.ts[cur];if(t.dated)return;pos=Math.max(Y0,Math.min(Y1-t.L+1,Math.round(pos)+d));t.start=pos;$("msg").textContent="";render()}
+cvs.bench.addEventListener("keydown",e=>{if(e.key==="ArrowLeft"||e.key==="ArrowRight"){e.preventDefault();nudge((e.key==="ArrowLeft"?-1:1)*(e.shiftKey?10:1))}});
+document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>nudge(+b.dataset.d));
+const overPick=e=>{const t=B.ts[cur];if(t.dated)return;const r=cvs.over.getBoundingClientRect(),y=Y0+(e.clientX-r.left-4)/(W-8)*NY;nudge(Math.round(y-t.L/2)-Math.round(pos))};
+cvs.over.addEventListener("pointerdown",e=>{overPick(e);cvs.over.setPointerCapture(e.pointerId);cvs.over.onpointermove=overPick});
+cvs.over.addEventListener("pointerup",()=>cvs.over.onpointermove=null);
+$("scan").onclick=()=>{scanOn=!scanOn;$("scan").setAttribute("aria-pressed",scanOn);drawOver()};
+$("date").onclick=dateIt;$("another").onclick=()=>load(seed+1);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",render);
+let rt;addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{size();render()},80)});
+window.__xd={get B(){return B},tAt,load,select,get pos(){return pos},set pos(v){pos=v;render()},dateIt};
+size();load(1);
+})();
+</script>
+</body>
+</html>
