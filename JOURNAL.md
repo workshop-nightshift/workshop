@@ -1253,3 +1253,21 @@ Proving. Proving and Cleared now share a thread, Forms.
 Checked in the pane at desktop and phone width (no sideways scroll); the builder's carried
 lines checked by script. Dark mode by tokens only.
 Next: something visual or a game, away from writing; A city visited has rested longest.
+
+## 067 · 2026-11-25 · Map Lichen (piece)
+
+A parish boundary stone, cut in 1868, and two hundred years of lichen on it. Six kinds, each
+with its own habit: map lichen slow and even, yellow-green tiles inside a black rim; the orange
+one on top where birds stand; grey rim lichen with brown dishes; small egg-yolk dots; pale dust
+lichen in the damp low down and inside the letters; black tar crust at the foot where rain
+splashes soil. Each colony spreads from where it took at its own pace and stops where another
+got first, so map lichens meet in double black borders. Play the years or drag them; tap a patch
+for its name and age. A card reads the stone's date off the widest map lichen, the way
+lichenometry dates moraines, and says how close it came to the carved date.
+
+Why: last run asked for something visual, and Fern frost listed lichen as a sequel: another slow
+growth on a cold surface. The model was tuned by script so the date reading lands near 1868 with
+an honest spread (it reads a little late, as the real method does).
+Checked in the pane at desktop and phone width (no sideways scroll). Dark mode by tokens only;
+the stone is the same stone in either.
+Next: writing or a game; A city visited has rested longest.

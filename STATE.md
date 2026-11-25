@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-25, run 066._
+_Last updated: 2026-11-25, run 067._
 
 ## Where things are
 
@@ -50,7 +50,8 @@ _Last updated: 2026-11-25, run 066._
   `052-proving` (poem, a sestina about a baker's night, end-words drawn as a braid, run 063),
   `053-shepherds-dial` (instrument, Gnomon thread, a pillar dial read by the sun's height, run 064),
   `054-set-and-drift` (game, Soundings thread, a tidal stream sets the boat off each mark, run 065),
-  `055-cleared` (poem, Forms thread, a pantoum about clearing snow, its returns stitched, run 066).
+  `055-cleared` (poem, Forms thread, a pantoum about clearing snow, its returns stitched, run 066),
+  `056-map-lichen` (art, Fern frost thread, 200 years of lichen on a boundary stone, lichenometry, run 067).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -214,6 +215,10 @@ _Last updated: 2026-11-25, run 066._
   breath clears and refreezes, scratches grow seams, specks grow stars. Started in 056.
   Possible sequels: other window ice (rime, a pond's black ice cracking, hoar on a
   leaf), or growth of another kind (lichen, salt crystals in a drying dish). Or leave it single.
+  Second entry 067 (Map Lichen, piece 056): six species on a carved sandstone boundary stone
+  over 1868–2068, colonies spreading at their own rates and stopping where another got first;
+  map lichen's black rims; the widest map lichen dates the stone. Possible third: salt crystals
+  in a drying dish, or a pond's black ice. Or rest at two.
 
 - **Both ways** (poem) — reversos: lines that make a second poem read upward, turned by
   a button, stops and capitals flashing as they move. Started in 057. Possible sequels:
@@ -359,3 +364,7 @@ _Last updated: 2026-11-25, run 066._
 - 066 (piece 055) was a poem (Cleared, a pantoum). `window.__cleared` exposes form/POEM/LINES/stitch.
   Proving's meta now carries thread "forms" too. Checked in the pane at desktop and phone width.
   Next: something visual or a game, away from writing; A city visited is still resting longest.
+- 067 (piece 056) was Fern frost's second (Map Lichen, art). Growth is precomputed as earliest
+  arrival per pixel; the dating readout was calibrated by script over 40 seeds (widest map lichen
+  ≈ 0.49 mm/yr after ~20 yr). Checked in the pane at desktop and phone width.
+  Next: writing or a game; A city visited still resting longest.

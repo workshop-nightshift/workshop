@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Map Lichen</title>
+<style>
+:root{--bg:#ecebe5;--fg:#1f1e1b;--mute:#6f6a5f;--line:#cbc6b8;--card:#f6f5f0;--ring:#ffffff;--ring2:#1f1e1b;--accent:#8a5a14}
+@media (prefers-color-scheme:dark){:root{--bg:#141513;--fg:#e5e2da;--mute:#97907f;--line:#33332e;--card:#1d1e1b;--ring:#ffffff;--ring2:#000000;--accent:#e0a64a}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 64px}
+main{width:100%;max-width:760px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em;font-style:italic}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.layout{display:flex;flex-wrap:wrap;gap:16px 26px;align-items:flex-start}
+.stonewrap{position:relative;width:min(100%,380px);flex:0 0 auto;margin:0 auto}
+.stonewrap canvas{display:block;width:100%;height:auto;touch-action:manipulation;cursor:pointer}
+.side{flex:1 1 260px;min-width:0}
+.year{font-size:40px;line-height:1;font-variant-numeric:oldstyle-nums;letter-spacing:.01em}
+.year small{font-size:14px;color:var(--mute);font-style:italic;letter-spacing:0}
+input[type=range]{width:100%;margin:10px 0 4px;accent-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button:hover{border-color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:10px 12px;margin:12px 0;font-size:14px}
+.card b{font-weight:normal;font-style:italic}
+.mute{color:var(--mute)}
+.key{display:grid;grid-template-columns:14px 1fr;gap:4px 8px;font-size:13.5px;margin:10px 0;align-items:center}
+.sw{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.prose{max-width:36em}
+p{margin:.6em 0}
+h2{font-size:16px;font-weight:normal;margin:28px 0 8px;color:var(--mute);font-style:italic}
+</style>
+</head>
+<body>
+<main>
+  <h1>Map Lichen</h1>
+  <p class="sub">a parish boundary stone, set up in 1868, and what has grown on it since</p>
+
+  <div class="layout">
+    <div class="stonewrap">
+      <canvas id="c" aria-label="a carved boundary stone covered over the years by lichen; tap a patch to name it and see its age"></canvas>
+    </div>
+    <div class="side">
+      <div class="year"><span id="yr">1868</span> <small id="yrnote">the stone is set</small></div>
+      <input type="range" id="t" min="1868" max="2068" step="1" value="1868" aria-label="year">
+      <div class="row">
+        <button id="play">pause</button>
+        <button id="big">find the largest map lichen</button>
+        <button id="again">another stone</button>
+      </div>
+      <div class="card" id="info"><span class="mute">Tap a patch on the stone to see what it is and when it took.</span></div>
+      <div class="card" id="dating"></div>
+      <div class="key" id="key"></div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h2>about the stone</h2>
+    <p>A lichen is a fungus and an alga living as one, and on bare stone it grows about as
+    slowly as anything alive. A spore or a crumb of thallus lands, and for some years nothing
+    shows. Then a speck, which spreads outward from where it started at much the same pace
+    every year, so that a patch is, roughly, a clock that started when it took.</p>
+    <p>Map lichen is the slow one: yellow-green, cracked into little tiles, and edged with a
+    black rim of bare fungus. Where two colonies meet neither gives way, and the black rims
+    run side by side between them like borders on a county map. It grows something like half
+    a millimetre across in a year here. The orange one keeps to the top of the stone, where
+    birds stand and leave what birds leave; it is fed by that and grows fast. The grey rim
+    lichen carries little brown dishes; the egg-yolk one stays small; the pale powdery dust
+    lichen likes the damp low down and the shade inside the letters; and the black crust at
+    the foot is where rain splashes soil up the stone.</p>
+    <p>Because map lichen grows so evenly, the largest patch on a stone can date it. That is
+    called lichenometry, and it has dated moraines left by glaciers, rockfalls and old walls
+    where nothing was carved. Here you can check it against the date that was. It reads a
+    little late, because the first colony takes some years to arrive, and the oldest one is
+    not always the one that lived.</p>
+    <p>The stone, the parish, the species' habits and rates are as near as I could make them
+    to real ones, but it is a model: each colony spreads from its start at its own speed,
+    with a ragged edge, and stops where another got first.</p>
+  </div>
+</main>
+<script>
+(function(){
+const W=360,H=540;            // 1 px = 1 mm
+const Y0=1868,Y1=2068;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const off=document.createElement('canvas');off.width=W;off.height=H;
+const octx=off.getContext('2d');
+const img=octx.createImageData(W,H),D=img.data;
+
+const SP=[
+ {id:'map',name:'map lichen',latin:'Rhizocarpon geographicum',rate:.25,maxR:120,lag:12,lam:.6,col:[184,196,62],col2:[150,168,40],jit:.8},
+ {id:'xan',name:'common orange lichen',latin:'Xanthoria parietina',rate:1.0,maxR:46,lag:5,lam:.22,col:[234,146,34],col2:[204,104,20],jit:1.5},
+ {id:'lec',name:'rim lichen',latin:'Lecanora campestris',rate:.55,maxR:34,lag:9,lam:.26,col:[206,204,192],col2:[180,178,166],jit:1.2},
+ {id:'can',name:'egg-yolk lichen',latin:'Candelariella vitellina',rate:.32,maxR:11,lag:7,lam:.9,col:[232,198,40],col2:[200,160,24],jit:2.5},
+ {id:'lep',name:'dust lichen',latin:'Lepraria incana',rate:.7,maxR:22,lag:18,lam:.08,col:[176,204,192],col2:[150,184,172],jit:6},
+ {id:'ver',name:'black tar lichen',latin:'Verrucaria nigrescens',rate:.4,maxR:30,lag:10,lam:.35,col:[58,56,50],col2:[38,37,33],jit:1.5},
+];
+
+// ---------- helpers
+function rng(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function hash(x,y,s){let h=(x*374761393+y*668265263+s*1442695041)|0;h=Math.imul(h^h>>>13,1274126177);return((h^h>>>16)>>>0)/4294967296}
+function vnoise(x,y,s){const xi=Math.floor(x),yi=Math.floor(y),fx=x-xi,fy=y-yi;const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);
+ const a=hash(xi,yi,s),b=hash(xi+1,yi,s),c=hash(xi,yi+1,s),d=hash(xi+1,yi+1,s);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+
+// ---------- the stone (fixed shape, fixed lettering)
+const inside=new Uint8Array(W*H);
+const AR=70; // arch height
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  let ok=y>=AR||((x-W/2)/(W/2))**2+((y-AR)/AR)**2<=1;
+  if(x<2||x>=W-2||y>=H-1)ok=false;
+  inside[y*W+x]=ok?1:0;
+}
+const groove=new Float32Array(W*H);
+(function(){
+  const g=document.createElement('canvas');g.width=W;g.height=H;const gc=g.getContext('2d');
+  gc.fillStyle='#000';gc.fillRect(0,0,W,H);gc.fillStyle='#fff';gc.textAlign='center';gc.textBaseline='alphabetic';
+  const lines=[['PARISH',38,122],['OF',30,168],['HOLT',50,226],['BOUNDS',34,300],['1868',40,372]];
+  for(const [s,sz,y] of lines){gc.font='bold '+sz+'px Georgia, "Times New Roman", serif';
+    if('letterSpacing' in gc)gc.letterSpacing=Math.round(sz*.12)+'px';gc.fillText(s,W/2+(('letterSpacing' in gc)?Math.round(sz*.06):0),y)}
+  gc.fillRect(W/2-46,246,92,3); // rule under HOLT
+  const d=gc.getImageData(0,0,W,H).data;
+  for(let i=0;i<W*H;i++)groove[i]=d[i*4]/255;
+})();
+// emboss: lit from upper left; groove floor darker
+const relief=new Float32Array(W*H);
+for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){
+  const i=y*W+x;const e=groove[i-W-1]-groove[i+W+1];
+  relief[i]=-0.36*e-0.14*groove[i];
+}
+// stone texture (fixed)
+const stoneT=new Float32Array(W*H);
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const n=vnoise(x/60,y/60,7)*.5+vnoise(x/17,y/17,8)*.3+vnoise(x/4,y/4,9)*.2;
+  stoneT[y*W+x]=n+(hash(x,y,3)-.5)*.18;
+}
+// edge darkening of the stone silhouette (a little depth)
+const rim=new Float32Array(W*H);
+for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(!inside[i])continue;
+  let m=6;for(let k=1;k<=6;k++){if(!inside[i-k]||!inside[i+k]||(y-k>=0&&!inside[i-k*W])){m=k;break}}rim[i]=(6-m)/6}
+
+// areoles: fine cracked tiles for map lichen; dots for fruiting discs
+const areole=new Uint8Array(W*H),discX=new Uint8Array(W*H),discL=new Uint8Array(W*H);
+(function(){
+  const S=5,gw=Math.ceil(W/S)+2,gh=Math.ceil(H/S)+2,px=new Float32Array(gw*gh),py=new Float32Array(gw*gh);
+  for(let j=0;j<gh;j++)for(let k=0;k<gw;k++){px[j*gw+k]=(k+hash(k,j,21))*S;py[j*gw+k]=(j+hash(k,j,22))*S}
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const ck=Math.floor(x/S),cj=Math.floor(y/S);let d1=1e9,d2=1e9;
+    for(let j=cj-1;j<=cj+1;j++)for(let k=ck-1;k<=ck+1;k++){if(j<0||k<0||j>=gh||k>=gw)continue;
+      const dx=px[j*gw+k]-x,dy=py[j*gw+k]-y,d=dx*dx+dy*dy;if(d<d1){d2=d1;d1=d}else if(d<d2)d2=d}
+    areole[y*W+x]=(Math.sqrt(d2)-Math.sqrt(d1))<.9?1:0;
+  }
+  function dots(arr,spacing,r,seed){
+    for(let y=0;y<H;y+=spacing)for(let x=0;x<W;x+=spacing){
+      if(hash(x,y,seed)<.45)continue;
+      const cx=x+hash(x,y,seed+1)*spacing,cy=y+hash(x,y,seed+2)*spacing,rr=r*(.6+hash(x,y,seed+3)*.7);
+      for(let yy=Math.floor(cy-rr-1);yy<=cy+rr+1;yy++)for(let xx=Math.floor(cx-rr-1);xx<=cx+rr+1;xx++){
+        if(xx<0||yy<0||xx>=W||yy>=H)continue;const d=Math.hypot(xx-cx,yy-cy);
+        if(d<=rr){const v=d>rr-.9?2:1;const i=yy*W+xx;if(!arr[i]||v===1)arr[i]=v}}
+    }
+  }
+  dots(discX,7,1.9,31);dots(discL,6,1.3,41);
+})();
+
+// ---------- colonies
+let owner,arr,colonies,seed=1868;
+function pref(s,x,y,i){
+  const fy=y/H,g=groove[i];
+  switch(s.id){
+    case 'xan':return Math.max(0,1-fy*3.2)*1+.03;
+    case 'can':return Math.max(0,1-fy*2.2)*.7+g*.6+.05;
+    case 'map':return .25+.75*Math.min(1,Math.min(x,W-x)/60)*(fy<.85?1:.3);
+    case 'lec':return .5+.5*vnoise(x/80,y/80,51);
+    case 'lep':return Math.max(0,fy-.45)*1.6+g*.9;
+    case 'ver':return fy>.84?(fy-.84)*6:0;
+  }
+  return 1;
+}
+function subRate(s,i){
+  const g=groove[i],n=stoneT[i];
+  let f=.85+.3*n;
+  if(s.id==='lep'||s.id==='can')f*=1+.6*g;
+  if(s.id==='map')f=(.95+.1*n)*(1-.3*g);
+  return f;
+}
+function grow(){
+  const R=rng(seed);
+  owner=new Int16Array(W*H).fill(-1);arr=new Float32Array(W*H).fill(1e9);
+  colonies=[];
+  const cand=[];
+  for(let y=Y0+1;y<=Y1;y++){
+    const age=y-Y0;
+    for(let si=0;si<SP.length;si++){const s=SP[si];
+      const ramp=Math.max(0,Math.min(1,(age-s.lag)/35));
+      let lam=s.lam*ramp,n=0,L=Math.exp(-lam),p=1;
+      do{n++;p*=R()}while(p>L);n--;
+      for(let k=0;k<n;k++){
+        for(let tries=0;tries<30;tries++){
+          const x=Math.floor(R()*W),y2=Math.floor(R()*H),i=y2*W+x;
+          if(!inside[i])continue;
+          if(R()>pref(s,x,y2,i))continue;
+          cand.push({si,x,y:y2,b:y+R()});break;
+        }
+      }
+    }
+  }
+  cand.sort((a,b)=>a.b-b.b);
+  for(const c of cand){
+    const i0=c.y*W+c.x;
+    if(arr[i0]<=c.b)continue; // landed on something already there
+    const s=SP[c.si],id=colonies.length;
+    const hk=[];const K=s.id==='xan'?[[11,.10],[17,.06],[3,.08]]:s.id==='map'?[[3,.04],[5,.03],[8,.02]]:[[3,.09],[5,.06],[8,.04]];
+    for(const [k,a] of K)hk.push([k,a*(.6+.8*R()),R()*6.283]);
+    const maxR=s.maxR*(.7+.5*R());
+    const col={id,si:c.si,x:c.x,y:c.y,b:c.b,maxR,hk,rate:s.rate*(s.id==='map'?(.94+.12*R()):(.85+.3*R()))};
+    colonies.push(col);
+    const rr=Math.ceil(maxR*1.25);
+    for(let y=Math.max(0,c.y-rr);y<=Math.min(H-1,c.y+rr);y++)for(let x=Math.max(0,c.x-rr);x<=Math.min(W-1,c.x+rr);x++){
+      const i=y*W+x;if(!inside[i])continue;
+      const dx=x-c.x,dy=y-c.y,d=Math.sqrt(dx*dx+dy*dy);
+      const th=Math.atan2(dy,dx);let lobe=1;for(const [k,a,ph] of hk)lobe+=a*Math.cos(k*th+ph);
+      if(d>maxR*lobe)continue;
+      const a=c.b+d/(col.rate*lobe*subRate(s,i))+(hash(x,y,id)-.5)*s.jit;
+      if(a<arr[i]){arr[i]=a;owner[i]=id}
+    }
+  }
+}
+
+// ---------- draw
+let T=Y0,sel=-1,selUntil=0;
+function render(){
+  const t=T,wear=Math.min(1,(t-Y0)/160);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const i=y*W+x,p=i*4;
+    if(!inside[i]){D[p+3]=0;continue}
+    let r,g,b;
+    const n=stoneT[i];
+    // sandstone: buff when new, greying with weather
+    const sb=150+n*55-wear*28;
+    r=sb*1.04;g=sb*1.0;b=sb*.9-wear*4;
+    const o=owner[i];
+    if(o>=0&&arr[i]<=t){
+      const c=colonies[o],s=SP[c.si],age=t-arr[i];
+      const k=Math.min(1,age/12);
+      let cr=s.col[0]+(s.col2[0]-s.col[0])*k,cg=s.col[1]+(s.col2[1]-s.col[1])*k,cb=s.col[2]+(s.col2[2]-s.col[2])*k;
+      const tex=(n-.5)*30;
+      if(s.id==='map'){
+        let edge=false;
+        if(age<1.6)edge=true;
+        else{const nb=[i-1,i+1,i-W,i+W];for(const j of nb){if(!inside[j]||owner[j]!==o||arr[j]>t){edge=true;break}}}
+        if(edge){cr=22;cg=22;cb=18}
+        else if(areole[i]&&age>3){cr=cr*.42;cg=cg*.42;cb=cb*.38}
+        else{cr+=tex;cg+=tex;cb+=tex*.4}
+      }else if(s.id==='xan'){
+        const v=discX[i];
+        if(v&&age>7){if(v===1){cr=196;cg=92;cb=14}else{cr=246;cg=170;cb=60}}
+        else{cr+=tex*.6;cg+=tex*.5}
+        if(age<.8){cr=240;cg=176;cb=70}
+      }else if(s.id==='lec'){
+        const v=discL[i];
+        if(v&&age>6){if(v===1){cr=150;cg=112;cb=70}else{cr=226;cg=222;cb=208}}
+        else{cr+=tex;cg+=tex;cb+=tex}
+      }else if(s.id==='can'){
+        if(hash(x,y,77)<.3){cr-=30;cg-=30;cb-=10}
+      }else if(s.id==='lep'){
+        const a=Math.min(1,age/4)*(.55+.45*hash(x,y,88));
+        cr=r+(cr-r)*a;cg=g+(cg-g)*a;cb=b+(cb-b)*a;
+      }else if(s.id==='ver'){
+        if(hash(x>>1,y>>1,99)<.25){cr+=18;cg+=18;cb+=16}
+      }
+      r=cr;g=cg;b=cb;
+    }
+    // relief over everything: lichen follows the carved surface
+    const rl=relief[i],sh=1+rl-rim[i]*.28;
+    D[p]=Math.max(0,Math.min(255,r*sh));D[p+1]=Math.max(0,Math.min(255,g*sh));D[p+2]=Math.max(0,Math.min(255,b*sh));D[p+3]=255;
+  }
+  octx.putImageData(img,0,0);
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(off,0,0,cv.width,cv.height);
+  if(sel>=0){
+    const c=colonies[sel],k=cv.width/W,r=radiusAt(c,t);
+    if(r>0){ctx.lineWidth=Math.max(1.5,k*1.2);
+      ctx.strokeStyle='rgba(0,0,0,.65)';ctx.beginPath();ctx.arc((c.x+.5)*k,(c.y+.5)*k,r*k+3*k,0,6.283);ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,.95)';ctx.setLineDash([4*k,3*k]);ctx.beginPath();ctx.arc((c.x+.5)*k,(c.y+.5)*k,r*k+3*k,0,6.283);ctx.stroke();ctx.setLineDash([])}
+  }
+}
+function radiusAt(c,t){return Math.max(0,Math.min(c.maxR,c.rate*(t-c.b)))}
+function size(){
+  const w=cv.clientWidth||360,dpr=Math.min(2.5,window.devicePixelRatio||1);
+  cv.width=Math.round(w*dpr);cv.height=Math.round(w*dpr*H/W);cv.style.height=(w*H/W)+'px';render();
+}
+
+// ---------- readouts
+const $=id=>document.getElementById(id);
+const yr=$('yr'),yrnote=$('yrnote'),slider=$('t'),info=$('info'),dating=$('dating');
+function countCover(t){let a=0,c=0;for(let i=0;i<W*H;i++){if(!inside[i])continue;a++;if(owner[i]>=0&&arr[i]<=t)c++}return c/a}
+function largestMap(t){
+  // the biggest map lichen that is actually showing, by how far it has really spread
+  let best=null,bd=0;
+  for(const c of colonies){if(SP[c.si].id!=='map'||c.b>t||2*radiusAt(c,t)*1.1<=bd)continue;const d=spanOf(c,t);if(d>bd){bd=d;best=c}}
+  return best&&bd>=2?{c:best,d:bd}:null;
+}
+// measure a colony's real extent: widest span of pixels it holds now
+function spanOf(c,t){
+  let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9,r=Math.ceil(c.maxR*1.25),any=false;
+  for(let y=Math.max(0,c.y-r);y<=Math.min(H-1,c.y+r);y++)for(let x=Math.max(0,c.x-r);x<=Math.min(W-1,c.x+r);x++){
+    const i=y*W+x;if(owner[i]===c.id&&arr[i]<=t){any=true;if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y}}
+  return any?Math.max(maxx-minx+1,maxy-miny+1):0;
+}
+function updateText(){
+  yr.textContent=Math.floor(T);
+  const age=Math.floor(T)-Y0,cov=countCover(T);
+  yrnote.textContent=age===0?'the stone is set':age+(age===1?' year':' years')+' · '+Math.round(cov*100)+'% covered';
+  const L=largestMap(T);
+  if(!L){dating.innerHTML='<b>Reading the date.</b> <span class="mute">No map lichen has taken yet, so the stone can’t be dated by it. Bare stone could be any age under twenty years or so.</span>';return}
+  const span=L.d;
+  const est=Math.round((Math.floor(T)-span/0.5-20)/5)*5;
+  const diff=est-Y0;
+  dating.innerHTML='<b>Reading the date.</b> The widest map lichen is <b>'+span+' mm</b> across. At about half a millimetre a year, and allowing twenty years or so before the first one takes and shows, the stone was set about <b>'+est+'</b>. <span class="mute">It was carved 1868'+(Math.abs(diff)<=5?': close.':diff>0?': '+diff+' years late.':': '+(-diff)+' years early.')+'</span>';
+}
+function describe(o){
+  if(o<0){info.innerHTML='Bare stone. <span class="mute">Buff sandstone, '+(T-Y0<40?'still pale from the mason’s tooling.':'greyed by weather.')+'</span>';return}
+  const c=colonies[o],s=SP[c.si],span=spanOf(c,T),took=Math.round(c.b);
+  info.innerHTML='<b>'+s.name+'</b> <span class="mute">('+s.latin+')</span><br>'+span+' mm across. Took in about '+took+', so '+Math.max(0,Math.floor(T-c.b))+' years old.'+
+    (s.id==='map'?' <span class="mute">A slow, steady grower: the one used for dating.</span>':s.id==='xan'?' <span class="mute">Fed by birds on the top; quick.</span>':s.id==='can'?' <span class="mute">Never gets big.</span>':s.id==='lep'?' <span class="mute">Keeps to damp and shade.</span>':s.id==='ver'?' <span class="mute">Where rain splashes soil up.</span>':'');
+}
+
+// ---------- key
+$('key').innerHTML=SP.map(s=>'<span class="sw" style="background:rgb('+s.col.join(',')+')"></span><span>'+s.name+'</span>').join('');
+
+// ---------- time
+let playing=true,last=0,target=2026;
+function setT(v){T=Math.max(Y0,Math.min(Y1,v));slider.value=Math.floor(T);render();updateText();if(selInfo>=0)describe(selInfo)}
+let selInfo=-1;
+function tick(ts){
+  if(!playing){last=0;return}
+  if(last){const dt=Math.min(.1,(ts-last)/1000);let nt=T+dt*14;
+    if(target&&nt>=target){nt=target;target=0;stop()}
+    if(nt>=Y1){nt=Y1;stop()}
+    setT(nt)}
+  last=ts;if(playing)requestAnimationFrame(tick);
+}
+function start(){if(T>=Y1)T=Y0;playing=true;$('play').textContent='pause';last=0;requestAnimationFrame(tick)}
+function stop(){playing=false;$('play').textContent='play';}
+$('play').onclick=()=>playing?stop():(target=0,start());
+slider.oninput=()=>{stop();setT(+slider.value)};
+$('again').onclick=()=>{seed=(seed*7+13)%100000+1;grow();sel=-1;selInfo=-1;info.innerHTML='<span class="mute">Tap a patch on the stone to see what it is and when it took.</span>';T=Y0;target=2026;start()};
+$('big').onclick=()=>{const L=largestMap(T);if(!L){info.innerHTML='<span class="mute">No map lichen yet. Move the year on.</span>';return}sel=L.c.id;selInfo=sel;describe(sel);render()};
+cv.addEventListener('click',e=>{
+  const rc=cv.getBoundingClientRect(),x=Math.floor((e.clientX-rc.left)/rc.width*W),y=Math.floor((e.clientY-rc.top)/rc.height*H);
+  if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;if(!inside[i])return;
+  const o=(owner[i]>=0&&arr[i]<=T)?owner[i]:-1;sel=o;selInfo=o;describe(o);render();
+});
+window.addEventListener('resize',size);
+grow();size();updateText();
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){stop();setT(2026)}else start();
+})();
+</script>
+</body>
+</html>
