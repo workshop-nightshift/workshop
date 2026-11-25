@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Right Here</title>
+<style>
+:root{--bg:#ebe8e1;--paper:#fbfaf6;--fg:#24221f;--mute:#76716a;--rule:#d8d3c9;--one:#3d6c8e;--two:#b0573a;--b:#7b7f52;--sky:#e9dfcc;--shadow:rgba(40,30,20,.2)}
+@media (prefers-color-scheme:dark){:root{--bg:#14130f;--paper:#1c1b17;--fg:#ebe7df;--mute:#9a9489;--rule:#35322b;--one:#8db8db;--two:#e59a7a;--b:#b8bd86;--sky:#2a2620;--shadow:rgba(0,0,0,.7)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:17px/1.6 Georgia,"Iowan Old Style","Palatino Linotype",serif;padding:22px 16px 96px;display:flex;justify-content:center}
+main{width:100%;max-width:640px}
+header h1{font-size:25px;font-weight:normal;margin:0;letter-spacing:.04em}
+header p{margin:3px 0 14px;color:var(--mute);font-style:italic;font-size:15px}
+nav{display:flex;gap:4px;margin:0 0 10px;flex-wrap:wrap}
+nav button{font:inherit;font-size:14.5px;background:none;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:4px 10px 5px;cursor:pointer;touch-action:manipulation;letter-spacing:.05em}
+nav button.cur{color:var(--fg);border-bottom-color:var(--one)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--one);outline-offset:2px}
+#street{position:sticky;top:0;z-index:2;display:block;width:100%;height:58px;background:var(--bg);border-bottom:1px solid var(--rule)}
+.card{background:var(--paper);border:1px solid var(--rule);box-shadow:0 18px 34px -28px var(--shadow)}
+.poem{position:relative;padding:26px 20px 12px 74px}
+.poem h2{font-size:20px;font-weight:normal;font-style:italic;margin:0 0 16px}
+.poem svg.gut{position:absolute;left:0;top:0;width:70px;height:100%;overflow:visible;pointer-events:none}
+.gut path{fill:none;stroke-width:1.5;stroke-linecap:round;opacity:.6;transition:opacity .3s,stroke-width .3s}
+.gut .R1{stroke:var(--one)} .gut circle.R1{fill:var(--one);stroke:none}
+.gut .R2{stroke:var(--two)} .gut circle.R2{fill:var(--two);stroke:none}
+.gut circle.ra{fill:none;stroke:var(--one);stroke-width:1.1;opacity:.55}
+.gut circle.rb{fill:none;stroke:var(--b);stroke-width:1.1;opacity:.7}
+.gut text{font:italic 10.5px Georgia,serif;fill:var(--mute);transition:opacity .3s}
+.gut path.knot{stroke:var(--fg);stroke-width:1.2;opacity:.5}
+.st{margin:0 0 18px}
+.st p{margin:0;text-indent:-1em;padding-left:1em;cursor:pointer;border-radius:2px;transition:opacity .3s,background .3s}
+.st p.R1{color:color-mix(in srgb,var(--one) 30%,var(--fg))}
+.st p.R2{color:color-mix(in srgb,var(--two) 30%,var(--fg))}
+.st p.empty{color:var(--mute);font-style:italic}
+.sel .st p{opacity:.3}
+.sel .st p.on{opacity:1;background:color-mix(in srgb,var(--one) 10%,transparent)}
+.sel.two .st p.on{background:color-mix(in srgb,var(--two) 12%,transparent)}
+.sel.bb .st p.on{background:color-mix(in srgb,var(--b) 14%,transparent)}
+.sel .gut path,.sel .gut circle,.sel .gut text{opacity:.12}
+.sel .gut .on{opacity:1}
+.sel .gut path.on{stroke-width:2.6}
+.cap{color:var(--mute);font-size:13.5px;font-style:italic;margin:10px 0 10px;min-height:2.6em}
+.yours{display:none}
+.yours.on{display:block}
+.maker{padding:18px 16px 12px}
+.maker .st{margin:0 0 14px}
+.maker .n{font-size:12.5px;color:var(--mute);letter-spacing:.06em;margin:0 0 2px}
+.maker .ln{display:flex;align-items:baseline;gap:8px;margin:0 0 3px}
+.maker .ln b{font-weight:normal;color:var(--mute);font-size:12px;width:1.4em;flex:none;text-align:right;font-style:italic}
+.maker .carried{font-style:italic;flex:1;min-width:0;overflow-wrap:anywhere}
+.maker .carried.R1{color:var(--one)} .maker .carried.R2{color:var(--two)}
+.maker .carried.blank{opacity:.55}
+.maker .refr{border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:14px}
+input{font:inherit;font-size:16px;background:transparent;color:var(--fg);border:0;border-bottom:1px solid var(--rule);border-radius:0;padding:3px 2px;min-width:0;flex:1}
+input.R1{border-bottom-color:color-mix(in srgb,var(--one) 60%,var(--rule))}
+input.R2{border-bottom-color:color-mix(in srgb,var(--two) 60%,var(--rule))}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 0;color:var(--mute);font-size:13.5px;font-style:italic;flex-wrap:wrap}
+.row button{font:inherit;font-size:14px;background:none;color:var(--fg);border:1px solid var(--rule);border-radius:16px;padding:4px 14px;cursor:pointer;font-style:normal}
+.row button:hover{border-color:var(--one)}
+.ends{font-size:14px;color:var(--mute);margin:4px 0 0}
+.ends p{margin:0 0 4px}
+.ends span.w{color:var(--fg);font-style:italic}
+.out{margin-top:16px}
+.about{color:var(--mute);font-size:14.5px;margin:22px 2px 0}
+.about p{margin:0 0 8px}
+@media (max-width:480px){body{font-size:15.5px}.poem{padding:20px 10px 8px 54px}.poem svg.gut{width:50px}.st p{text-indent:-.7em;padding-left:.7em}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Right Here</h1>
+  <p>A villanelle: two lines that take turns closing each stanza, and finally stand together.</p>
+</header>
+<nav id="tabs">
+  <button class="cur" data-t="poem">the poem</button>
+  <button data-t="yours">one of your own</button>
+</nav>
+
+<section id="t-poem">
+  <canvas id="street" aria-label="A street: a child rides off on a bike while the one who was running alongside slows and stops. Tap to ride again." role="img"></canvas>
+  <p class="cap" id="cap">Tap a line to see its refrain or its rhyme.</p>
+  <div class="card poem" id="poem"></div>
+</section>
+
+<section id="t-yours" class="yours">
+  <p class="cap">Write the two refrains first. They need to rhyme with each other, and every stanza’s first line rhymes with them; every middle line shares a second rhyme. The refrains are put in for you.</p>
+  <div class="card maker">
+    <div class="row" style="margin:0 0 12px"><span>nineteen lines, two rhymes</span><button id="clear" type="button">clear</button></div>
+    <div id="fields"></div>
+    <div class="ends" id="ends"></div>
+  </div>
+  <div class="card poem out" id="mine"></div>
+</section>
+
+<div class="about">
+  <p>The villanelle began as a loose name for country songs in Italian and French; its fixed shape comes from one sixteenth-century poem by Jean Passerat, with English poets settling the rules later. Five tercets and a quatrain, nineteen lines, only two rhymes. The first and third lines are the refrains. They take turns closing the tercets, the first, then the second, then the first, and in the quatrain they come back one after the other as a couplet.</p>
+  <p>The threads on the left are the two refrains. Each dips out to the margin between its returns and they cross as they hand over, until the last two lines tie them. The small letters are the rhyme scheme: A¹ and A² are the refrains, a rhymes with them, b is the other sound.</p>
+</div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+
+// ---- form: six stanzas, refrains R1/R2, new a-lines a1..a5, b-lines b1..b6
+const FORM = [["R1","b1","R2"],["a1","b2","R1"],["a2","b3","R2"],["a3","b4","R1"],["a4","b5","R2"],["a5","b6","R1","R2"]];
+const rhymeOf = k => k[0] === "b" ? "b" : "a";
+const TAG = {R1:"A¹", R2:"A²"};
+
+const LINES = {
+  R1:"Keep pedalling. I’ve got you. I’m right here.",
+  R2:"I let go back there, where the road was clear.",
+  b1:"The street slopes gently, houses row on row.",
+  a1:"Look up, not at your hands. Look where you steer.",
+  b2:"Your knees have learned it, though your head says no.",
+  a2:"The hedges blur. The postbox swings up near.",
+  b3:"I’m running, bent, one hand held out and low.",
+  a3:"You wobble once and right it, and I cheer.",
+  b4:"I’m further back than you would want to know.",
+  a4:"This is the whole trick of it, year on year:",
+  b5:"I say I’m holding on, and let you go.",
+  a5:"You’ll look round at the corner, and the fear",
+  b6:"will come too late, and small, and far, and slow."
+};
+
+// ---- render a villanelle with its threads
+function render(box, title, text){
+  box.innerHTML = "";
+  const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("class","gut"); box.appendChild(svg);
+  if (title){ const h = document.createElement("h2"); h.textContent = title; box.appendChild(h); }
+  const where = {}; let n = 0;
+  FORM.forEach((st, si) => {
+    const d = document.createElement("div"); d.className = "st";
+    st.forEach((k, li) => {
+      const p = document.createElement("p"); const t = text(k);
+      p.textContent = t || "…"; if (!t) p.classList.add("empty");
+      if (k[0] === "R") p.classList.add(k);
+      p.dataset.k = k; p.dataset.r = rhymeOf(k); p.dataset.n = ++n;
+      d.appendChild(p);
+      (where[k] = where[k] || []).push({s:si, l:li, n, el:p});
+    });
+    box.appendChild(d);
+  });
+  box._where = where;
+  stitch(box);
+}
+
+function stitch(box){
+  const svg = box.querySelector("svg.gut"), where = box._where; if (!svg || !where) return;
+  const W = svg.getBoundingClientRect().width, bt = box.getBoundingClientRect().top;
+  if (!W) return;
+  const dot = W - 18, tagx = W - 11;
+  const lane = {R1: W < 60 ? 4 : 8, R2: W < 60 ? 15 : 23};
+  const yOf = el => { const r = el.getClientRects()[0] || el.getBoundingClientRect(); return r.top - bt + r.height/2; };
+  let html = "";
+  for (const R of ["R1","R2"]){
+    const o = where[R], L = lane[R];
+    for (let i = 0; i + 1 < o.length; i++){
+      const y1 = yOf(o[i].el), y2 = yOf(o[i+1].el);
+      if (o[i+1].n - o[i].n === 1) continue;
+      html += `<path class="${R}" d="M${dot} ${y1.toFixed(1)}C${L} ${y1.toFixed(1)} ${L} ${y2.toFixed(1)} ${dot} ${y2.toFixed(1)}"/>`;
+    }
+  }
+  // the knot: the last two lines, side by side
+  const e1 = yOf(where.R1[3].el), e2 = yOf(where.R2[3].el), kx = dot - 9;
+  html += `<path class="knot R1 R2" d="M${dot-3} ${e1.toFixed(1)}C${kx} ${e1.toFixed(1)} ${kx} ${e2.toFixed(1)} ${dot-3} ${e2.toFixed(1)}"/>`;
+  for (const k in where){
+    for (const x of where[k]){
+      const y = yOf(x.el).toFixed(1);
+      if (k[0] === "R") html += `<circle class="${k}" cx="${dot}" cy="${y}" r="2.7"/>`;
+      else html += `<circle class="r${rhymeOf(k)} g${rhymeOf(k)}" cx="${dot}" cy="${y}" r="2.4"/>`;
+      const cls = k[0] === "R" ? k + " ga" : "g" + rhymeOf(k);
+      html += `<text class="${cls}" x="${tagx}" y="${(+y + 3.5).toFixed(1)}">${TAG[k] || rhymeOf(k)}</text>`;
+    }
+  }
+  svg.innerHTML = html;
+}
+
+const lastWord = t => ((t || "").toLowerCase().replace(/[’']/g,"'").match(/[a-z']+(?=[^a-z']*$)/) || [""])[0];
+
+// ---- select a line: a refrain shows its returns; any other line shows its rhyme
+function wire(box, capEl, textOf){
+  box.addEventListener("click", e => {
+    const p = e.target.closest("p[data-k]"); if (!p) return;
+    const k = p.dataset.k, grp = k[0] === "R" ? k : p.dataset.r;
+    const again = box.classList.contains("sel") && box._cur === grp;
+    box.querySelectorAll(".on").forEach(x => x.classList.remove("on"));
+    box.classList.remove("sel","two","bb");
+    if (again){ box._cur = null; if (capEl) capEl.textContent = "Tap a line to see its refrain or its rhyme."; return; }
+    box.classList.add("sel"); box._cur = grp;
+    if (grp === "R2") box.classList.add("two");
+    if (grp === "b") box.classList.add("bb");
+    const sel = grp[0] === "R" ? `p[data-k="${grp}"], .gut .${grp}` : `p[data-r="${grp}"], .gut .g${grp}`;
+    box.querySelectorAll(sel).forEach(x => x.classList.add("on"));
+    if (!capEl) return;
+    const ns = [...box.querySelectorAll(`p.on`)].map(x => +x.dataset.n);
+    if (grp === "R1") capEl.textContent = `The first refrain: lines ${ns.join(", ")}. It closes the second and fourth stanzas and starts the closing couplet.`;
+    else if (grp === "R2") capEl.textContent = `The second refrain: lines ${ns.join(", ")}. It closes the first, third and fifth stanzas, and has the last word.`;
+    else {
+      const ws = [...new Set(ns.map(n => lastWord(box.querySelector(`p[data-n="${n}"]`).textContent)))];
+      capEl.textContent = grp === "a"
+        ? `The refrains’ rhyme, thirteen lines of it: ${ws.join(", ")}.`
+        : `The middle rhyme, one line in each stanza: ${ws.join(", ")}.`;
+    }
+  });
+}
+
+const poemBox = $("#poem");
+render(poemBox, "Right Here", k => LINES[k]);
+wire(poemBox, $("#cap"));
+
+// ---- the street, lengthening as you read
+const cv = $("#street"), cx = cv.getContext("2d");
+let SW = 0, SH = 58, dpr = 1, prog = 0, cols = {};
+function readCols(){
+  const cs = getComputedStyle(document.documentElement);
+  for (const n of ["fg","mute","rule","one","two","b","sky","bg"]) cols[n] = cs.getPropertyValue("--" + n).trim();
+}
+function sizeStreet(){
+  dpr = Math.min(2, devicePixelRatio || 1); SW = cv.getBoundingClientRect().width;
+  cv.width = Math.round(SW * dpr); cv.height = Math.round(SH * dpr); cx.setTransform(dpr,0,0,dpr,0,0);
+  drawStreet();
+}
+const ease = x => x < 0 ? 0 : x > 1 ? 1 : x*x*(3-2*x);
+// where each is along the street, 0..1, for reading progress p
+function places(p){
+  const kid = .06 + .88 * p;
+  // alongside at first; lets go at p = .08, slows over the next stretch, and stops
+  const a0 = .06 + .88 * .08 - .035, stop = .25;
+  const adult = p < .08 ? kid - .035 : a0 + (stop - a0) * Math.sin(Math.min(1, (p - .08) / .3) * Math.PI / 2);
+  return {kid, adult: Math.min(kid - .035, adult)};
+}
+function drawStreet(){
+  if (!SW) return;
+  const W = SW, H = SH, gy = H - 12;
+  cx.clearRect(0,0,W,H);
+  // hedges and houses, far side
+  cx.fillStyle = cols.sky; cx.fillRect(0, 0, W, gy);
+  cx.fillStyle = cols.rule;
+  for (let x = -10, i = 0; x < W + 20; i++){
+    const w = 34 + (i * 37 % 23), h = 14 + (i * 53 % 11);
+    cx.fillRect(x, gy - 8 - h, w, h);
+    cx.beginPath(); cx.moveTo(x - 2, gy - 8 - h); cx.lineTo(x + w/2, gy - 8 - h - 8); cx.lineTo(x + w + 2, gy - 8 - h); cx.fill();
+    x += w + 10 + (i * 29 % 17);
+  }
+  cx.fillStyle = cols.b; cx.globalAlpha = .45;
+  for (let x = 0; x < W; x += 9){ cx.beginPath(); cx.arc(x, gy - 4, 6 + (x * 7 % 3), Math.PI, 0); cx.fill(); }
+  cx.globalAlpha = 1;
+  // the postbox, about two fifths along
+  const pb = W * .42; cx.fillStyle = cols.two; cx.fillRect(pb - 3, gy - 16, 6, 16); cx.beginPath(); cx.arc(pb, gy - 16, 3, Math.PI, 0); cx.fill();
+  // road
+  cx.strokeStyle = cols.mute; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(0, gy + .5); cx.lineTo(W, gy + .5); cx.stroke();
+  cx.setLineDash([6, 8]); cx.globalAlpha = .5; cx.beginPath(); cx.moveTo(0, gy + 7.5); cx.lineTo(W, gy + 7.5); cx.stroke(); cx.setLineDash([]); cx.globalAlpha = 1;
+
+  const {kid, adult} = places(prog);
+  const kx = kid * W, ax = adult * W;
+  // child on a bike
+  const r = 5.5, rot = kx / r;
+  cx.strokeStyle = cols.fg; cx.lineWidth = 1.3; cx.lineCap = "round"; cx.lineJoin = "round";
+  for (const wx of [kx - 7, kx + 7]){
+    cx.beginPath(); cx.arc(wx, gy - r, r, 0, 6.283); cx.stroke();
+    cx.beginPath(); cx.moveTo(wx + Math.cos(rot) * r, gy - r + Math.sin(rot) * r); cx.lineTo(wx - Math.cos(rot) * r, gy - r - Math.sin(rot) * r); cx.stroke();
+  }
+  cx.beginPath(); cx.moveTo(kx - 7, gy - r); cx.lineTo(kx - 1, gy - r - 7); cx.lineTo(kx + 5, gy - r - 7); cx.lineTo(kx + 7, gy - r); cx.moveTo(kx - 1, gy - r - 7); cx.lineTo(kx, gy - r); cx.lineTo(kx + 5, gy - r - 7); cx.moveTo(kx + 5, gy - r - 7); cx.lineTo(kx + 6, gy - r - 11); cx.stroke();
+  // rider: lean forward, and at the end look round
+  const look = ease((prog - .9) / .08);
+  cx.beginPath(); cx.moveTo(kx - 2, gy - r - 8); cx.lineTo(kx + 1, gy - r - 17); cx.lineTo(kx + 6, gy - r - 11); cx.stroke();
+  const ped = rot * 1;
+  cx.beginPath(); cx.moveTo(kx - 2, gy - r - 8); cx.lineTo(kx + Math.cos(ped) * 3, gy - r + Math.sin(ped) * 3 - 2); cx.stroke();
+  cx.fillStyle = cols.fg; cx.beginPath(); cx.arc(kx + 2 - look * 2, gy - r - 20, 2.6, 0, 6.283); cx.fill();
+  // the one who ran
+  const run = prog < .38 ? 1 : 0;
+  const ph = ax / 6;
+  cx.strokeStyle = cols.one; cx.fillStyle = cols.one; cx.lineWidth = 1.5;
+  const hip = gy - 12, sh = gy - 25;
+  const sw = run ? Math.sin(ph) * 5 : 1.5;
+  cx.beginPath(); cx.moveTo(ax - sw, gy); cx.lineTo(ax, hip); cx.lineTo(ax + sw, gy); cx.stroke();
+  cx.beginPath(); cx.moveTo(ax, hip); cx.lineTo(ax + (run ? 2 : 0), sh); cx.stroke();
+  cx.beginPath(); cx.arc(ax + (run ? 2.5 : 0), sh - 4, 3, 0, 6.283); cx.fill();
+  // arm: out and low while running alongside; raised once they've stopped and the child looks round
+  cx.beginPath(); cx.moveTo(ax + (run ? 2 : 0), sh + 2);
+  if (run || look < .02) cx.lineTo(ax + 9, sh + 8);
+  else cx.lineTo(ax + 4 + 3 * Math.sin(Date.now() / 160) * look, sh - 9 * look + 6 * (1 - look));
+  cx.stroke();
+  cx.beginPath(); cx.moveTo(ax + (run ? 2 : 0), sh + 2); cx.lineTo(ax - 4, sh + 9); cx.stroke();
+}
+// the ride takes about as long as a slow read of the poem; tap the street to ride again
+const RIDE = 50000, still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let t0 = performance.now();
+function onScroll(){ drawStreet(); }
+readCols(); sizeStreet();
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { readCols(); drawStreet(); });
+cv.addEventListener("click", () => { t0 = performance.now(); });
+cv.style.cursor = "pointer";
+cv.title = "tap to ride again";
+(function tick(now){
+  prog = still ? 1 : Math.min(1, (now - t0) / RIDE);
+  if ($("#t-poem").style.display !== "none" && (prog < 1 || prog > .9)) drawStreet();
+  requestAnimationFrame(tick);
+})(performance.now());
+
+// ---- one of your own
+const KEY = "nightshift-right-here-own";
+let own = {};
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && typeof s === "object") own = s; } catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(own)); }catch(e){} }
+const ownText = k => (own[k] || "").trim();
+
+function buildFields(){
+  const box = $("#fields"); box.innerHTML = "";
+  const top = document.createElement("div"); top.className = "refr";
+  top.innerHTML = `<div class="n">the two refrains</div>`;
+  [["R1","the first refrain (it opens the poem)"],["R2","the second, rhyming with the first (it ends the poem)"]].forEach(([k, ph]) => {
+    const ln = document.createElement("div"); ln.className = "ln";
+    ln.innerHTML = `<b>${TAG[k]}</b>`;
+    const inp = document.createElement("input"); inp.className = k; inp.dataset.k = k; inp.value = own[k] || ""; inp.placeholder = ph;
+    inp.setAttribute("aria-label", k === "R1" ? "first refrain" : "second refrain");
+    ln.appendChild(inp); top.appendChild(ln);
+  });
+  box.appendChild(top);
+  let n = 0;
+  FORM.forEach((st, si) => {
+    const d = document.createElement("div"); d.className = "st";
+    d.innerHTML = `<div class="n">${si === FORM.length - 1 ? "the quatrain" : "stanza " + (si + 1)}</div>`;
+    st.forEach(k => {
+      n++;
+      const ln = document.createElement("div"); ln.className = "ln";
+      ln.innerHTML = `<b>${TAG[k] || rhymeOf(k)}</b>`;
+      if (k[0] === "R"){
+        const c = document.createElement("span"); c.className = "carried " + k; c.dataset.c = k; ln.appendChild(c);
+      } else {
+        const inp = document.createElement("input"); inp.dataset.k = k; inp.value = own[k] || "";
+        inp.placeholder = k[0] === "a" ? "rhymes with the refrains" : (k === "b1" ? "a second rhyme starts here" : "rhymes with the middle lines");
+        inp.setAttribute("aria-label", `line ${n}`);
+        ln.appendChild(inp);
+      }
+      d.appendChild(ln);
+    });
+    box.appendChild(d);
+  });
+  refresh();
+}
+function refresh(){
+  document.querySelectorAll("#fields .carried").forEach(c => {
+    const t = ownText(c.dataset.c); c.textContent = t || "(the refrain comes back)"; c.classList.toggle("blank", !t);
+  });
+  const list = ks => ks.map(k => lastWord(ownText(k))).filter(Boolean);
+  const A = list(["R1","R2","a1","a2","a3","a4","a5"]), B = list(["b1","b2","b3","b4","b5","b6"]);
+  const fmt = ws => ws.length ? ws.map(w => `<span class="w">${w}</span>`).join(" · ") : "nothing yet";
+  $("#ends").innerHTML = `<p>a rhyme so far: ${fmt(A)}</p><p>b rhyme so far: ${fmt(B)}</p>`;
+  render($("#mine"), "", ownText);
+}
+$("#fields").addEventListener("input", e => {
+  const k = e.target.dataset.k; if (!k) return;
+  own[k] = e.target.value; save(); refresh();
+});
+$("#clear").addEventListener("click", () => { own = {}; save(); buildFields(); });
+wire($("#mine"), null);
+buildFields();
+
+// ---- tabs
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("cur", x === b));
+  $("#t-poem").style.display = b.dataset.t === "poem" ? "" : "none";
+  $("#t-yours").classList.toggle("on", b.dataset.t === "yours");
+  stitch(poemBox); stitch($("#mine")); sizeStreet(); onScroll();
+});
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { stitch(poemBox); stitch($("#mine")); sizeStreet(); onScroll(); }, 80); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { stitch(poemBox); });
+
+window.__here = {FORM, LINES, places, setProg: p => { prog = p; drawStreet(); }, own: () => own, stitch};
+</script>
+</body>
+</html>

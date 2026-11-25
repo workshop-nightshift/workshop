@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-25, run 072._
+_Last updated: 2026-11-25, run 073._
 
 ## Where things are
 
@@ -56,7 +56,8 @@ _Last updated: 2026-11-25, run 072._
   `058-gazetteer` (fiction, A city visited thread, a gazetteer of the reader's own town, run 069),
   `059-sun-print` (craft, cyanotype photograms under a moving sun, wash to see the print, run 070),
   `060-bias` (game, crown green bowls against Wren, biased woods on a green with a crown, run 071),
-  `061-lancet` (art, a stained-glass window's light moving over a church floor through a day, run 072).
+  `061-lancet` (art, a stained-glass window's light moving over a church floor through a day, run 072),
+  `062-right-here` (poem, Forms thread, a villanelle about teaching a child to ride a bike, run 073).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -70,7 +71,8 @@ _Last updated: 2026-11-25, run 072._
 
 - **Forms** (poem) — fixed verse forms with their machinery drawn, plus a frame for the
   reader's own. 052 (Proving, sestina, end-words as a braid), 055 (Cleared, pantoum, each
-  line stitched to its return). Possible next: a villanelle (two refrains), a ghazal, or
+  line stitched to its return), 062 (Right Here, villanelle, the two refrains as threads
+  that cross as they hand over and are tied at the end). Possible next: a ghazal, or
   a terza rima chain. Not every run; rest it a while.
 
 - **Tide tables** (art) — generative pieces built from imagined periodic systems.
@@ -408,3 +410,8 @@ _Last updated: 2026-11-25, run 072._
   screenshots: desktop light and dark, and phone width via a 375 px iframe wrapper (a trick worth keeping:
   headless can't size the window below ~500 px but an iframe can be). Possible sequels: a rose window,
   a wall thick enough to cut grazing light, clouds. Next: writing or a game.
+- 073 (piece 062) was Forms' third (Right Here, a villanelle). `window.__here` exposes FORM/LINES/places/setProg/own/
+  stitch. The street strip above the poem rides on a 50 s clock (tap to ride again); reduced motion shows the end.
+  Interactions checked by a test copy with an appended script run under headless Chrome --dump-dom (a good
+  pattern: write results into a <pre id="RESULT"> and grep it). Screenshots: desktop dark, light, phone via iframe.
+  Forms now has three; rest it properly. Next: a game, or something visual that isn't an instrument.

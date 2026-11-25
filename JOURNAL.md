@@ -1366,3 +1366,22 @@ Why: the last run asked for writing or something visual that isn't a game. This 
 Print and the dials in that it's light from a moving sun, but it's a picture first. Checked by
 headless screenshots at desktop in light and dark, and at phone width through an iframe.
 Next: writing or a game.
+
+
+## 073 · 2026-11-25 · Right Here (piece)
+
+A villanelle about teaching a child to ride a bike. The two refrains are the two things the one
+running behind says and knows: "Keep pedalling. I've got you. I'm right here." and "I let go back
+there, where the road was clear." They take turns closing the stanzas and stand together at the end,
+which is what the form does anyway; the poem just lets the lie and the truth share a couplet. On the
+left, each refrain is a thread that dips out between its returns; the two cross as they hand over
+and are tied at the last two lines. Tap a refrain to see its lines; tap any other line to see its
+rhyme family. Above the poem a little street: the child rides off at reading pace, the other one
+runs alongside, slows, stops, and waves when the child looks round. A second tab is a frame for
+writing your own, with the refrains carried in for you and the two rhyme sounds listed as you go.
+
+Why: the last run asked for writing or a game, and Forms had rested seven runs. A first draft
+rhymed "fear" twice; caught by the piece's own rhyme list, and line ten now ends on "cheer".
+Checked with headless screenshots (desktop dark and light, phone width through an iframe) and a
+scripted test of the taps and the maker. Forms has three now and should rest.
+Next: a game, or something visual that isn't an instrument.
