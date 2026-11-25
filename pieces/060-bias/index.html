@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bias</title>
+<style>
+:root{--bg:#eef0e8;--fg:#1d201b;--mute:#6c7163;--line:#cfd3c4;--grass:#6f9a4c;--grass2:#8cb262;--ditch:#5b4f3e;--bank:#c9c0a6;
+  --you:#3a2a1e;--youmark:#f2ead8;--wren:#1f2a33;--wrenmark:#c4472f;--jack:#fbf6e4;--aim:#1d201b;--mat:#2f5a7a}
+@media (prefers-color-scheme:dark){:root{--bg:#111311;--fg:#e4e6dc;--mute:#959a8c;--line:#2a2e28;--grass:#2f4a24;--grass2:#3e5c2f;--ditch:#1c1813;--bank:#4a4536;
+  --you:#6b4a30;--youmark:#f2ead8;--wren:#101418;--wrenmark:#e0644a;--jack:#f4eed6;--aim:#e4e6dc;--mat:#7fb0d2}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:14px 16px 60px}
+main{width:100%;max-width:600px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 10px;font-style:italic}
+canvas{display:block;width:100%;height:auto;touch-action:none}
+#green{cursor:crosshair}
+#head{margin-top:6px;border:1px solid var(--line)}
+#score{display:flex;justify-content:space-between;align-items:baseline;gap:4px 14px;flex-wrap:wrap;margin-top:8px}
+#score .n{font-size:20px}
+#endno{color:var(--mute);font-size:13px}
+#log{min-height:3em;margin:4px 0 0}
+#log em{color:var(--mute)}
+.row{display:flex;justify-content:flex-end;align-items:center;gap:8px 10px;flex-wrap:wrap;margin-top:8px}
+.row label{color:var(--mute);font-size:14px;display:flex;align-items:center;gap:6px}
+input[type=range]{width:150px;accent-color:var(--mat)}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+button.on{border-color:var(--fg)}
+button:disabled{opacity:.4;cursor:default}
+#go{border-color:var(--fg);padding:3px 16px}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Bias</h1>
+  <p class="sub">A crown green, a jack, two woods each. Nothing on it runs straight.</p>
+  <canvas id="green" width="600" height="600" aria-label="The bowling green from above, highest in the middle, with contour lines. Tap or drag to set the mark you aim at."></canvas>
+  <div id="score"><span><span class="n" id="s0">0</span> you &nbsp;·&nbsp; <span class="n" id="s1">0</span> Wren</span><span id="endno"></span></div>
+  <canvas id="head" width="600" height="220" aria-label="A close view of the head: the jack and the woods around it at true size, with distances."></canvas>
+  <p id="log" aria-live="polite"></p>
+  <div class="row" id="ctl">
+    <span><button id="hl" aria-pressed="false">draws left</button> <button id="hr" aria-pressed="true" class="on">draws right</button></span>
+    <label>weight <input type="range" id="len" min="13" max="38" step="0.1" value="25"> <span id="lenv"></span></label>
+    <button id="go">bowl</button>
+  </div>
+  <div class="row">
+    <button id="sharp">Wren: steady</button>
+    <button id="another">another green</button>
+  </div>
+  <details><summary>how it goes</summary>
+    <p>On a crown green there are no rinks and no straight lines. The green rises a few inches to the middle,
+    and dips and swells in places of its own, and you can bowl across it in any direction. The contour lines
+    show where it lifts. Every wood is <em>biased</em>: one side is swollen, so as it slows it leans and
+    curls that way. It runs nearly straight while it's quick and hooks at the end. The jack is biased too,
+    a little.</p>
+    <p>Tap the green to set your <em>mark</em>: the place a straight wood would stop on a flat lawn. The
+    distance to the mark is your weight; the slider fine-tunes it. Choose which way the wood draws, and aim
+    off the jack to the other side so it curls back in. Then the slope does what it likes.</p>
+    <p>Whoever won the last end rolls the jack, from the mat set where the last jack lay; it has to run 21
+    yards and stay on. Then two woods each, turn about. Every wood nearer than your opponent's best counts a
+    shot. Knock the jack off and the end is played again. First to seven. (A real game goes to twenty-one.)
+    Today's green is the same for everyone today.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+// ---- SIM
+const G = 36;                       // green, metres square
+const RB = 0.064, RJ = 0.032;       // bowl, jack radius
+const MB = 1.4, MJ = 0.65;
+const AF = 0.36;                    // rolling friction, m/s^2
+const CB = 0.052;                   // bias, lateral m/s^2 at speed
+const DT = 0.02;
+const YD = 0.9144;
+
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+
+function makeGreen(seed) {
+  const r = rng(seed);
+  const g = { seed, cx: 18 + (r() - .5) * 5, cy: 18 + (r() - .5) * 5, H: .13 + r() * .06, Rc: 27, w: [] };
+  for (let i = 0; i < 3; i++) {
+    const lam = 9 + r() * 12, ang = r() * Math.PI * 2;
+    g.w.push({ a: .004 + r() * .007, kx: Math.cos(ang) * 2 * Math.PI / lam, ky: Math.sin(ang) * 2 * Math.PI / lam, p: r() * 6.283 });
+  }
+  return g;
+}
+function height(g, x, y) {
+  const d2 = ((x - g.cx) ** 2 + (y - g.cy) ** 2) / (g.Rc * g.Rc);
+  let h = g.H * Math.max(0, 1 - d2);
+  for (const w of g.w) h += w.a * Math.sin(w.kx * x + w.ky * y + w.p);
+  return h;
+}
+function slope(g, x, y) {          // acceleration from the slope (rolling sphere: 5/7 g)
+  const e = .05, k = -9.81 * 5 / 7 / (2 * e);
+  return [k * (height(g, x + e, y) - height(g, x - e, y)), k * (height(g, x, y + e) - height(g, x, y - e))];
+}
+
+// an object: {x,y,vx,vy,r,m,side,bias,owner,dead,moving,trail}
+function deliver(mat, ang, L, side, isJack) {
+  const v0 = Math.sqrt(2 * AF * L);
+  return { x: mat[0], y: mat[1], vx: Math.cos(ang) * v0, vy: Math.sin(ang) * v0,
+    r: isJack ? RJ : RB, m: isJack ? MJ : MB, side, bias: isJack ? .35 : 1,
+    jack: !!isJack, dead: false, moving: true, trail: [[mat[0], mat[1]]] };
+}
+
+// advance all objects one step; returns true while anything moves
+function step(g, objs, trail) {
+  let any = false;
+  for (const o of objs) {
+    if (o.dead || !o.moving) continue;
+    const v = Math.hypot(o.vx, o.vy);
+    const s = slope(g, o.x, o.y);
+    if (v < AF * DT * 1.5) {
+      if (Math.hypot(s[0], s[1]) < AF * .8) { o.vx = o.vy = 0; o.moving = false; continue; }
+    }
+    let ax = s[0], ay = s[1];
+    if (v > 1e-6) {
+      ax -= AF * o.vx / v; ay -= AF * o.vy / v;
+      const b = CB * o.bias * o.side * Math.min(1, v / .45);
+      ax += b * -o.vy / v; ay += b * o.vx / v;
+    }
+    o.vx += ax * DT; o.vy += ay * DT;
+    o.x += o.vx * DT; o.y += o.vy * DT;
+    if (o.x < 0 || o.y < 0 || o.x > G || o.y > G) { o.dead = true; o.moving = false; }
+    any = true;
+  }
+  // collisions
+  for (let i = 0; i < objs.length; i++) for (let j = i + 1; j < objs.length; j++) {
+    const a = objs[i], b = objs[j];
+    if (a.dead || b.dead || (!a.moving && !b.moving)) continue;
+    const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy), md = a.r + b.r;
+    if (d >= md || d === 0) continue;
+    const nx = dx / d, ny = dy / d;
+    const rel = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+    const over = md - d, sa = b.m / (a.m + b.m), sb = a.m / (a.m + b.m);
+    a.x -= nx * over * sa; a.y -= ny * over * sa; b.x += nx * over * sb; b.y += ny * over * sb;
+    if (rel <= 0) continue;
+    const J = (1 + .8) * rel / (1 / a.m + 1 / b.m);
+    a.vx -= J / a.m * nx; a.vy -= J / a.m * ny; b.vx += J / b.m * nx; b.vy += J / b.m * ny;
+    a.moving = b.moving = true; any = true;
+  }
+  if (trail) for (const o of objs) if (o.moving && o.trail) {
+    const t = o.trail[o.trail.length - 1];
+    if (Math.hypot(o.x - t[0], o.y - t[1]) > .25) o.trail.push([o.x, o.y]);
+  }
+  return any;
+}
+function settle(g, objs, maxSteps = 2000) {
+  for (let n = 0; n < maxSteps; n++) if (!step(g, objs, false)) return n;
+  return maxSteps;
+}
+function clone(objs) { return objs.map(o => ({ ...o, trail: null })); }
+
+// shots: who holds the head and by how many
+function count(objs) {
+  const jack = objs.find(o => o.jack);
+  if (!jack || jack.dead) return null;
+  const list = objs.filter(o => !o.jack && !o.dead)
+    .map(o => ({ o, d: Math.hypot(o.x - jack.x, o.y - jack.y) - o.r - jack.r })).sort((a, b) => a.d - b.d);
+  if (!list.length) return { who: -1, n: 0, list };
+  const who = list[0].o.owner;
+  let n = 0; for (const e of list) { if (e.o.owner !== who) break; n++; }
+  if (list.length > n && Math.abs(list[n].d - list[0].d) < .002) return { who: -1, n: 0, list };   // a measure too close to call
+  return { who, n, list };
+}
+
+// Wren picks a delivery by trying a fan of lines and weights
+function plan(g, objs, mat, me, r, sharp) {
+  const jack = objs.find(o => o.jack);
+  const dx = jack.x - mat[0], dy = jack.y - mat[1], dist = Math.hypot(dx, dy), base = Math.atan2(dy, dx);
+  let best = null;
+  for (const side of [1, -1]) for (let da = -9; da <= 9; da += .6) for (let k = 0; k < 7; k++) {
+    const L = dist * (.92 + k * .05) + (k === 6 ? 1.5 : 0);
+    const ang = base + da * Math.PI / 180;
+    const trial = clone(objs);
+    const b = deliver(mat, ang, L, side, false); b.owner = me; b.trail = null;
+    trial.push(b);
+    settle(g, trial);
+    const c = count(trial);
+    let v;
+    if (!c) v = -50;
+    else {
+      const mine = c.list.find(e => e.o.owner === me);
+      v = (c.who === me ? c.n * 3 : c.who === -1 ? 0 : -c.n * 3) - (mine ? Math.min(mine.d, 3) : 3);
+    }
+    if (!best || v > best.v) best = { v, ang, L, side };
+  }
+  const err = sharp ? .35 : .7, lerr = sharp ? .018 : .032;
+  const gauss = () => (r() + r() + r() - 1.5) * 1.41;
+  return { ang: best.ang + gauss() * err * Math.PI / 180, L: best.L * (1 + gauss() * lerr), side: best.side, aim: best };
+}
+// ---- END SIM
+
+// ---- PAGE
+const gc = $("green"), gx = gc.getContext("2d"), hc = $("head"), hx = hc.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const MARG = 1.5, SC = gc.width / (G + 2 * MARG);
+const toPx = (x, y) => [(x + MARG) * SC, (y + MARG) * SC];
+const toW = (px, py) => [px / SC - MARG, py / SC - MARG];
+const WIN = 7;                                   // to win
+const MINJ = 21 * YD;
+const NAMES = ["you", "Wren"];
+
+let css = {};
+function readCss() {
+  const s = getComputedStyle(document.documentElement);
+  for (const k of ["fg","mute","line","grass","grass2","ditch","bank","you","youmark","wren","wrenmark","jack","aim","mat","bg"])
+    css[k] = s.getPropertyValue("--" + k).trim();
+}
+const rgb = h => { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+
+let st, bg = null;
+const today = (() => { const d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); })();
+
+function newGame(seed) {
+  const g = makeGreen(seed);
+  st = { g, seed, r: rng(seed ^ 0x9e37), score: [0, 0], end: 1, mat: [3.2, G - 3.2], thrower: 0,
+    phase: "aim", what: "jack", turn: 0, left: [2, 2], objs: [], mark: null, side: 1, wrenAim: null,
+    sharp: st ? st.sharp : false, rolling: null, lastJack: null };
+  bg = null;
+  setMark(defaultMark());
+  say(`End 1. You roll the jack. <em>Tap the green to set your mark, then bowl.</em>`);
+  update();
+}
+function defaultMark() {
+  const a = Math.atan2(G / 2 - st.mat[1], G / 2 - st.mat[0]);
+  const L = 25;
+  return clampMark([st.mat[0] + Math.cos(a) * L, st.mat[1] + Math.sin(a) * L]);
+}
+function clampMark(m) {
+  let dx = m[0] - st.mat[0], dy = m[1] - st.mat[1], d = Math.hypot(dx, dy) || 1;
+  const L = Math.max(13, Math.min(38, d));
+  return [st.mat[0] + dx / d * L, st.mat[1] + dy / d * L];
+}
+function setMark(m) { st.mark = clampMark(m); const L = Math.hypot(st.mark[0] - st.mat[0], st.mark[1] - st.mat[1]); $("len").value = L.toFixed(1); }
+
+function fmt(d) {
+  const inch = d / .0254;
+  if (inch < 0.5) return "a touch";
+  if (inch < 12) return Math.round(inch) + " in";
+  if (inch < 107.5) { const n = Math.round(inch), f = Math.floor(n / 12), i = n - f * 12; return f + " ft" + (i ? " " + i + " in" : ""); }
+  return Math.round(d / YD) + " yd";
+}
+const yd = L => (L / YD).toFixed(1) + " yd";
+function say(h) { $("log").innerHTML = h; }
+
+// ---- background: green shaded by height, mown in a diagonal check, contour lines
+function makeBg() {
+  readCss();
+  const W = gc.width, img = gx.createImageData(W, W), d = img.data;
+  const g1 = rgb(css.grass), g2 = rgb(css.grass2), di = rgb(css.ditch), ba = rgb(css.bank);
+  let lo = 1e9, hi = -1e9;
+  for (let y = 0; y <= G; y += 1) for (let x = 0; x <= G; x += 1) { const h = height(st.g, x, y); lo = Math.min(lo, h); hi = Math.max(hi, h); }
+  const CI = .015;
+  const lev = new Int16Array(W * W);
+  for (let py = 0; py < W; py++) for (let px = 0; px < W; px++) {
+    const [x, y] = toW(px + .5, py + .5); const i = py * W + px;
+    if (x < 0 || y < 0 || x > G || y > G) { lev[i] = -999; continue; }
+    lev[i] = Math.floor(height(st.g, x, y) / CI);
+  }
+  for (let py = 0; py < W; py++) for (let px = 0; px < W; px++) {
+    const [x, y] = toW(px + .5, py + .5); const i = py * W + px, o = i * 4;
+    let c;
+    if (lev[i] === -999) {
+      const e = Math.max(-x, -y, x - G, y - G);
+      c = e < .7 ? di : ba;
+      if (e < .7) { const k = .85 + .15 * Math.sin(px * 1.7 + py * 2.3); c = c.map(v => v * k); }
+    } else {
+      const t = (height(st.g, x, y) - lo) / (hi - lo || 1);
+      c = g1.map((v, k) => v + (g2[k] - v) * (.2 + .65 * t));
+      const chk = (Math.floor((x + y) / 2.6) + Math.floor((x - y + 100) / 2.6)) & 1;
+      const k = chk ? 1.04 : .97;
+      c = c.map(v => v * k);
+      const edge = (px + 1 < W && lev[i + 1] !== lev[i] && lev[i + 1] !== -999) || (py + 1 < W && lev[i + W] !== lev[i] && lev[i + W] !== -999);
+      if (edge) c = c.map(v => v * .82);
+    }
+    d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255;
+  }
+  const off = document.createElement("canvas"); off.width = off.height = W;
+  off.getContext("2d").putImageData(img, 0, 0);
+  bg = off;
+}
+
+function drawWood(ctx, x, y, r, o, ringW) {
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7);
+  ctx.fillStyle = o.owner === 0 ? css.you : css.wren; ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, r * .42, 0, 7);
+  ctx.fillStyle = o.owner === 0 ? css.youmark : css.wrenmark; ctx.fill();
+  if (ringW) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.lineWidth = ringW; ctx.strokeStyle = "rgba(0,0,0,.35)"; ctx.stroke(); }
+}
+function drawJack(ctx, x, y, r) {
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = css.jack; ctx.fill();
+  ctx.lineWidth = Math.max(1, r * .18); ctx.strokeStyle = "rgba(0,0,0,.45)"; ctx.stroke();
+}
+
+function drawGreen() {
+  if (!bg) makeBg();
+  gx.drawImage(bg, 0, 0);
+  // trails
+  gx.lineWidth = 1.5; gx.setLineDash([]);
+  for (const o of st.objs) if (o.trail && o.trail.length > 1) {
+    gx.strokeStyle = o.jack ? "rgba(255,255,240,.55)" : o.owner === 0 ? "rgba(250,240,215,.55)" : "rgba(200,70,45,.5)";
+    gx.beginPath(); o.trail.forEach((p, i) => { const [a, b] = toPx(p[0], p[1]); i ? gx.lineTo(a, b) : gx.moveTo(a, b); });
+    if (!o.dead) { const [a, b] = toPx(o.x, o.y); gx.lineTo(a, b); }
+    gx.stroke();
+  }
+  // mat
+  const [mx, my] = toPx(st.mat[0], st.mat[1]);
+  gx.save(); gx.translate(mx, my);
+  const aimA = st.mark ? Math.atan2(st.mark[1] - st.mat[1], st.mark[0] - st.mat[0]) : 0;
+  gx.rotate(aimA); gx.fillStyle = css.mat; gx.fillRect(-7, -5, 14, 10); gx.restore();
+  // aim
+  const showAim = st.phase === "aim" && st.turn === 0;
+  if (showAim && st.mark) {
+    const [ax, ay] = toPx(st.mark[0], st.mark[1]);
+    gx.strokeStyle = css.aim; gx.globalAlpha = .7; gx.lineWidth = 1.2; gx.setLineDash([5, 5]);
+    gx.beginPath(); gx.moveTo(mx, my); gx.lineTo(ax, ay); gx.stroke(); gx.setLineDash([]);
+    gx.beginPath(); gx.moveTo(ax - 6, ay - 6); gx.lineTo(ax + 6, ay + 6); gx.moveTo(ax + 6, ay - 6); gx.lineTo(ax - 6, ay + 6); gx.stroke();
+    // which way it will lean
+    const nx = -Math.sin(aimA) * st.side, ny = Math.cos(aimA) * st.side;
+    gx.beginPath(); gx.moveTo(ax + nx * 9, ay + ny * 9); gx.lineTo(ax + nx * 18, ay + ny * 18); gx.stroke();
+    gx.globalAlpha = 1;
+  }
+  if (st.wrenAim && st.phase !== "aim") {
+    const [ax, ay] = toPx(st.wrenAim[0], st.wrenAim[1]);
+    gx.strokeStyle = css.wrenmark; gx.globalAlpha = .55; gx.lineWidth = 1.2; gx.setLineDash([3, 5]);
+    gx.beginPath(); gx.moveTo(mx, my); gx.lineTo(ax, ay); gx.stroke(); gx.setLineDash([]); gx.globalAlpha = 1;
+  }
+  for (const o of st.objs) if (!o.dead) {
+    const [x, y] = toPx(o.x, o.y);
+    o.jack ? drawJack(gx, x, y, 3.6) : drawWood(gx, x, y, 5.5, o, 1);
+  }
+}
+
+function drawHead() {
+  const W = hc.width, H = hc.height;
+  hx.fillStyle = css.grass; hx.fillRect(0, 0, W, H);
+  const jack = st.objs.find(o => o.jack && !o.dead);
+  const c = jack ? [jack.x, jack.y] : st.lastJack;
+  if (!c) {
+    hx.fillStyle = css.youmark; hx.globalAlpha = .8; hx.font = "italic 16px Georgia,serif"; hx.textAlign = "center";
+    hx.fillText("the head: no jack yet", W / 2, H / 2 + 5); hx.globalAlpha = 1; return;
+  }
+  const S = 110, ox = W / 2 - c[0] * S, oy = H / 2 - c[1] * S;
+  const cnt = jack ? count(st.objs) : null;
+  // rings every foot
+  hx.strokeStyle = "rgba(255,255,255,.18)"; hx.lineWidth = 1;
+  for (let f = 1; f <= 8; f++) { hx.beginPath(); hx.arc(W / 2, H / 2, f * .3048 * S, 0, 7); hx.stroke(); }
+  if (cnt && cnt.list.length) {
+    hx.font = "13px Georgia,serif"; hx.textAlign = "left";
+    cnt.list.forEach((e, i) => {
+      const o = e.o, x = ox + o.x * S, y = oy + o.y * S;
+      const counts = cnt.who === o.owner && i < cnt.n;
+      if (Math.abs(x - W / 2) > W || Math.abs(y - H / 2) > H * 2) return;
+      hx.strokeStyle = counts ? (o.owner === 0 ? css.youmark : css.wrenmark) : "rgba(255,255,255,.35)";
+      hx.setLineDash(counts ? [] : [3, 4]); hx.lineWidth = counts ? 1.5 : 1;
+      hx.beginPath(); hx.moveTo(W / 2, H / 2); hx.lineTo(x, y); hx.stroke(); hx.setLineDash([]);
+    });
+  }
+  for (const o of st.objs) if (!o.dead && !o.jack) drawWood(hx, ox + o.x * S, oy + o.y * S, o.r * S, o, 1);
+  if (jack) drawJack(hx, W / 2, H / 2, jack.r * S);
+  if (cnt && cnt.list.length) {
+    hx.font = "13px Georgia,serif";
+    const boxes = [];
+    cnt.list.forEach(e => {
+      const o = e.o, bx = ox + o.x * S, by = oy + o.y * S;
+      const lab = fmt(e.d), w = hx.measureText(lab).width + 6;
+      // a wood out of view gets its label where its line leaves the view
+      let x = bx, y = by;
+      const dx = bx - W / 2, dy = by - H / 2, m = 24;
+      const k = Math.min(1, (W / 2 - m) / Math.abs(dx || 1e-9), (H / 2 - m) / Math.abs(dy || 1e-9));
+      x = W / 2 + dx * k; y = H / 2 + dy * k;
+      x = Math.max(3, Math.min(W - w - 3, x + (k < 1 ? -w / 2 : 10)));
+      y = Math.max(3, Math.min(H - 19, y + (k < 1 ? -8 : -22)));
+      for (let n = 0; n < 8; n++) {
+        const hit = boxes.find(q => x < q[0] + q[2] && q[0] < x + w && y < q[1] + 16 && q[1] < y + 16);
+        if (!hit) break;
+        y = y + 18 > H - 19 ? y - 18 : y + 18;
+      }
+      boxes.push([x, y, w]);
+      hx.fillStyle = "rgba(0,0,0,.5)"; hx.fillRect(x, y, w, 16);
+      hx.fillStyle = o.owner === 0 ? css.youmark : "#f6c9bd"; hx.fillText(lab, x + 3, y + 12);
+    });
+  }
+}
+
+function draw() { drawGreen(); drawHead(); }
+
+function update() {
+  $("s0").textContent = st.score[0]; $("s1").textContent = st.score[1];
+  const n = st.left[0] + st.left[1];
+  $("endno").textContent = st.phase === "over" ? "game over" : `end ${st.end}` + (st.what === "bowl" ? ` · ${4 - n} of 4 woods down` : "");
+  const mine = st.phase === "aim" && st.turn === 0;
+  for (const id of ["go", "hl", "hr", "len"]) $(id).disabled = !mine;
+  $("go").textContent = st.phase === "over" ? "play again" : st.phase === "next" ? "next end" : st.what === "jack" ? "roll the jack" : "bowl";
+  if (st.phase === "next" || st.phase === "over") $("go").disabled = false;
+  $("hl").classList.toggle("on", st.side === 1); $("hr").classList.toggle("on", st.side === -1);
+  $("hl").setAttribute("aria-pressed", st.side === 1); $("hr").setAttribute("aria-pressed", st.side === -1);
+  $("lenv").textContent = yd(+$("len").value);
+  $("sharp").textContent = "Wren: " + (st.sharp ? "sharp" : "steady");
+  draw();
+}
+
+// ---- turns
+function launch(who, ang, L, side) {
+  const o = deliver(st.mat, ang, L, side, st.what === "jack");
+  o.owner = st.what === "jack" ? -1 : who;
+  if (st.what === "jack") st.objs = [o];
+  else { st.objs.push(o); st.left[who]--; }
+  st.phase = "roll"; st.rolling = { who, o };
+  update();
+  requestAnimationFrame(tick);
+}
+function tick() {
+  const per = reduce ? 40 : 2;
+  let moving = true;
+  for (let k = 0; k < per && moving; k++) moving = step(st.g, st.objs, true);
+  if (reduce && moving) { for (let k = 0; k < 4000 && moving; k++) moving = step(st.g, st.objs, true); }
+  draw();
+  if (moving) requestAnimationFrame(tick); else settled();
+}
+function settled() {
+  const { who, o } = st.rolling; st.rolling = null;
+  if (st.what === "jack") {
+    const d = Math.hypot(o.x - st.mat[0], o.y - st.mat[1]);
+    if (o.dead || d < MINJ) {
+      const other = 1 - st.thrower;
+      say((o.dead ? "The jack ran off the green." : `Not a jack: it ran ${yd(d)}, and it has to run 21.`) +
+        ` ${other === 0 ? "You roll" : "Wren rolls"} it instead.`);
+      st.thrower = other; st.objs = []; nextTurn(other); return;
+    }
+    st.lastJack = [o.x, o.y];
+    say(`${who === 0 ? "Your" : "Wren's"} jack lies ${yd(d)} off. ${who === 0 ? "Your wood first." : "Wren bowls first."}`);
+    st.what = "bowl"; st.left = [2, 2];
+    nextTurn(st.thrower); return;
+  }
+  const jack = st.objs.find(j => j.jack);
+  if (jack.dead) {
+    say(`${who === 0 ? "You" : "Wren"} knocked the jack off the green. The end is void and played again.`);
+    st.what = "jack"; st.objs = []; st.left = [2, 2]; st.lastJack = null; nextTurn(st.thrower); return;
+  }
+  st.lastJack = [jack.x, jack.y];
+  const c = count(st.objs);
+  const me = o, mine = c.list.find(e => e.o === me);
+  let line;
+  if (me.dead) line = `${who === 0 ? "Your" : "Wren's"} wood went in the ditch.`;
+  else line = `${who === 0 ? "Your" : "Wren's"} wood: ${fmt(mine.d)} from the jack.`;
+  const hold = c.who === -1 ? "Too close to call." : c.who === 0 ? `You hold ${c.n === 1 ? "shot" : c.n + " shots"}.` : `Wren holds ${c.n === 1 ? "shot" : c.n + " shots"}.`;
+  if (st.left[0] + st.left[1] === 0) {
+    if (c.who >= 0) st.score[c.who] += c.n;
+    const won = c.who;
+    say(`${line} ${won === -1 ? "Measured: dead level, no score." : (won === 0 ? "You score " : "Wren scores ") + c.n + "."}`);
+    if (won >= 0) st.thrower = won;
+    if (st.score[0] >= WIN || st.score[1] >= WIN) {
+      st.phase = "over";
+      const w = st.score[0] > st.score[1] ? 0 : 1;
+      say(`${line} ${w === 0 ? "You win" : "Wren wins"}, ${Math.max(...st.score)}–${Math.min(...st.score)}.`);
+    } else st.phase = "next";
+    update(); return;
+  }
+  say(`${line} ${hold}`);
+  const nx = st.left[1 - who] > 0 ? 1 - who : who;
+  nextTurn(nx);
+}
+function nextTurn(who) {
+  st.turn = who; st.phase = "aim"; st.wrenAim = null;
+  update();
+  if (who === 1) setTimeout(wrenGo, reduce ? 200 : 700);
+}
+function wrenGo() {
+  let ang, L, side, aim;
+  if (st.what === "jack") {
+    const r = st.r;
+    for (let k = 0; k < 200; k++) {
+      const t = [3 + r() * (G - 6), 3 + r() * (G - 6)];
+      const d = Math.hypot(t[0] - st.mat[0], t[1] - st.mat[1]);
+      if (d < 22 || d > 31) continue;
+      const a = Math.atan2(t[1] - st.mat[1], t[0] - st.mat[0]), sd = r() < .5 ? 1 : -1;
+      const j = deliver(st.mat, a, d, sd, true); settle(st.g, [j]);
+      const run = Math.hypot(j.x - st.mat[0], j.y - st.mat[1]);
+      if (j.dead || run < MINJ + 1.5 || Math.min(j.x, j.y, G - j.x, G - j.y) < 2.5) continue;
+      ang = a; L = d; side = sd; break;
+    }
+    if (ang === undefined) { ang = Math.atan2(G / 2 - st.mat[1], G / 2 - st.mat[0]); L = 24; side = 1; }
+    aim = [st.mat[0] + Math.cos(ang) * L, st.mat[1] + Math.sin(ang) * L];
+  } else {
+    const p = plan(st.g, st.objs, st.mat, 1, st.r, st.sharp);
+    ang = p.ang; L = p.L; side = p.side;
+    aim = [st.mat[0] + Math.cos(p.aim.ang) * p.aim.L, st.mat[1] + Math.sin(p.aim.ang) * p.aim.L];
+  }
+  st.wrenAim = aim;
+  say(`<em>Wren takes the mat, ${st.what === "jack" ? "jack in hand" : "draws " + (side === 1 ? "left" : "right")}…</em>`);
+  st.phase = "wait"; update();
+  setTimeout(() => launch(1, ang, L, side), reduce ? 100 : 650);
+}
+function nextEnd() {
+  const j = st.lastJack || [G / 2, G / 2];
+  st.mat = [Math.max(1.8, Math.min(G - 1.8, j[0])), Math.max(1.8, Math.min(G - 1.8, j[1]))];
+  st.end++; st.objs = []; st.left = [2, 2]; st.what = "jack"; st.lastJack = null;
+  setMark(defaultMark());
+  say(`End ${st.end}. The mat goes where the jack lay. ${st.thrower === 0 ? "You won the end: you roll the jack." : "Wren won the end and rolls the jack."}`);
+  nextTurn(st.thrower);
+}
+
+// ---- input
+function ptr(e) {
+  const r = gc.getBoundingClientRect();
+  return toW((e.clientX - r.left) * gc.width / r.width, (e.clientY - r.top) * gc.height / r.height);
+}
+let dragging = false;
+gc.addEventListener("pointerdown", e => { if (st.phase !== "aim" || st.turn !== 0) return; dragging = true; gc.setPointerCapture(e.pointerId); setMark(ptr(e)); update(); });
+gc.addEventListener("pointermove", e => { if (!dragging) return; setMark(ptr(e)); update(); });
+gc.addEventListener("pointerup", () => dragging = false);
+gc.addEventListener("pointercancel", () => dragging = false);
+$("len").addEventListener("input", () => {
+  const a = Math.atan2(st.mark[1] - st.mat[1], st.mark[0] - st.mat[0]), L = +$("len").value;
+  st.mark = [st.mat[0] + Math.cos(a) * L, st.mat[1] + Math.sin(a) * L]; update();
+});
+$("hl").onclick = () => { st.side = 1; update(); };
+$("hr").onclick = () => { st.side = -1; update(); };
+$("go").onclick = () => {
+  if (st.phase === "over") { newGame(st.seed); return; }
+  if (st.phase === "next") { nextEnd(); return; }
+  if (st.phase !== "aim" || st.turn !== 0) return;
+  const a = Math.atan2(st.mark[1] - st.mat[1], st.mark[0] - st.mat[0]);
+  launch(0, a, Math.hypot(st.mark[0] - st.mat[0], st.mark[1] - st.mat[1]), st.side);
+};
+$("sharp").onclick = () => { st.sharp = !st.sharp; update(); };
+$("another").onclick = () => { if (st.phase === "roll" || st.phase === "wait") return; newGame((Math.random() * 2 ** 31) | 0); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { bg = null; readCss(); draw(); });
+
+readCss();
+newGame(today);
+window.__bias = { get st() { return st; }, step, settle, count, plan, height, launch, newGame };
+})();
+</script>
+</body>
+</html>

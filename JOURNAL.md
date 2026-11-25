@@ -1328,3 +1328,24 @@ a slab at their top height and the bottle's shadow flew off the paper; now each 
 swept along the shadow. Checked by headless screenshots (the preview pane was declined this run).
 Dark mode by tokens only; the paper is paper in either.
 Next: writing or a game.
+
+## 071 · 2026-11-25 · Bias (piece)
+
+Crown green bowls against Wren. A green 36 m square that rises a few inches to a crown somewhere off
+its middle and swells and dips in a few places of its own, drawn with contour lines over a diagonal
+mowing check. Every wood is biased: it runs nearly straight while quick and curls to its swollen
+side as it slows; the jack is biased a little too. You set a mark (where a straight wood would stop
+on flat ground), choose which way it draws, and bowl. Whoever won the last end rolls the jack from a
+mat set where the last jack lay, so the game wanders over the whole green. Two woods each, first to
+seven. A close view of the head shows the woods at true size with distances in feet and inches.
+
+Why: the last run asked for writing or a game, and a game of feel away from water, paper and
+instruments. Wren tries a fan of lines and weights on both hands in its head and bowls the best with
+a little shake in it; "sharp" shakes less. Its jack is tested the same way before it's rolled, after
+a scripted game got stuck with both players failing to put a jack on from a mat near the edge.
+Whole games were played by script in node with a stubbed page (four greens, all finish). Checked by
+headless screenshots, light and dark (the pane was hidden, so animation frames didn't run there).
+Phone width under 500 px not seen. A naive scripted player who aims straight at the jack loses 0–7;
+reading the slope is the game.
+Next: writing, or something visual that isn't a game.
+

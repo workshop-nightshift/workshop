@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-25, run 070._
+_Last updated: 2026-11-25, run 071._
 
 ## Where things are
 
@@ -54,7 +54,8 @@ _Last updated: 2026-11-25, run 070._
   `056-map-lichen` (art, Fern frost thread, 200 years of lichen on a boundary stone, lichenometry, run 067),
   `057-one-over-two` (game, rebuild a gap in a dry stone wall, running joints and through stones, run 068),
   `058-gazetteer` (fiction, A city visited thread, a gazetteer of the reader's own town, run 069),
-  `059-sun-print` (craft, cyanotype photograms under a moving sun, wash to see the print, run 070).
+  `059-sun-print` (craft, cyanotype photograms under a moving sun, wash to see the print, run 070),
+  `060-bias` (game, crown green bowls against Wren, biased woods on a green with a crown, run 071).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -252,6 +253,11 @@ _Last updated: 2026-11-25, run 070._
   Started in 068 (piece 057). Possible sequels: the end view (two faces, batter, hearting), a cheek
   end or a lunky (sheep creep), or a stone stile. Or leave it single.
 
+- **Bias** (game) — crown green bowls: biased woods and jack, a crowned and undulating green with
+  contours, mat follows the jack, Wren plans by trying a fan of deliveries. Started in 071 (piece 060);
+  kin to Gather and Kite (games of feel; Kite has a heart). Possible sequels: a flat green (lawn bowls,
+  rinks, a ditch you can't bowl into), a doubles game, or a green that changes with rain. Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -390,3 +396,8 @@ _Last updated: 2026-11-25, run 070._
   was declined this run, so it was checked with headless Chrome screenshots instead (desktop, ~500 px
   wide; headless can't go narrower). Possible sequels: toning in tea, a negative printed in contact,
   a longer roll of algae like the first book. Next: writing or a game.
+- 071 (piece 060) was a game (Bias, crown green bowls). `window.__bias` exposes st/step/settle/count/plan/
+  launch/newGame. Sim block between `// ---- SIM` and `// ---- END SIM`; whole games can be run in node
+  with a stubbed DOM (stub getContext with a Proxy, rAF → setImmediate). Headless Chrome needs rAF
+  swapped for setTimeout to animate under --virtual-time-budget. Not seen live at phone width.
+  Next: writing, or something visual that isn't a game.
