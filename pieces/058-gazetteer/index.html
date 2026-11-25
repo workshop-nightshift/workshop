@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gazetteer</title>
+<style>
+:root{--water:#c9d8dc;--bg:#f3efe6;--block:#e7e0d1;--mark:#dcd1bb;--green:#cfd8bf;--fg:#1d1b18;--mute:#7a7366;--line:#d8d1c2;--street:#8a8276;--hi:#b4472b;--ref:#2f5f78}
+@media (prefers-color-scheme:dark){:root{--water:#1c2a31;--bg:#111214;--block:#1b1c1f;--mark:#26262a;--green:#1d2620;--fg:#e8e5de;--mute:#999488;--line:#2a2b2e;--street:#77726a;--hi:#e58a63;--ref:#8fc0da}}
+*{box-sizing:border-box}
+html{background:var(--bg);color:var(--fg)}
+body{margin:0;font:17px/1.55 ui-serif,Georgia,"Times New Roman",serif;background:var(--bg)}
+.wrap{display:grid;grid-template-columns:minmax(0,38em) minmax(0,1fr);gap:0 40px;max-width:1240px;margin:0 auto;padding:0 24px}
+#mapbox{position:sticky;top:0;height:100vh;padding:28px 0 64px;display:flex;flex-direction:column;grid-column:2;grid-row:1}
+#book{grid-column:1;grid-row:1;padding:36px 0 96px}
+canvas{flex:1;width:100%;min-height:0;display:block;touch-action:manipulation;border:1px solid var(--line);border-radius:3px;background:var(--bg)}
+#caption{font-size:14px;color:var(--mute);min-height:2.6em;padding-top:6px;font-style:italic}
+h1{font-weight:normal;font-size:15px;letter-spacing:.18em;text-transform:uppercase;margin:0 0 4px;color:var(--mute)}
+h2.town{font-weight:normal;font-size:40px;line-height:1.1;margin:0 0 2px;letter-spacing:.02em}
+.sub{color:var(--mute);font-style:italic;margin:0 0 18px}
+.which{font:13px/1.4 ui-monospace,Menlo,monospace;color:var(--mute);margin:0 0 22px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.which button{font:inherit;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:2px 10px;cursor:pointer}
+.which button[aria-pressed=true]{border-color:var(--fg)}
+.intro p{margin:0 0 .7em}
+.letters{display:flex;flex-wrap:wrap;gap:2px 0;margin:22px 0 8px;padding:8px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-variant:small-caps;letter-spacing:.06em}
+.letters a{color:var(--fg);text-decoration:none;padding:2px 7px;font-size:16px}
+.letters a:hover{color:var(--hi)}
+h3.letter{font-weight:normal;font-size:28px;margin:30px 0 4px;color:var(--mute)}
+.entry{margin:0 0 .85em;padding:4px 8px 4px 8px;margin-left:-8px;margin-right:-8px;border-radius:3px;scroll-margin-top:24px;transition:background .3s}
+.entry.on{background:color-mix(in srgb,var(--hi) 11%,transparent)}
+.entry .hw{font-variant:small-caps;letter-spacing:.05em;font-weight:600;cursor:pointer;font-size:18px}
+.entry .hw:hover{color:var(--hi)}
+.entry .gl{font-style:italic;color:var(--mute)}
+.entry.pending .hw{font-weight:normal}
+.entry.pending{color:var(--mute)}
+a.ref{color:var(--ref);text-decoration:none;border-bottom:1px dotted currentColor}
+a.ref:hover{color:var(--hi)}
+details{margin-top:36px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-variant:small-caps;letter-spacing:.06em;font-size:19px}
+.annals{list-style:none;padding:0;margin:12px 0 0}
+.annals li{display:grid;grid-template-columns:4.2em 1fr;gap:8px;margin:0 0 .45em}
+.annals .v{color:var(--mute);font-size:14px;padding-top:2px;font-family:ui-monospace,Menlo,monospace}
+.colophon{margin-top:36px;color:var(--mute);font-size:15px;font-style:italic;border-top:1px solid var(--line);padding-top:12px}
+.colophon a{color:var(--ref)}
+@media (max-width:860px){
+  .wrap{display:block;padding:0 16px}
+  #mapbox{position:sticky;top:0;z-index:2;height:auto;padding:8px 0 4px;background:var(--bg);border-bottom:1px solid var(--line)}
+  canvas{height:30vh;flex:none}
+  #mapbox.shut canvas{display:none}
+  #caption{min-height:0;display:flex;justify-content:space-between;gap:10px;padding-top:4px}
+  #book{padding-top:20px}
+  h2.town{font-size:32px}
+  .entry{scroll-margin-top:calc(30vh + 70px)}
+}
+#fold{display:none;font:12px/1.4 ui-monospace,Menlo,monospace;color:var(--mute);background:none;border:1px solid var(--line);border-radius:4px;padding:1px 8px;cursor:pointer;font-style:normal;flex:none;align-self:flex-start}
+@media (max-width:860px){#fold{display:inline-block}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="mapbox"><canvas id="c" aria-label="A street map of the town in the gazetteer; the entry being read is marked"></canvas><div id="caption"><span id="cap"></span><button id="fold">hide map</button></div></div>
+  <main id="book"></main>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const KEY = "nightshift-city-v2";
+// ---- seeded randomness ----
+function rng(seed) {
+  let s = seed >>> 0 || 1;
+  return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+}
+const pick = (r, a) => a[Math.floor(r() * a.length)];
+
+// ---- names ----
+const ON = ["Ash","Bram","Cal","Dun","Ell","Fen","Gar","Hol","Ivy","Kel","Lark","Mar","Nor","Ord","Pell","Quill","Ros","Sal","Tam","Ux","Vey","Wren","Yar"];
+const MID = ["","","","en","er","in","ow","ley","ing","s"];
+const END = ["ford","mere","wick","holm","by","gate","stead","combe","haven","more"];
+const SUF = ["Street","Lane","Row","Walk","Road","Way","Hill","Passage","Terrace","Steps"];
+const word = r => pick(r, ON) + pick(r, MID);
+const cityName = r => pick(r, ON) + pick(r, END);
+
+// ---- geometry ----
+function segX(ax, ay, bx, by, cx, cy, dx, dy) {
+  const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx);
+  if (Math.abs(d) < 1e-9) return null;
+  const t = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / d;
+  const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d;
+  return t > 1e-6 && t < 1 - 1e-6 && u > 1e-6 && u < 1 - 1e-6 ? { t, u } : null;
+}
+function distSeg(px, py, ax, ay, bx, by) {
+  const vx = bx - ax, vy = by - ay, l = vx * vx + vy * vy;
+  let t = l ? ((px - ax) * vx + (py - ay) * vy) / l : 0;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - ax - t * vx, py - ay - t * vy);
+}
+
+// ---- water ----
+// A river or a coast, fixed at founding. It's a wavy line in a rotated frame:
+// u runs along it, v across. The founding square at (0, 0) is always dry.
+function makeWater(r) {
+  const roll = r();
+  if (roll < 0.2) return null;
+  const kind = roll < 0.65 ? "river" : "coast";
+  const theta = r() * Math.PI, cs = Math.cos(theta), sn = Math.sin(theta);
+  const a1 = 10 + r() * 14, l1 = 60 + r() * 60, p1 = r() * 7;
+  const a2 = 3 + r() * 6, l2 = 18 + r() * 20, p2 = r() * 7;
+  const w = 14 + r() * 8;
+  const side = r() < 0.5 ? 1 : -1;
+  const c = kind === "river" ? side * (a1 + a2 + w / 2 + 10 + r() * 45) : side * (a1 + a2 + 30 + r() * 60);
+  const mid = u => c + a1 * Math.sin(u / l1 + p1) + a2 * Math.sin(u / l2 + p2);
+  const uv = (px, py) => [px * cs + py * sn, -px * sn + py * cs];
+  const xy = (u, v) => [u * cs - v * sn, u * sn + v * cs];
+  const wet = (px, py) => {
+    const [u, v] = uv(px, py), m = mid(u);
+    return kind === "river" ? Math.abs(v - m) < w / 2 : (v - m) * side > 0;
+  };
+  const n1 = word(r);
+  const wname = kind === "river" ? pick(r, ["the River " + n1, "the " + n1 + " Water", "the " + n1 + "brook"])
+                                 : pick(r, [n1 + " Bay", n1 + " Sound", "the " + n1 + " Reach"]);
+  return { kind, theta, w, side, mid, xy, wet, name: wname };
+}
+
+// ---- the city ----
+function build(seed, visits) {
+  const nodes = [{ x: 0, y: 0 }], edges = [], streets = [];
+  const nr = rng(seed * 7 + 3);
+  const name = cityName(nr);
+  const water = makeWater(nr);
+  const adj = [[]];
+  const addNode = (px, py) => { nodes.push({ x: px, y: py }); adj.push([]); return nodes.length - 1; };
+  const addEdge = (a, b, street, visit, bridge) => { edges.push({ a, b, street, visit, bridge: !!bridge }); const i = edges.length - 1; adj[a].push(i); adj[b].push(i); return i; };
+  const newStreet = r => {
+    let n, tries = 0;
+    do { n = word(r) + " " + pick(r, SUF); } while (streets.some(s => s.name === n) && tries++ < 20);
+    streets.push({ name: n }); return streets.length - 1;
+  };
+  // Split edge e at a new node k.
+  const split = (e, k) => {
+    const E = edges[e], b = E.b;
+    adj[b] = adj[b].filter(i => i !== e);
+    E.b = k; adj[k].push(e);
+    addEdge(k, b, E.street, E.visit, E.bridge);
+  };
+
+  function tryGrow(r, visit) {
+    // Prefer recent nodes with spare junction capacity.
+    const n = nodes.length;
+    let from = -1;
+    for (let t = 0; t < 8; t++) {
+      const i = Math.min(n - 1, Math.floor(n * Math.pow(r(), 0.8)));
+      if (adj[i].length < 4) { from = i; break; }
+    }
+    if (from < 0) return false;
+    const F = nodes[from];
+    let ang, street;
+    const out = adj[from];
+    if (!out.length) { ang = r() * Math.PI * 2; street = -1; }
+    else {
+      const e = edges[pick(r, out)], o = e.a === from ? nodes[e.b] : nodes[e.a];
+      const base = Math.atan2(F.y - o.y, F.x - o.x);
+      const straight = out.length === 1 && r() < 0.55;
+      if (straight) { ang = base + (r() - 0.5) * 0.35; street = e.street; }
+      else {
+        ang = base + (r() < 0.5 ? 1 : -1) * Math.PI / 2 + (r() - 0.5) * 0.25;
+        // A turn off the end of a street usually keeps its name (streets bend);
+        // a branch off the middle is always a new street.
+        street = out.length === 1 && r() < 0.6 ? e.street : -1;
+      }
+    }
+    // Name a new street only once something is actually built.
+    // A short link into an existing street either carries on a street it lines
+    // up with, or stays a passage with no name.
+    const lay = (a, b, into) => {
+      if (street < 0 && into) {
+        const dx = nodes[b].x - nodes[a].x, dy = nodes[b].y - nodes[a].y, dl = Math.hypot(dx, dy);
+        for (const i of adj[b]) {
+          const o = edges[i].a === b ? nodes[edges[i].b] : nodes[edges[i].a];
+          const ex = o.x - nodes[b].x, ey = o.y - nodes[b].y;
+          if ((dx * ex + dy * ey) / (dl * Math.hypot(ex, ey)) > 0.85 && streets[edges[i].street].name) { street = edges[i].street; break; }
+        }
+        if (street < 0) { streets.push({ name: null }); street = streets.length - 1; }
+      }
+      if (street < 0) street = newStreet(r);
+      addEdge(a, b, street, visit, bridge); return true;
+    };
+    let len = 26 + r() * 30, bridge = false;
+    let tx = F.x + Math.cos(ang) * len, ty = F.y + Math.sin(ang) * len;
+
+    // Don't leave at a too-sharp angle to an existing street from this node.
+    for (const i of out) {
+      const o = edges[i].a === from ? nodes[edges[i].b] : nodes[edges[i].a];
+      let d = Math.abs(Math.atan2(o.y - F.y, o.x - F.x) - ang) % (Math.PI * 2);
+      if (d > Math.PI) d = Math.PI * 2 - d;
+      if (d < 0.9) return false;
+    }
+    // Water: a street stops at the bank, or now and then crosses on a bridge.
+    if (water) {
+      const steps = Math.ceil(len / 2.5);
+      let first = -1, last = -1;
+      for (let k = 1; k <= steps; k++) {
+        const t = k / steps;
+        if (water.wet(F.x + (tx - F.x) * t, F.y + (ty - F.y) * t)) { if (first < 0) first = k; last = k; }
+      }
+      if (first >= 0) {
+        const across = water.kind === "river" && last < steps - 1 && r() < 0.3;
+        if (across) {
+          // Bridges go straight over, roughly square to the river.
+          let d = Math.abs(ang - water.theta - Math.PI / 2) % Math.PI;
+          if (d > Math.PI / 2) d = Math.PI - d;
+          if (d > 0.45) return false;
+          bridge = true;
+        } else {
+          const keep = (first - 1) / steps * len - 5;
+          if (keep < 14) return false;
+          len = keep;
+          tx = F.x + Math.cos(ang) * len; ty = F.y + Math.sin(ang) * len;
+        }
+      }
+    }
+    // First crossing: stop there and make a T junction.
+    let hit = null;
+    for (let i = 0; i < edges.length; i++) {
+      const E = edges[i];
+      if (E.a === from || E.b === from) continue;
+      const A = nodes[E.a], B = nodes[E.b];
+      const h = segX(F.x, F.y, tx, ty, A.x, A.y, B.x, B.y);
+      if (h && (!hit || h.t < hit.t)) hit = { ...h, e: i };
+    }
+    if (hit) {
+      if (hit.t * len < 12 || edges[hit.e].bridge || bridge) return false;
+      const E = edges[hit.e], A = nodes[E.a], B = nodes[E.b];
+      const elen = Math.hypot(B.x - A.x, B.y - A.y);
+      // Snap to an end if the crossing is near one.
+      if (hit.u * elen < 8) { if (adj[E.a].length >= 4) return false; return lay(from, E.a, true); }
+      if ((1 - hit.u) * elen < 8) { if (adj[E.b].length >= 4) return false; return lay(from, E.b, true); }
+      const k = addNode(A.x + (B.x - A.x) * hit.u, A.y + (B.y - A.y) * hit.u);
+      split(hit.e, k);
+      return lay(from, k, true);
+    }
+    // Snap to a nearby node to close loops.
+    for (let i = 0; i < nodes.length; i++) {
+      if (i === from) continue;
+      if (Math.hypot(nodes[i].x - tx, nodes[i].y - ty) < 13) {
+        if (adj[i].length >= 4 || adj[from].some(e => edges[e].a === i || edges[e].b === i)) return false;
+        return lay(from, i, true);
+      }
+    }
+    // Keep clear of other streets.
+    for (const E of edges) {
+      if (E.a === from || E.b === from) continue;
+      const A = nodes[E.a], B = nodes[E.b];
+      if (distSeg(tx, ty, A.x, A.y, B.x, B.y) < 11) return false;
+    }
+    return lay(from, addNode(tx, ty));
+  }
+
+  for (let v = 1; v <= visits; v++) {
+    const r = rng(seed + v * 2654435761);
+    const want = v === 1 ? 34 : 9 + Math.floor(r() * 7);
+    let got = 0, tries = 0;
+    while (got < want && tries++ < want * 40) if (tryGrow(r, v)) got++;
+  }
+  const city = { name, water, nodes, edges, streets };
+  city.blocks = findBlocks(city);
+  placeLandmarks(city, seed, visits);
+  return city;
+}
+
+// ---- blocks ----
+// Closed faces of the street graph. Each half-edge u→v continues out of v along
+// the next edge clockwise from v→u; following that until it returns traces one
+// face. The face with the largest area is the outside, and has the other sign.
+function inPoly(px, py, pts) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, yi] = pts[i], [xj, yj] = pts[j];
+    if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function findBlocks({ nodes, edges, water }) {
+  const out = nodes.map(() => []);
+  edges.forEach((E, i) => { out[E.a].push(2 * i); out[E.b].push(2 * i + 1); });
+  const from = h => h & 1 ? edges[h >> 1].b : edges[h >> 1].a;
+  const to = h => h & 1 ? edges[h >> 1].a : edges[h >> 1].b;
+  const ang = h => { const A = nodes[from(h)], B = nodes[to(h)]; return Math.atan2(B.y - A.y, B.x - A.x); };
+  for (const o of out) o.sort((p, q) => ang(p) - ang(q));
+  const seen = new Uint8Array(edges.length * 2), faces = [];
+  for (let h0 = 0; h0 < seen.length; h0++) {
+    if (seen[h0]) continue;
+    const pts = [];
+    let h = h0, bridge = false, guard = 0;
+    while (!seen[h] && guard++ < 5000) {
+      seen[h] = 1;
+      if (edges[h >> 1].bridge) bridge = true;
+      const v = to(h), n = nodes[v];
+      pts.push([n.x, n.y]);
+      const o = out[v], k = o.indexOf(h ^ 1);
+      h = o[(k - 1 + o.length) % o.length];
+    }
+    let a = 0;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) a += pts[j][0] * pts[i][1] - pts[i][0] * pts[j][1];
+    faces.push({ pts, area: a / 2, bridge });
+  }
+  if (!faces.length) return [];
+  const outer = faces.reduce((m, f) => Math.abs(f.area) > Math.abs(m.area) ? f : m);
+  const sgn = Math.sign(outer.area);
+  return faces.filter(f => f !== outer && Math.sign(f.area) === -sgn && Math.abs(f.area) > 150 && !f.bridge &&
+    !(water && wetInside(f, water))).map(f => {
+      let cx = 0, cy = 0;
+      for (const [px, py] of f.pts) { cx += px; cy += py; }
+      return { pts: f.pts, area: Math.abs(f.area), cx: cx / f.pts.length, cy: cy / f.pts.length, mark: null };
+    });
+}
+// A face that wraps a bit of shore isn't a block.
+function wetInside(f, water) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (const [px, py] of f.pts) { x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py); }
+  for (let i = 1; i < 8; i++) for (let j = 1; j < 8; j++) {
+    const px = x0 + (x1 - x0) * i / 8, py = y0 + (y1 - y0) * j / 8;
+    if (inPoly(px, py, f.pts) && water.wet(px, py)) return true;
+  }
+  return false;
+}
+
+// ---- landmarks ----
+// Each city has a few places fixed at founding: a seeded point and a kind. A
+// landmark appears once the streets close a block around its point, so it
+// arrives on some visit and then stays put while the city grows around it.
+function placeLandmarks(city, seed, visits) {
+  const r = rng(seed * 31 + 17);
+  const saint = pick(r, ON) + pick(r, ["a", "ia", "an", "el", "ard"]);
+  const kinds = [
+    { kind: "square", name: pick(r, ON) + pick(r, MID) + " Square" },
+    { kind: "church", name: "St " + saint + "'s" },
+    { kind: "market", name: pick(r, ["the Corn Market", "the Fish Market", "the Old Market", "the Hay Market", "the Cloth Hall"]) },
+    { kind: "school", name: pick(r, ["the Free School", "the Grammar School", "the Lyceum", "the Board School"]) },
+    { kind: "garden", name: pick(r, ["the Physic Garden", "the Bowling Green", "the Common", "the Infirmary Garden"]) },
+  ];
+  // Shuffle so different cities find different things first.
+  for (let i = kinds.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [kinds[i], kinds[j]] = [kinds[j], kinds[i]]; }
+  let rad = 15;
+  const list = [];
+  for (const L of kinds) {
+    rad += 12 + r() * 22;
+    // Places stand on dry land: try a few bearings for one that is.
+    let px = 0, py = 0;
+    for (let t = 0; t < 12; t++) {
+      const a = r() * Math.PI * 2;
+      px = Math.cos(a) * rad; py = Math.sin(a) * rad;
+      if (!city.water || !city.water.wet(px, py)) break;
+    }
+    list.push({ L, px, py });
+  }
+  // A place still unenclosed by visit 10 stops waiting: it moves to the middle
+  // of the nearest free block of the city as it was at visit 10. Growth is a
+  // prefix, so that choice is the same on every later visit and the place
+  // stays put once it arrives.
+  if (visits >= 10) {
+    const b10 = visits === 10 ? city.blocks : build(seed, 10).blocks;
+    const taken = new Set();
+    const late = list.filter(m => {
+      const b = b10.find(b => !taken.has(b) && b.area > 400 && inPoly(m.px, m.py, b.pts));
+      if (b) taken.add(b);
+      return !b;
+    });
+    for (const m of late) {
+      let best = null, bd = 1e9;
+      for (const b of b10) {
+        if (taken.has(b) || b.area <= 400 || !inPoly(b.cx, b.cy, b.pts)) continue;
+        if (list.some(o => inPoly(o.px, o.py, b.pts))) continue;
+        const d = Math.hypot(b.cx - m.px, b.cy - m.py);
+        if (d < bd) { bd = d; best = b; }
+      }
+      if (best && bd < 90) { taken.add(best); m.px = best.cx; m.py = best.cy; m.late = true; }
+    }
+  }
+  for (const { L, px, py, late } of list) {
+    const b = city.blocks.find(b => !b.mark && b.area > (late ? 200 : 400) && inPoly(px, py, b.pts));
+    if (!b) { (city.pending = city.pending || []).push(L); continue; }
+    b.mark = { ...L, px, py };
+    if (!inPoly(b.cx, b.cy, b.pts)) { b.cx = px; b.cy = py; }
+  }
+}
+
+// ---- since last visit ----
+// Growth is deterministic, so the city as it was last time is a prefix of the
+// city now: same streets at the same indices, older edges keep their visit.
+// Compare the two and say the most interesting few things, gazetteer voice.
+const COMPASS = ["east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east"];
+const compass = (dx, dy) => COMPASS[((Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) % 8) + 8) % 8];
+const cap = t => t.replace(/^the/, "The");
+function sinceNote(prev, cur, visit) {
+  const r = rng(visit * 977 + cur.nodes.length);
+  const len = E => { const A = cur.nodes[E.a], B = cur.nodes[E.b]; return Math.hypot(B.x - A.x, B.y - A.y); };
+  // Centre of the town as it was.
+  let ox = 0, oy = 0;
+  for (const n of prev.nodes) { ox += n.x; oy += n.y; }
+  ox /= prev.nodes.length; oy /= prev.nodes.length;
+  const nearWater = n => cur.water && [0, 1, 2, 3, 4, 5, 6, 7].some(k =>
+    cur.water.wet(n.x + Math.cos(k * Math.PI / 4) * 13, n.y + Math.sin(k * Math.PI / 4) * 13));
+  const shore = !cur.water ? "" : cur.water.kind === "river" ? cur.water.name : "the shore";
+  const placeNear = n => cur.blocks.find(b => b.mark && Math.hypot(b.cx - n.x, b.cy - n.y) < 30);
+
+  // New edges, grouped by street.
+  const by = new Map();
+  for (const E of cur.edges) if (E.visit === visit) {
+    if (!by.has(E.street)) by.set(E.street, []);
+    by.get(E.street).push(E);
+  }
+  const lines = [];
+  // Places that turned up.
+  const had = new Set(prev.blocks.filter(b => b.mark).map(b => b.mark.name));
+  for (const b of cur.blocks) if (b.mark && !had.has(b.mark.name)) {
+    const n = cap(b.mark.name), k = b.mark.kind;
+    lines.push({ w: 100, t: k === "square" ? `${n} has been laid out.`
+      : k === "church" ? pick(r, [`${n} has been found among the new streets.`, `${n} now has streets on every side.`])
+      : k === "market" ? `${n} has opened.`
+      : k === "school" ? `${n} has opened its doors.`
+      : pick(r, [`${n} has been walled in.`, `${n} is enclosed at last.`]) });
+  }
+  for (const [si, es] of by) {
+    const st = cur.streets[si], total = es.reduce((a, E) => a + len(E), 0);
+    // The far end of the new work: the new node farthest from the old centre.
+    let far = null, fd = -1;
+    for (const E of es) for (const k of [E.a, E.b]) {
+      const n = cur.nodes[k], d = Math.hypot(n.x - ox, n.y - oy);
+      if (k >= prev.nodes.length && d > fd) { fd = d; far = n; }
+    }
+    if (es.some(E => E.bridge) && cur.water) {
+      lines.push({ w: 90, t: st.name ? `${st.name} now crosses ${cur.water.name} on a bridge.` : `A footbridge now crosses ${cur.water.name}.` });
+      continue;
+    }
+    if (!st.name) continue;
+    const fresh = si >= prev.streets.length;
+    if (!far) {
+      // Nothing new at the end: it was a link through to an older street.
+      const ends = new Set(es.flatMap(E => [E.a, E.b]));
+      const other = cur.edges.find(E => E.street !== si && cur.streets[E.street].name && (ends.has(E.a) || ends.has(E.b)));
+      if (other) lines.push({ k: fresh ? "new" : "ext", w: 20 + total / 4, t: fresh
+        ? `${st.name} was cut through to meet ${cur.streets[other.street].name}.`
+        : `${st.name} was carried on to meet ${cur.streets[other.street].name}.` });
+      continue;
+    }
+    const lm = far && placeNear(far);
+    const where = !far ? "" : nearWater(far) ? ` toward ${shore}` : lm ? ` toward ${lm.mark.name}` : "";
+    if (fresh) {
+      const dir = far ? compass(far.x - ox, far.y - oy) : "";
+      lines.push({ k: "new", w: 40 + total / 4 + (where ? 15 : 0), t: where
+        ? pick(r, [`${st.name} was laid out${where}.`, `A new street, ${st.name}, runs${where}.`])
+        : pick(r, [`${st.name} was laid out on the ${dir} side.`, `A new street, ${st.name}, on the ${dir} side.`]) });
+    } else {
+      // Which way it went: from the old part of the street to the new.
+      let qx = 0, qy = 0, m = 0;
+      for (const E of cur.edges) if (E.street === si && E.visit < visit) { const A = cur.nodes[E.a]; qx += A.x; qy += A.y; m++; }
+      const dir = far && m ? compass(far.x - qx / m, far.y - qy / m) : "";
+      lines.push({ k: "ext", w: 30 + total / 4 + (where ? 15 : 0), t: where
+        ? pick(r, [`${st.name} was carried on${where}.`, `${st.name} has been extended${where}.`])
+        : pick(r, [`${st.name} was carried on to the ${dir}.`, `${st.name} goes further ${dir} now.`]) });
+    }
+  }
+  if (!lines.length) {
+    const any = cur.edges.some(E => E.visit === visit);
+    return any ? "A few passages have been cut between the streets." : "Nothing has changed since you were last here.";
+  }
+  lines.sort((a, b) => b.w - a.w);
+  // At most one sentence about a new street and one about an extension, unless
+  // there's nothing else to say.
+  const out = [];
+  for (const L of lines) if (out.length < 3 && !(L.k && out.some(o => o.k === L.k))) out.push(L);
+  // If only one kind of sentence survived and there's room, allow a second.
+  for (const L of lines) if (out.length < 2 && !out.includes(L)) out.push(L);
+  return out.map(o => o.t).join(" ");
+}
+// ---- GAZ ----
+// Everything here reads a built city and writes about it. Nothing here grows it.
+const YD = 4; // yards to a map unit
+const ORD = ["", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth",
+  "eleventh", "twelfth", "thirteenth", "fourteenth", "fifteenth", "sixteenth", "seventeenth", "eighteenth", "nineteenth", "twentieth"];
+const ordinal = n => ORD[n] || (n + (n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"));
+const NUM = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
+  "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+const TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+const num = n => n < 20 ? NUM[n] : n < 100 ? TENS[Math.floor(n / 10)] + (n % 10 ? "-" + NUM[n % 10] : "") : String(n);
+const up = t => t.charAt(0).toUpperCase() + t.slice(1);
+const yards = u => { const y = u * YD; return y < 100 ? Math.round(y / 5) * 5 : Math.round(y / 10) * 10; };
+const listAnd = a => a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+
+// Folk etymologies, in the compilers' own words. Some of them are guesses and say so.
+const GLOSS_ON = {
+  Ash: "the ash trees, one of which still stands in a yard behind the church hall",
+  Bram: "broom, the yellow shrub, or else bramble; the town has never settled which",
+  Cal: "cold, after a spring that ran cold all summer and is now under a grating",
+  Dun: "brown, or a hill; both will do",
+  Ell: "the ell, a measure of cloth, though some hold out for elder",
+  Fen: "wet ground, long since drained",
+  Gar: "a spear-point, or a point of land; the shape is right for either",
+  Hol: "a hollow",
+  Ivy: "the ivy, which is still there",
+  Kel: "a spring or well",
+  Lark: "the bird",
+  Mar: "a boundary",
+  Nor: "the north, though it rarely is",
+  Ord: "a point or a beginning",
+  Pell: "a pool, or else the pell-mell of a fair held there once a year",
+  Quill: "a goose-green, it is said, though no geese are recorded",
+  Ros: "a heath; the roses came later and were a council idea",
+  Sal: "the sallow, a willow",
+  Tam: "a slow river, or a man called Tam; opinion is divided along family lines",
+  Ux: "nothing anyone can agree on; it is the oldest syllable in the town",
+  Vey: "a way through, or a crossing-place",
+  Wren: "the bird, or the Wren family, carters, who would like it to be them",
+  Yar: "a fish-weir",
+};
+const GLOSS_MID = {
+  "": "",
+  en: "with -en, belonging to",
+  er: "with -er, one who lives by it",
+  in: "with -in, a small one",
+  ow: "with -ow, a low hill",
+  ley: "with -ley, a clearing",
+  ing: "with -ing, the people of the place",
+  s: "with -s, somebody's: whose has been lost",
+};
+const GLOSS_END = {
+  ford: "a ford", mere: "a lake", wick: "a dairy farm, or a trading place",
+  holm: "an islet in a river", by: "a farmstead", gate: "a road",
+  stead: "a place, a site", combe: "a valley", haven: "a harbour", more: "a moor",
+};
+function splitWord(w) {
+  const on = Object.keys(GLOSS_ON).filter(k => w.startsWith(k)).sort((a, b) => b.length - a.length)[0];
+  if (!on) return null;
+  return { on, mid: w.slice(on.length) };
+}
+// The first entry to use an element explains it; later ones point back.
+function glosser() {
+  const first = new Map();
+  return (w, where) => {
+    const s = splitWord(w);
+    if (!s) return [];
+    const m = s.mid && GLOSS_MID[s.mid] != null ? GLOSS_MID[s.mid] : "";
+    const head = s.mid ? s.on + "-" : s.on;
+    let out;
+    if (!first.has(s.on)) { first.set(s.on, where); out = [`${head}, ${GLOSS_ON[s.on]}`]; }
+    else if (first.get(s.on) === where) out = [`${head}, ${GLOSS_ON[s.on]}`];
+    else out = [`${head}, as in `, { ref: first.get(s.on).id, t: first.get(s.on).t.replace(/^The /, "the ") }];
+    if (m) out.push("; " + m);
+    return out;
+  };
+}
+
+// What each kind of street is like. Each line is used once at most.
+const KIND = {
+  Street: [
+    "Shops on both sides, and a clock over the ironmonger's that is kept five minutes fast.",
+    "Wide enough for two carts to pass, which was once the whole test of a street.",
+    "Paved before most; the setts by the kerb are worn hollow.",
+    "Houses of three storeys, the ground floors let as shops and the shops let and let again.",
+    "A street of lodging-houses, each with a card in the front window.",
+    "The post office is here, and a public house that has changed its name four times.",
+    "Market carts stand along it on the second Tuesday, whether or not there is a market.",
+  ],
+  Lane: [
+    "Narrow, and darker than its width would suggest.",
+    "Hedged once; one length of hawthorn survives behind the end house.",
+    "Too narrow for a cart and a pram together; the pram waits.",
+    "Cottages on one side, garden walls on the other.",
+    "Unpaved at the far end, and puddled there most of the year.",
+    "Used as a short cut by everyone and lived in by few.",
+  ],
+  Row: [
+    "A single terrace built at one go, every door the same until somebody painted theirs.",
+    "Houses on one side only, facing a long wall.",
+    "Cottages and a pump; the pump is dry and kept painted.",
+    "Built for the hands at a mill that has gone; the row stayed.",
+    "Every step in it is scrubbed white, by an agreement nobody remembers making.",
+  ],
+  Walk: [
+    "Laid out for strolling, with a bench every hundred yards; three of the benches remain.",
+    "Lime trees down one side, planted the year it was named.",
+    "Closed to carts by a pair of posts at either end.",
+    "Where the town walks on a Sunday afternoon, slowly, in both directions.",
+    "Gravelled, and raked on Saturdays by a man who is not paid to.",
+  ],
+  Road: [
+    "Built to take the carrier's wagons, and still the way out of town.",
+    "Wider than anything else near it, and emptier.",
+    "A milestone at its side gives the distance to a place the road no longer reaches.",
+    "A bus comes along it once a day; the shelter has a bench and a timetable under glass.",
+    "Villas set back behind front gardens, each with a name on the gatepost.",
+  ],
+  Way: [
+    "Named by the council, who wanted something modern.",
+    "Keeps exactly to the line of an older footpath, kinks and all.",
+    "Bay-windowed houses, all put up in a single summer.",
+    "Planned as a grand approach and finished as an ordinary street.",
+  ],
+  Hill: [
+    "Steep; there is a handrail for the last forty yards.",
+    "Carters used to take on a second horse at the bottom.",
+    "Not much of a hill, but the town is fond of it.",
+    "Children sledge down it the one week in the year it snows.",
+    "From the top you can see most of the town and, on a clear day, the next one.",
+  ],
+  Passage: [
+    "Barely shoulder-width in places, and lit by one lamp.",
+    "Runs between the backs of houses; washing lines cross it overhead.",
+    "A right of way, though the owners of both walls have disputed it.",
+    "Smells of the bakery at four in the morning.",
+    "Cobbled, with a gutter down the middle.",
+  ],
+  Terrace: [
+    "Raised a few steps above the road, behind railings.",
+    "Tall narrow houses with fanlights over the doors; two doctors and a dentist.",
+    "Built as a speculation and slow to let; finished at last in brick of three colours.",
+    "The houses all face the same way, which is the point of a terrace.",
+  ],
+  Steps: [
+    "Partly steps and partly a slope, depending on which end you start from.",
+    "Forty-one steps, counted differently by everyone.",
+    "Too steep for anything with wheels; a handcart is kept at the bottom for coal.",
+    "A ledge halfway with a seat let into the wall.",
+  ],
+};
+// For any street, when its own kind has run out of things to say.
+const PLAIN = [
+  "Houses, mostly.",
+  "Unremarkable, which the people who live in it prefer.",
+  "A doctor's plate on one door and a piano teacher's on another.",
+  "Quiet after six.",
+  "Nothing in particular is recorded of it.",
+  "The lamps are gas still, and lit by hand.",
+  "A cat sits on the third wall along most afternoons and has been taken for the same cat for years.",
+  "It floods at one corner in heavy rain and has done since it was made.",
+  "Its name board is spelt wrong at one end and right at the other.",
+  "There is a chapel here, small, of a denomination now down to eleven.",
+  "Mostly let to lodgers; the turnover is high.",
+  "The houses have no front gardens but every sill has a box.",
+  "A carpenter's yard halfway along, and the sound of it.",
+  "Children play cricket in it against a lamp post.",
+  "Its two ends were built by different builders and do not quite match.",
+];
+const NEWEST = [
+  "The newest street in the town; the name boards are still bright.",
+  "So new the gutters have not yet been laid.",
+  "Still being built; half the plots have only their footings.",
+];
+const DEADEND = [
+  "It stops short at a field gate.",
+  "It ends in a turning-space where nothing turns.",
+  "It ends at a wall with a door in it, always locked.",
+  "It goes nowhere in particular and stops there.",
+];
+const BANK = {
+  river: [
+    "At the water end there are steps down to {w}, worn green.",
+    "There is a slipway at its foot, and a boat on it that has not moved in years.",
+    "At its foot is a landing-stage on {w}, used by nobody now but boys fishing.",
+  ],
+  coast: [
+    "At its foot are steps over the sea wall onto the shingle.",
+    "The last house before the shore keeps a lamp in the window, for no reason it will give.",
+    "Its lower end smells of weed, and in a south-westerly the spray reaches the third house.",
+  ],
+};
+const BRIDGE = [
+  "It crosses {w} on a bridge of three arches, built {v}.",
+  "It goes over {w} on an iron bridge, put up {v} and painted green.",
+  "It crosses {w} by a narrow stone bridge, made {v}, with a recess on each side to stand in.",
+];
+const AT = {
+  church: ["{p} stands at its corner.", "The bells of {p} are loudest here."],
+  square: ["It opens on one side into {p}.", "{p} is a step away."],
+  market: ["{p} has its back to it; the carts unload here.", "On market day it is full of {p}'s overflow."],
+  school: ["The children of {p} use it twice a day, loudly.", "{p} faces onto it."],
+  garden: ["The wall of {p} runs along it.", "It looks over {p}."],
+};
+
+// The places, each of which the town has only one of.
+const PLACE = {
+  "the Corn Market": "A covered hall on iron columns. Corn is not sold here now; everything else is, on Tuesdays.",
+  "the Fish Market": "Open stalls under a slate roof. Washed down every afternoon at four, so the cobbles shine.",
+  "the Old Market": "There was never a new one. The cross in the middle has lost its head.",
+  "the Hay Market": "An open yard with a weighbridge. Hay is still weighed here in a good summer.",
+  "the Cloth Hall": "A long hall with a gallery, built when the town made cloth. It is let for dances.",
+  "the Free School": "Founded by a bequest whose terms are painted on a board inside the door and read by nobody.",
+  "the Grammar School": "Its old boys have a dinner once a year and complain about the food, which is the same.",
+  "the Lyceum": "A school with a Greek name and a bell tower. The bell is rung for the start of the day and, by accident, at other times.",
+  "the Board School": "Red brick, high windows set too high to see out of, and a playground divided down the middle by a wall.",
+  "the Physic Garden": "Beds of herbs in rows, each with an iron label. The labels have been swapped round by boys more than once.",
+  "the Bowling Green": "Kept flatter than anything else in the town. A small hut, a roller, and a rule against heels.",
+  "the Common": "Rough grass with rights over it that nobody has used in living memory and everybody would defend.",
+  "the Infirmary Garden": "Where patients sat when there was an infirmary. Now the benches are used by people waiting for the bus.",
+};
+const SAINT = [
+  "of whom it is said only that she drove the frogs out of a well",
+  "a hermit who lived on the river in a boat with a roof",
+  "who is said to have walked here from the coast carrying a bell",
+  "patron of people who mend nets, and of nobody else",
+  "of whom nothing is known but a feast day in March",
+  "whose bones were sent for once and never came",
+];
+const SQUARE = [
+  "Laid out as a square and never quite square. A pump in the middle, and plane trees.",
+  "A square with railings round a lawn the public may look at but not walk on.",
+  "Paved, with a horse trough the council keeps meaning to move.",
+  "The fair stands here in September. The rest of the year it is used for turning carts.",
+];
+
+function hashStr(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+
+// A drawer of lines: each line is used once at most, in an order fixed by the seed.
+function drawer(pool, seed) {
+  const order = pool.map((_, i) => i), r = rng(seed);
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  let k = 0;
+  return () => k < order.length ? pool[order[k++]] : null;
+}
+
+function gazetteer(city, visits, seed, own) {
+  const { nodes, edges, streets, water, blocks } = city;
+  const your = own ? "your" : "the";
+  const vis = v => v === 1 ? (own ? "on the day you founded it" : "on the founding day") : `on ${your} ${ordinal(v)} visit`;
+  const adj = nodes.map(() => []);
+  edges.forEach((E, i) => { adj[E.a].push(i); adj[E.b].push(i); });
+  const len = E => Math.hypot(nodes[E.b].x - nodes[E.a].x, nodes[E.b].y - nodes[E.a].y);
+  const nearWater = n => water && [0, 1, 2, 3, 4, 5, 6, 7].some(k =>
+    water.wet(n.x + Math.cos(k * Math.PI / 4) * 13, n.y + Math.sin(k * Math.PI / 4) * 13));
+  const wname = water ? water.name : "";
+  // Blocks with places: which nodes are on their edge.
+  const nodeAt = new Map(nodes.map((n, i) => [n.x.toFixed(3) + "," + n.y.toFixed(3), i]));
+  const places = blocks.filter(b => b.mark).map(b => {
+    const ns = new Set(b.pts.map(([px, py]) => nodeAt.get(px.toFixed(3) + "," + py.toFixed(3))).filter(i => i != null));
+    const sts = new Set();
+    for (const E of edges) if (ns.has(E.a) && ns.has(E.b) && streets[E.street].name) sts.add(E.street);
+    return { b, ns, sts: [...sts] };
+  });
+  // When each place first turned up: the first visit whose city has it.
+  const placeVisit = new Map();
+  if (places.length) {
+    for (let v = 1; v <= visits && placeVisit.size < places.length; v++) {
+      const cv = v === visits ? city : build(seed, v);
+      for (const b of cv.blocks) if (b.mark && !placeVisit.has(b.mark.name)) placeVisit.set(b.mark.name, v);
+    }
+  }
+  const id = s => "e-" + s.toLowerCase().replace(/^the /, "").replace(/[^a-z]+/g, "-");
+  const ref = (name, kindOf) => ({ ref: id(name), t: name });
+
+  const kindDrawers = {}, sd = seed >>> 0;
+  for (const k in KIND) kindDrawers[k] = drawer(KIND[k], sd + hashStr(k));
+  const plain = drawer(PLAIN, sd + 7), newest = drawer(NEWEST, sd + 11), dead = drawer(DEADEND, sd + 13);
+  const bank = water ? drawer(BANK[water.kind], sd + 17) : null, bridge = drawer(BRIDGE, sd + 19);
+  const atDr = {};
+  for (const k in AT) atDr[k] = drawer(AT[k], sd + hashStr(k) + 23);
+
+  // Centre of the founding streets, for "out" and "in".
+  const entries = [];
+  const by = new Map();
+  edges.forEach((E, i) => { if (!by.has(E.street)) by.set(E.street, []); by.get(E.street).push(i); });
+  let lastVisitNew = 0;
+  for (const [si, es] of by) if (streets[si].name) lastVisitNew = Math.max(lastVisitNew, Math.min(...es.map(e => edges[e].visit)));
+  const placeOfNode = new Map();
+  for (const P of places) for (const n of P.ns) if (!placeOfNode.has(n)) placeOfNode.set(n, P);
+
+  for (const [si, es] of [...by].sort((a, b) => a[0] - b[0])) {
+    const st = streets[si];
+    if (!st.name) continue;
+    const deg = new Map();
+    for (const e of es) for (const k of [edges[e].a, edges[e].b]) deg.set(k, (deg.get(k) || 0) + 1);
+    const ends = [...deg].filter(([, d]) => d === 1).map(([k]) => k);
+    const total = es.reduce((a, e) => a + len(edges[e]), 0);
+    const vs = [...new Set(es.map(e => edges[e].visit))].sort((a, b) => a - b);
+    const suffix = st.name.split(" ").pop(), word = st.name.split(" ")[0];
+    const body = [];
+    // What is at an end.
+    const endIs = n => {
+      const others = adj[n].filter(e => edges[e].street !== si);
+      const named = [...new Set(others.map(e => edges[e].street))].filter(s => streets[s].name);
+      if (named.length) return { kind: "street", parts: [ref(streets[named[0]].name)], s: named[0] };
+      if (others.length) return { kind: "passage", parts: ["a passage"] };
+      if (water && nearWater(nodes[n])) return { kind: "bank", parts: [water.kind === "river" ? "the bank of " : "the shore", ...(water.kind === "river" ? [ref(wname)] : [])] };
+      return { kind: "dead", parts: ["a dead end"] };
+    };
+    let course = [], endKinds = [];
+    if (ends.length === 2) {
+      let [a, b] = ends;
+      if (Math.hypot(nodes[a].x, nodes[a].y) > Math.hypot(nodes[b].x, nodes[b].y)) [a, b] = [b, a];
+      let A = endIs(a), B = endIs(b);
+      // Read from something toward nothing, rather than the other way.
+      if ((A.kind === "dead" || A.kind === "passage") && B.kind !== "dead" && B.kind !== "passage") { [a, b] = [b, a]; [A, B] = [B, A]; }
+      endKinds = [A, B];
+      const straight = Math.hypot(nodes[b].x - nodes[a].x, nodes[b].y - nodes[a].y) / total;
+      const shape = straight > 0.97 ? ", straight" : straight > 0.85 ? ", bending a little" : ", winding";
+      const dir = compass(nodes[b].x - nodes[a].x, nodes[b].y - nodes[a].y);
+      course = A.kind === "street" && B.kind === "street" && A.s === B.s
+        ? ["Leaves ", ...A.parts, ` and comes back to it, ${yards(total)} yards round${shape === ", winding" ? " and winding" : ""}.`]
+        : [`Runs ${dir} from `, ...A.parts, " to ", ...B.parts, `, ${yards(total)} yards${shape}.`];
+    } else if (ends.length > 2) {
+      const E = ends.map(endIs);
+      endKinds = E;
+      const parts = [];
+      E.slice(0, 4).forEach((x, i) => { if (i) parts.push(i === Math.min(E.length, 4) - 1 ? " and " : ", "); parts.push(...x.parts); });
+      course = [`A street with ${num(ends.length - 1 > 3 ? 3 : ends.length - 1)} branch${ends.length - 1 === 1 ? "" : "es"}, ${yards(total)} yards in all; its ends are at `, ...parts, "."];
+    } else {
+      course = [`Goes round in a loop, ${yards(total)} yards, and comes back where it started.`];
+    }
+    body.push(course);
+    // History.
+    const later = vs.slice(1).map(v => ordinal(v));
+    body.push([`Laid out ${vis(vs[0])}` + (!later.length ? "" : later.length > 3
+      ? `, and lengthened on ${num(later.length)} visits since, most recently ${own ? "your" : "the"} ${later[later.length - 1]}`
+      : `, and lengthened on ${your} ${listAnd(later)} visit${later.length > 1 ? "s" : ""}`) + "."]);
+    // One thing about it, chosen from what applies.
+    const said = [];
+    const hasBridge = es.some(e => edges[e].bridge);
+    if (hasBridge && water) {
+      const v = edges[es.find(e => edges[e].bridge)].visit, t = bridge();
+      if (t) said.push(t.replace("{w}", "\u0001").replace("{v}", vis(v)));
+    }
+    if (!said.length && vs[0] === visits && visits > 1) { const t = newest(); if (t) said.push(t); }
+    if (!said.length && endKinds.some(k => k.kind === "bank") && bank) { const t = bank(); if (t) said.push(t.replace("{w}", "\u0001")); }
+    if (!said.length) {
+      const P = [...deg.keys()].map(k => placeOfNode.get(k)).find(p => p && p.sts.includes(si));
+      if (P && (hashStr(st.name) & 1)) { const t = atDr[P.b.mark.kind](); if (t) said.push(t.replace("{p}", "\u0002")); var atPlace = P; }
+    }
+    if (!said.length && endKinds.some(k => k.kind === "dead") && (hashStr(st.name) % 3 === 0)) { const t = dead(); if (t) said.push(t); }
+    if (!said.length) { const t = (kindDrawers[suffix] && kindDrawers[suffix]()) || plain(); if (t) said.push(t); }
+    for (const t of said) {
+      const parts = [];
+      for (const bit of t.split(/(\u0001|\u0002)/)) {
+        if (bit === "\u0001") parts.push(ref(wname));
+        else if (bit === "\u0002") parts.push(ref(atPlace.b.mark.name));
+        else if (bit) parts.push(bit);
+      }
+      if (parts[0] && parts[0].ref) parts[0] = { ...parts[0], t: cap(parts[0].t) };
+      body.push(parts);
+    }
+    // Who it meets, other than at its ends.
+    const endSet = new Set(endKinds.filter(k => k.kind === "street").map(k => k.s));
+    const meets = new Set();
+    for (const k of deg.keys()) for (const e of adj[k]) {
+      const s2 = edges[e].street;
+      if (s2 !== si && streets[s2].name && !endSet.has(s2)) meets.add(s2);
+    }
+    if (meets.size) {
+      const ms = [...meets].map(s => streets[s].name).sort();
+      const parts = ["Meets "];
+      ms.forEach((m, i) => { if (i) parts.push(i === ms.length - 1 ? " and " : ", "); parts.push(ref(m)); });
+      parts.push(" on the way.");
+      body.push(parts);
+    }
+    entries.push({ id: id(st.name), head: st.name, sort: st.name, word, body, street: si });
+  }
+
+  // Places.
+  const squareDr = drawer(SQUARE, sd + 29), saintDr = drawer(SAINT, sd + 31);
+  for (const P of places) {
+    const m = P.b.mark, v = placeVisit.get(m.name) || visits;
+    const body = [];
+    let gloss = "";
+    if (m.kind === "church") {
+      const saint = m.name.replace(/^St /, "").replace(/'s$/, "");
+      gloss = `the church of St ${saint}, ${saintDr() || "of whom little is known"}`;
+      body.push(["A church in its own yard, with a squat tower and a clock that strikes the hours twice, a minute apart."]);
+    } else if (m.kind === "square") {
+      const w = m.name.replace(/ Square$/, "");
+      var sqWord = w;
+      body.push([squareDr() || "A square."]);
+    } else body.push([PLACE[m.name] || ""]);
+    const sts = P.sts.map(s => streets[s].name).sort();
+    if (sts.length) {
+      const parts = [sts.length > 1 ? "Bounded by " : "On "];
+      sts.forEach((s, i) => { if (i) parts.push(i === sts.length - 1 ? " and " : ", "); parts.push(ref(s)); });
+      parts.push(".");
+      body.push(parts);
+    }
+    body.push([v === 1 ? `There ${vis(1)}.` : `Found ${vis(v)}, when the streets closed round it.`]);
+    entries.push({ id: id(m.name), head: cap(m.name), sort: m.name.replace(/^the /, ""), gloss: gloss ? [gloss] : null, word: m.kind === "square" ? sqWord : null, body, place: P.b });
+  }
+  // Places the town is known to have that nobody has found yet.
+  for (const L of city.pending || []) {
+    const n = cap(L.name);
+    entries.push({ id: id(L.name), head: n, sort: L.name.replace(/^the /, ""), gloss: "", pending: true, body: [[
+      L.kind === "church" ? "Spoken of, and its bell heard on still nights, but not yet found. The streets have not closed round it."
+      : L.kind === "square" ? "A square that is said to be here. The streets have not yet closed round the space for it."
+      : L.kind === "market" ? "Mentioned in old deeds. Its site is somewhere the streets have not yet reached."
+      : L.kind === "school" ? "Founded on paper. It waits for streets on every side before it can open."
+      : "Its ground is staked out somewhere past the last houses, waiting to be walled in."]] });
+  }
+  // The water.
+  if (water) {
+    const crossings = edges.filter(E => E.bridge).length;
+    const nm = wname.replace(/^the /, "");
+    const w = nm.replace(/^River /, "").replace(/ Water$/, "").replace(/brook$/, "");
+    const body = [[water.kind === "river"
+      ? `The river the town stands on. ${crossings ? `Crossed by ${num(crossings)} bridge${crossings > 1 ? "s" : ""}.` : "Not yet bridged; the far bank is fields."}`
+      : "The sea, or the part of it the town looks at. The shore is shingle, with a sea wall built after the third bad winter."]];
+    if (water.kind === "river") body.push(["Brown after rain, clear in August, and fished for eels by the same three men."]);
+    entries.push({ id: id(wname), head: cap(wname), sort: nm, word: w, body, water: true });
+  }
+  // The unnamed links.
+  const nameless = streets.filter((s, i) => !s.name && by.has(i)).length;
+  if (nameless) entries.push({ id: "e-passages", head: "Passages, unnamed", sort: "Passages, unnamed", gloss: "", body: [[
+    `${up(num(nameless))} short links between streets that were never given a name. Locally each is known by whatever is at one end of it, which changes.`]] });
+
+  entries.sort((a, b) => a.sort.localeCompare(b.sort));
+  const gl = glosser();
+  for (const e of entries) if (!e.gloss) e.gloss = e.word ? gl(e.word, { id: e.id, t: e.head }) : [];
+
+  // The town itself.
+  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+  for (const n of nodes) { minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); }
+  const wide = maxX - minX > maxY - minY;
+  const nStreets = streets.filter((s, i) => s.name && by.has(i)).length;
+  const cs = splitWord(city.name), end = city.name.slice(cs ? cs.on.length : 0);
+  const intro = {
+    head: city.name,
+    gloss: cs ? `${cs.on}-, ${GLOSS_ON[cs.on]}; with -${end}, ${GLOSS_END[end] || "a place"}` : "",
+    body: [
+      [`${nStreets < 40 ? "A small town" : "A town"}${water ? (water.kind === "river" ? " on " : " by ") : ""}`, ...(water ? (water.kind === "river" ? [ref(wname)] : ["the sea"]) : []), `, ${yards(Math.max(maxX - minX, maxY - minY))} yards from end to end, longer ${wide ? "east to west" : "north to south"}.`],
+      [`${up(num(nStreets))} named streets${nameless ? `, ${num(nameless)} passages with no name` : ""}${places.length ? `, and ${listAnd(places.map(P => cap(P.b.mark.name).replace(/^The/, "the")))}` : ""}.`],
+      [own ? (visits === 1 ? "Founded today, on your first visit. It has had no time to grow." : `Founded on your first visit, and grown on each of the ${num(visits - 1)} since.`)
+        : `This is a specimen, as it stood on its ${ordinal(visits)} visit.`],
+    ],
+  };
+  return { intro, entries };
+}
+
+// What changed on each visit, as the city told you at the time.
+function annals(seed, visits) {
+  const out = [{ v: 1, t: "Founded." }];
+  let prev = build(seed, 1);
+  for (let v = 2; v <= visits; v++) {
+    const cur = build(seed, v);
+    out.push({ v, t: sinceNote(prev, cur, v) });
+    prev = cur;
+  }
+  return out;
+}
+// ---- END GAZ ----
+
+// ---- the page ----
+// The city is read, never grown: only visiting A city, visited grows it.
+const SPECIMEN = { seed: 12345, visits: 7 };
+let mine = null;
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.seed && s.visits >= 1) mine = { seed: s.seed >>> 0, visits: s.visits | 0 }; } catch {}
+let useOwn = !!mine;
+let city, G, sel = null, view = null;
+const c = $("c"), x = c.getContext("2d");
+
+const esc = t => String(t).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+const html = parts => parts.map(p => typeof p === "string" ? esc(p) : `<a class="ref" href="#${p.ref}" data-ref="${p.ref}">${esc(p.t)}</a>`).join("");
+
+function render() {
+  const S = useOwn ? mine : SPECIMEN;
+  city = build(S.seed, S.visits);
+  G = gazetteer(city, S.visits, S.seed, useOwn);
+  const byId = new Map(G.entries.map(e => [e.id, e]));
+  G.byId = byId;
+  const letters = [];
+  let out = `<h1>A gazetteer of</h1><h2 class="town">${esc(city.name)}</h2>`;
+  out += `<p class="sub">${G.intro.gloss ? "(" + esc(G.intro.gloss) + ")" : ""}</p>`;
+  if (mine) out += `<div class="which"><span>reading:</span><button data-own="1" aria-pressed="${useOwn}">your city</button><button data-own="0" aria-pressed="${!useOwn}">a specimen</button></div>`;
+  else out += `<div class="which"><span>No city of yours was found in this browser, so this is a specimen. Found one in <a class="ref" href="../009-a-city-visited/">A city, visited</a> and this book will be of yours.</span></div>`;
+  out += `<div class="intro">${G.intro.body.map(b => `<p>${html(b)}</p>`).join("")}</div>`;
+  const by = new Map();
+  for (const e of G.entries) {
+    const L = e.sort.replace(/^St /, "S").charAt(0).toUpperCase();
+    if (!by.has(L)) by.set(L, []);
+    by.get(L).push(e);
+  }
+  out += `<nav class="letters" aria-label="Letters">${[...by.keys()].map(L => `<a href="#L-${L}">${L}</a>`).join("")}</nav>`;
+  for (const [L, es] of by) {
+    out += `<h3 class="letter" id="L-${L}">${L}</h3>`;
+    for (const e of es) {
+      out += `<p class="entry${e.pending ? " pending" : ""}" id="${e.id}"><span class="hw" data-sel="${e.id}">${esc(e.head)}</span>`;
+      if (e.gloss && e.gloss.length) out += ` <span class="gl">(${html(e.gloss)})</span>`;
+      out += ". " + e.body.map(html).join(" ") + "</p>";
+    }
+  }
+  const A = annals(S.seed, S.visits);
+  out += `<details><summary>Annals, visit by visit</summary><ol class="annals">${A.map(a => `<li><span class="v">${useOwn ? "visit" : "visit"} ${a.v}</span><span>${esc(a.t)}</span></li>`).join("")}</ol></details>`;
+  out += `<p class="colophon">Compiled by walking the streets of <a href="../009-a-city-visited/">A city, visited</a>${useOwn ? ", as it stood after your " + ordinal(S.visits) + " visit" : ""}. Reading this book does not grow the town; only going back does, and then this book will be longer.</p>`;
+  $("book").innerHTML = out;
+  sel = null;
+  $("cap").textContent = useOwn ? `${city.name}, after ${num(S.visits)} visit${S.visits > 1 ? "s" : ""}. Tap a street.` : `${city.name}, a specimen. Tap a street.`;
+  draw();
+}
+
+// ---- the map ----
+function colors() { const s = getComputedStyle(document.documentElement); return k => s.getPropertyValue(k).trim(); }
+function draw() {
+  const dpr = devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+  if (!W || !H) return;
+  c.width = W * dpr; c.height = H * dpr;
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const col = colors();
+  x.fillStyle = col("--bg"); x.fillRect(0, 0, W, H);
+  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+  for (const n of city.nodes) { minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); }
+  const pad = 14, sc = Math.min((W - pad * 2) / Math.max(maxX - minX, 120), (H - pad * 2) / Math.max(maxY - minY, 120), 3);
+  const ox = W / 2 - (minX + maxX) / 2 * sc, oy = H / 2 - (minY + maxY) / 2 * sc;
+  view = { sc, ox, oy };
+  const P = n => [n.x * sc + ox, n.y * sc + oy];
+  const lw = Math.max(1, Math.min(2.6, sc * 1.3));
+  const e = sel && G.byId.get(sel);
+  const Wt = city.water;
+  x.lineCap = "round"; x.lineJoin = "round";
+  if (Wt) {
+    const span = Math.hypot(W, H) / sc + Math.hypot(minX + maxX, minY + maxY);
+    const cu = ((minX + maxX) / 2) * Math.cos(Wt.theta) + ((minY + maxY) / 2) * Math.sin(Wt.theta);
+    x.beginPath();
+    let i = 0;
+    for (let u = cu - span; u <= cu + span; u += 3) { const [wx, wy] = Wt.xy(u, Wt.mid(u)); i++ ? x.lineTo(wx * sc + ox, wy * sc + oy) : x.moveTo(wx * sc + ox, wy * sc + oy); }
+    const wcol = e && e.water ? col("--hi") : col("--water");
+    if (Wt.kind === "river") { x.strokeStyle = wcol; x.globalAlpha = e && e.water ? 0.45 : 1; x.lineWidth = Wt.w * sc; x.stroke(); }
+    else {
+      for (const [u, v] of [[cu + span, Wt.mid(cu + span) + Wt.side * span * 2], [cu - span, Wt.mid(cu - span) + Wt.side * span * 2]]) { const [wx, wy] = Wt.xy(u, v); x.lineTo(wx * sc + ox, wy * sc + oy); }
+      x.closePath(); x.fillStyle = wcol; x.globalAlpha = e && e.water ? 0.45 : 1; x.fill();
+    }
+    x.globalAlpha = 1;
+    x.strokeStyle = col("--bg"); x.lineWidth = lw + 5; x.lineCap = "butt";
+    for (const E of city.edges) if (E.bridge) { const [ax, ay] = P(city.nodes[E.a]), [bx, by] = P(city.nodes[E.b]); x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke(); }
+    x.lineCap = "round";
+  }
+  const gap = Math.max(2, sc * 2.2);
+  for (const b of city.blocks) {
+    x.beginPath();
+    b.pts.forEach((p, i) => { const [qx, qy] = P({ x: p[0], y: p[1] }); i ? x.lineTo(qx, qy) : x.moveTo(qx, qy); });
+    x.closePath();
+    const m = b.mark;
+    x.fillStyle = !m ? col("--block") : m.kind === "garden" ? col("--green") : col("--mark");
+    x.fill();
+    if (e && e.place === b) { x.globalAlpha = 0.5; x.fillStyle = col("--hi"); x.fill(); x.globalAlpha = 1; }
+    x.strokeStyle = col("--bg"); x.lineWidth = lw + gap * 2; x.stroke();
+  }
+  // Streets: all in a quiet line; the one being read, and the ones its entry names, picked out.
+  const named = new Set();
+  if (e) for (const part of e.body.flat()) if (part.ref) { const o = G.byId.get(part.ref); if (o && o.street != null) named.add(o.street); }
+  for (const pass of [0, 1, 2]) for (const E of city.edges) {
+    const me = e && E.street === e.street, near = !me && named.has(E.street);
+    if ((pass === 0 && (me || near)) || (pass === 1 && !near) || (pass === 2 && !me)) continue;
+    const [ax, ay] = P(city.nodes[E.a]), [bx, by] = P(city.nodes[E.b]);
+    x.strokeStyle = me ? col("--hi") : near ? col("--ref") : col("--street");
+    x.lineWidth = me ? lw + 2 : lw;
+    x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke();
+  }
+  // Marks for places, as on the map they came from.
+  x.strokeStyle = x.fillStyle = col("--mute"); x.lineWidth = 1.4;
+  const s = Math.max(5, Math.min(9, sc * 4));
+  for (const b of city.blocks) if (b.mark) {
+    const [cx, cy] = P({ x: b.cx, y: b.cy }), k = b.mark.kind;
+    x.beginPath();
+    if (k === "church") { x.moveTo(cx, cy - s); x.lineTo(cx, cy + s); x.moveTo(cx - s * 0.6, cy - s * 0.35); x.lineTo(cx + s * 0.6, cy - s * 0.35); x.stroke(); }
+    else if (k === "market") { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 0; j++) x.rect(cx + i * s * 0.7 - s * 0.25, cy + j * s * 0.7, s * 0.5, s * 0.5); x.fill(); }
+    else if (k === "school") { x.moveTo(cx - s * 0.7, cy + s * 0.5); x.lineTo(cx, cy - s * 0.4); x.lineTo(cx + s * 0.7, cy + s * 0.5); x.closePath(); x.moveTo(cx, cy - s * 0.4); x.lineTo(cx, cy - s); x.stroke(); }
+    else if (k === "square") { x.setLineDash([2, 3]); x.arc(cx, cy, s * 0.8, 0, Math.PI * 2); x.stroke(); x.setLineDash([]); }
+    else { for (const [dx, dy] of [[-0.6, 0.2], [0.5, -0.3], [0.1, 0.6], [-0.1, -0.6]]) { x.moveTo(cx + dx * s + s * 0.22, cy + dy * s); x.arc(cx + dx * s, cy + dy * s, s * 0.22, 0, Math.PI * 2); } x.fill(); }
+  }
+}
+
+function select(id, scroll) {
+  const prev = sel && document.getElementById(sel);
+  if (prev) prev.classList.remove("on");
+  sel = id;
+  const el = id && document.getElementById(id), e = id && G.byId.get(id);
+  if (el) { el.classList.add("on"); if (scroll) el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); }
+  if (e) $("cap").textContent = e.pending ? `${e.head}: not on the map yet.` : e.head;
+  draw();
+}
+
+$("book").addEventListener("click", ev => {
+  const own = ev.target.closest("[data-own]");
+  if (own) { useOwn = own.dataset.own === "1"; render(); scrollTo(0, 0); return; }
+  const r = ev.target.closest("a.ref[data-ref]");
+  if (r) { ev.preventDefault(); select(r.dataset.ref, true); return; }
+  const h = ev.target.closest("[data-sel]");
+  if (h) { select(sel === h.dataset.sel ? null : h.dataset.sel, false); return; }
+  const L = ev.target.closest(".letters a");
+  if (L) { ev.preventDefault(); document.getElementById(L.getAttribute("href").slice(1)).scrollIntoView({ block: "start" }); }
+});
+
+c.addEventListener("click", ev => {
+  const rct = c.getBoundingClientRect(), px = ev.clientX - rct.left, py = ev.clientY - rct.top;
+  let best = -1, bd = 14;
+  for (const E of city.edges) {
+    if (!city.streets[E.street].name) continue;
+    const A = city.nodes[E.a], B = city.nodes[E.b];
+    const d = distSeg(px, py, A.x * view.sc + view.ox, A.y * view.sc + view.oy, B.x * view.sc + view.ox, B.y * view.sc + view.oy);
+    if (d < bd) { bd = d; best = E.street; }
+  }
+  const wx = (px - view.ox) / view.sc, wy = (py - view.oy) / view.sc;
+  let id = null;
+  if (best >= 0) id = G.entries.find(e => e.street === best).id;
+  else {
+    const b = city.blocks.find(b => b.mark && inPoly(wx, wy, b.pts));
+    if (b) id = G.entries.find(e => e.place === b).id;
+    else if (city.water && city.water.wet(wx, wy)) id = (G.entries.find(e => e.water) || {}).id;
+  }
+  if (id) select(id, true);
+});
+
+$("fold").onclick = () => { const shut = $("mapbox").classList.toggle("shut"); $("fold").textContent = shut ? "show map" : "hide map"; if (!shut) draw(); };
+addEventListener("resize", draw);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", draw);
+render();
+window.__gaz = { get city() { return city; }, get G() { return G; }, select, render };
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Cellular automata where the rules drift a little every generation — done in 004; 1-D scroll in 017; two scrolls one cell apart in 047 (Twins).
 - "Letters to the next run" — done in 005 as a watch-house drawer. Sequel done in 010 as the boat's log. The old brown letters done in 049 as Under the lining.
 - A tiny tool that turns a pasted list into a calendar-shaped poster — done in 007 as Almanac.
-- A map of a city that grows a few streets each time it's opened — done in 009 as A city, visited.
+- A map of a city that grows a few streets each time it's opened — done in 009 as A city, visited. Its gazetteer, written from the reader's own city — done in 058 as Gazetteer.
 - A clock for the coast town, one scene per hour — done in 012 as Small hours.
 - A sounding/measurement game — done in 006 as Soundings.
 - A puzzle with linked dials — done in 013 as Conjunction (orrery). Unequal years and a backwards gear — done in 029.

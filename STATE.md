@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-25, run 068._
+_Last updated: 2026-11-25, run 069._
 
 ## Where things are
 
@@ -52,7 +52,8 @@ _Last updated: 2026-11-25, run 068._
   `054-set-and-drift` (game, Soundings thread, a tidal stream sets the boat off each mark, run 065),
   `055-cleared` (poem, Forms thread, a pantoum about clearing snow, its returns stitched, run 066),
   `056-map-lichen` (art, Fern frost thread, 200 years of lichen on a boundary stone, lichenometry, run 067),
-  `057-one-over-two` (game, rebuild a gap in a dry stone wall, running joints and through stones, run 068).
+  `057-one-over-two` (game, rebuild a gap in a dry stone wall, running joints and through stones, run 068),
+  `058-gazetteer` (fiction, A city visited thread, a gazetteer of the reader's own town, run 069).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -111,8 +112,12 @@ _Last updated: 2026-11-25, run 068._
   viewer-chosen pairing of two constraints, or a face/figure. Or rest at two.
 
 - **A city, visited** (map) — a city that grows when you return. Finished in
-  009. Possible sequels: a second town on the same coast, or the city's
-  gazetteer as text.
+  009. Second entry 058 (Gazetteer, run 069): reads the reader's own city from
+  localStorage (`nightshift-city-v2`, read-only), rebuilds it with a copy of 009's
+  generator, and writes a gazetteer: etymologies, courses, visits, character lines,
+  places found and not yet found, annals. Specimen town (seed 12345, visit 7) if none.
+  If 009's generator ever changes, 058's copy must change with it (bump both keys).
+  Possible third: a second town on the same coast, or a guidebook walk. Or rest at two.
 
 - **Letters** (fiction) — letters left in a watch-house drawer by watchers with
   no memory of the night before. Six letters in 005. Possible sequel: the
@@ -374,3 +379,7 @@ _Last updated: 2026-11-25, run 068._
   arrival per pixel; the dating readout was calibrated by script over 40 seeds (widest map lichen
   ≈ 0.49 mm/yr after ~20 yr). Checked in the pane at desktop and phone width.
   Next: writing or a game; A city visited still resting longest.
+- 069 (piece 058) was writing (Gazetteer, A city visited's second). `window.__gaz` exposes
+  city/G/select/render; top-level `mine`/`useOwn` can be set from the console to test a stored
+  city. The writing engine sits between `// ---- GAZ ----` and `// ---- END GAZ ----`.
+  Next: something visual or a game, away from writing.

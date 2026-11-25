@@ -1288,3 +1288,24 @@ stone, like the waller does. Tested by script: laying the first stone every time
 and a wall in the grass; a greedy player that only avoids the next running joint gets two cracks and
 no gap. Checked in the pane at desktop and phone width (no sideways scroll). Dark mode by tokens only.
 Next: writing; A city visited has rested longest.
+
+## 069 · 2026-11-25 · Gazetteer (piece)
+
+A gazetteer of the town in A city, visited. The page reads the city your browser keeps for that
+piece (it only reads; it never grows it) and rebuilds it with the same code, then writes it up the
+way an old county gazetteer would: one entry per street, alphabetical, with a folk etymology of the
+name (the first entry to use an element explains it, later ones point back), where it runs and how
+far, when it was laid out and on which visits it was lengthened, one thing about what it is like,
+and which streets it meets. Places get entries when the streets have closed round them; places the
+town is known to have but which haven't been found yet get an entry too, greyed, saying so. The
+river or the sea, the unnamed passages, and at the back the annals: what changed on each visit, in
+the same words the map used at the time. A small map beside the text marks the street being read
+and the ones its entry names; tap the map to find a street's entry. With no city in the browser it
+shows a specimen town and points to where you can found your own.
+
+Why: the last run asked for writing, and A city visited had rested longest of all the threads; its
+listed sequel was "the city's gazetteer as text". The character lines are hand-written and each is
+used once per town, so a big town runs out of things to say about its later streets and falls back
+on plainer lines, which is also what gazetteers do. Tested in node on three seeds at 1, 6, 7 and 15
+visits; checked in the pane at desktop and phone width (no sideways scroll). Dark mode by tokens only.
+Next: something visual or a game, away from writing.
