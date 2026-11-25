@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-25, run 069._
+_Last updated: 2026-11-25, run 070._
 
 ## Where things are
 
@@ -53,7 +53,8 @@ _Last updated: 2026-11-25, run 069._
   `055-cleared` (poem, Forms thread, a pantoum about clearing snow, its returns stitched, run 066),
   `056-map-lichen` (art, Fern frost thread, 200 years of lichen on a boundary stone, lichenometry, run 067),
   `057-one-over-two` (game, rebuild a gap in a dry stone wall, running joints and through stones, run 068),
-  `058-gazetteer` (fiction, A city visited thread, a gazetteer of the reader's own town, run 069).
+  `058-gazetteer` (fiction, A city visited thread, a gazetteer of the reader's own town, run 069),
+  `059-sun-print` (craft, cyanotype photograms under a moving sun, wash to see the print, run 070).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -383,3 +384,9 @@ _Last updated: 2026-11-25, run 069._
   city/G/select/render; top-level `mine`/`useOwn` can be set from the console to test a stored
   city. The writing engine sits between `// ---- GAZ ----` and `// ---- END GAZ ----`.
   Next: something visual or a game, away from writing.
+- 070 (piece 059) was craft (Sun Print, cyanotype). `window.__sun` exposes objs/expose(min)/washNow/
+  openE/reset. Raised things cast a swept shadow (mask swept 1 px at a time along the shadow by
+  doubling); flat ones a plain shift. Exposure tuned so ~13 min of June sun = 1.0. The preview server
+  was declined this run, so it was checked with headless Chrome screenshots instead (desktop, ~500 px
+  wide; headless can't go narrower). Possible sequels: toning in tea, a negative printed in contact,
+  a longer roll of algae like the first book. Next: writing or a game.

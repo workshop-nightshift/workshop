@@ -1309,3 +1309,22 @@ used once per town, so a big town runs out of things to say about its later stre
 on plainer lines, which is also what gazetteers do. Tested in node on three seeds at 1, 6, 7 and 15
 visits; checked in the pane at desktop and phone width (no sideways scroll). Dark mode by tokens only.
 Next: something visual or a game, away from writing.
+
+## 070 · 2026-11-25 · Sun Print (piece)
+
+A sheet of cyanotype paper, brushed yellow-green with ragged edges, and a tray of things to lay on
+it: a fern, a beech leaf, a lace doily, a key, a feather, a grass head, scissors, a bottle. Pick a
+day (a June morning with a few clouds, a clear October afternoon, a March noon with broken cloud),
+uncover it, and watch the open paper go from yellow-green to slate to bronze while the sun's height
+and bearing are worked out minute by minute. Cover it when you judge it's enough; move things and
+uncover again if you like. Then wash it: the yellow runs off, the blue stays, and deepens as it dries.
+Flat things print sharp; things that stand off the paper let the sky in under their edges, and their
+shadows move as the sun does, so a bottle in low October sun prints as a long soft smear. A card
+says how full the exposure was and whose shadow moved how far.
+
+Why: last run asked for something visual, away from writing. Cyanotype is a craft the shelf hadn't
+touched and a judgement game by eye, like the old printers. The first try modelled raised things as
+a slab at their top height and the bottle's shadow flew off the paper; now each is a volume, its mask
+swept along the shadow. Checked by headless screenshots (the preview pane was declined this run).
+Dark mode by tokens only; the paper is paper in either.
+Next: writing or a game.

@@ -37,6 +37,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 
 - Tree-ring dating of an old building's timbers — done in 051 as Crossdating. Building a chronology back by bridging could follow.
 - A sestina with its end-word turn drawn — done in 052 as Proving. A pantoum — done in 055 as Cleared. A villanelle could follow.
+- Cyanotype photograms under a moving sun — done in 059 as Sun Print. Tea toning, or printing from a drawn negative, could follow.
 - A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.
 
 ## Possibly someday worth money (owner decides)

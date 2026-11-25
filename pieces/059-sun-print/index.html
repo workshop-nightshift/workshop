@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sun Print</title>
+<style>
+:root{--bg:#eef0ef;--fg:#1c2026;--mute:#667080;--line:#c7ccd2;--card:#f7f8f8;--accent:#1f4f8f;--on:#1f4f8f}
+@media (prefers-color-scheme:dark){:root{--bg:#11151b;--fg:#e2e6ea;--mute:#8d98a8;--line:#2e3540;--card:#181d25;--accent:#7fa8e0;--on:#7fa8e0}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 64px}
+main{width:100%;max-width:780px}
+h1{font-size:22px;font-weight:normal;margin:0;font-style:italic;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.layout{display:flex;flex-wrap:wrap;gap:16px 26px;align-items:flex-start}
+.paperwrap{width:min(100%,400px);flex:0 0 auto;margin:0 auto}
+.paperwrap canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.side{flex:1 1 280px;min-width:0}
+.clock{font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.clock small{font-size:14px;color:var(--mute);font-style:italic}
+.meter{height:8px;border:1px solid var(--line);border-radius:4px;overflow:hidden;margin:6px 0 2px}
+.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+button,select{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+select{padding:3px 6px;background:var(--card)}
+button:hover:not(:disabled){border-color:var(--mute)}
+button:disabled{opacity:.4;cursor:default}
+button.on{border-color:var(--on);color:var(--on)}
+button.big{font-size:16px;padding:5px 16px}
+.tray button{font-size:13.5px;padding:2px 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:10px 12px;margin:12px 0;font-size:14px}
+.mute{color:var(--mute)}
+.lbl{font-size:13px;color:var(--mute);font-style:italic;margin:12px 0 2px}
+.prose{max-width:36em}
+p{margin:.6em 0}
+h2{font-size:16px;font-weight:normal;margin:28px 0 8px;color:var(--mute);font-style:italic}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Sun Print</h1>
+  <p class="sub">things laid on cyanotype paper, a sky, and a basin of water</p>
+
+  <div class="layout">
+    <div class="paperwrap">
+      <canvas id="c" aria-label="a sheet of cyanotype paper with objects laid on it; drag them to arrange"></canvas>
+    </div>
+    <div class="side">
+      <div class="clock"><span id="clk">0:00</span> <small id="clknote">covered</small></div>
+      <div class="meter" aria-hidden="true"><i id="mt"></i></div>
+      <div class="mute" style="font-size:13.5px" id="sky">&nbsp;</div>
+
+      <div class="row">
+        <button class="big" id="go">uncover</button>
+        <button class="big" id="wash" disabled>wash</button>
+      </div>
+
+      <div id="setup">
+        <div class="lbl">the day</div>
+        <div class="row">
+          <select id="day" aria-label="the day">
+            <option value="0">a June morning, a few clouds</option>
+            <option value="1">an October afternoon, clear</option>
+            <option value="2">a March noon, broken cloud</option>
+          </select>
+        </div>
+        <div class="lbl">lay on the paper</div>
+        <div class="row tray" id="tray"></div>
+        <div class="row">
+          <button id="turn" disabled>turn</button>
+          <button id="lift" disabled>take off</button>
+          <button id="glass">glass over it</button>
+        </div>
+        <div class="mute" style="font-size:13.5px" id="sel">Drag things to arrange them. Tap one to turn it or take it off.</div>
+      </div>
+
+      <div class="card" id="info"><span class="mute">The paper is coated and dry, yellow-green, kept out of the light. Arrange what you like on it, then uncover it to the sky. Watch the open paper darken; cover it when you think it's enough.</span></div>
+      <div class="row" id="after" style="display:none">
+        <button id="again">same things, new sheet</button>
+        <button id="fresh">clear the sheet</button>
+        <a id="save" download="sun-print.png" href="#" style="font-size:14px">save the print</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h2>about the paper</h2>
+    <p>Cyanotype was worked out in 1842: paper brushed with two iron salts, ferric ammonium citrate and potassium ferricyanide, dried in the dark. Ultraviolet light turns the iron where it falls, and the turned part, washed in water, stays as Prussian blue; the rest washes away and leaves the paper white. A year later a botanist began printing seaweeds this way, laid straight on the paper, and made a book of them, the first book illustrated by any photographic process.</p>
+    <p>Things printed in contact like this are photograms: no camera, only shadow. Flat things printed under glass come out sharp. Things that stand up off the paper, a key on its bow, a bottle on its side, a feather that curls, let the open sky in under their edges, so they print soft, and if the sun moves while the paper is out, their shadows move with it and the edges go double.</p>
+    <p>While it's out, the exposed paper goes from yellow-green to slate and then to a dull bronze; that bronze is how printers judged it, by eye. Too short and the blue washes out pale. Too long and the light creeps in under everything. Fresh from the wash the blue is light and a little green; it deepens as it dries and the iron oxidises in the air.</p>
+    <p class="mute">The sky here is a model: the sun's height and bearing are worked out for each minute at latitude 52° north, ultraviolet falls off steeply when the sun is low, and cloud takes most of the direct light but brightens the sky a little.</p>
+  </div>
+</main>
+
+<script>
+(function(){
+"use strict";
+// ---- grid: 300 x 375, 1 px = 0.68 mm, top of the paper faces north ----
+const W=300,H=375,MM=0.68;
+const cv=document.getElementById('c'),cx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+let K=1; // display px per grid px
+
+function rng(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
+
+// ---------- the things ----------
+// each draw(ctx, op, r) draws in local grid units; op=true -> alpha only (black), false -> colours
+function paint(c,op,look,a){c.fillStyle=op?'rgba(0,0,0,'+a+')':look;}
+function ink(c,op,look,a,w){c.strokeStyle=op?'rgba(0,0,0,'+a+')':look;c.lineWidth=w;}
+function cut(c){c.globalCompositeOperation='destination-out';c.fillStyle='#000';}
+function uncut(c){c.globalCompositeOperation='source-over';}
+
+const THINGS={
+fern:{name:'a fern',R:112,h:4,hp:1,draw(c,op,r){
+  const P=s=>[7*Math.sin(s*2.4)-3,104-206*s];
+  c.lineCap='round';
+  for(let i=0;i<30;i++){const s0=i/30,s1=(i+1)/30,a=P(s0),b=P(s1);ink(c,op,'#55632c',.95,2.6*(1-s0)+.6);c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();}
+  const n=21;
+  for(let i=0;i<n;i++){const s=.1+.86*i/n;
+    let L=60*Math.pow(1-s,.8)*(.5+.5*Math.min(1,(s-.1)*4.5))+5;
+    for(const side of[1,-1]){const ss=s+(side>0?.012:0),p=P(ss);
+      const ang=(-90+side*(66-28*ss))*Math.PI/180;
+      c.save();c.translate(p[0],p[1]);c.rotate(ang);
+      ink(c,op,'#5f6e34',.9,1);c.beginPath();c.moveTo(0,0);c.lineTo(L,0);c.stroke();
+      const m=Math.max(2,Math.round(L/4.6));
+      for(let j=0;j<m;j++){const u=(j+.6)/m,x=u*L,w=(1-u*.72)*Math.min(4.4,L*.11+1.3)*(0.9+0.2*r());
+        paint(c,op,'#66753a',.9);
+        for(const sd of[1,-1]){c.beginPath();c.ellipse(x+w*.3,sd*w*.75,w,w*.52,sd*.55,0,7);c.fill();}
+      }
+      paint(c,op,'#66753a',.9);c.beginPath();c.ellipse(L,0,2.2,1.5,0,0,7);c.fill();
+      c.restore();}
+  }
+  paint(c,op,'#66753a',.9);const t=P(1);c.beginPath();c.ellipse(t[0],t[1],2,3.5,0,0,7);c.fill();
+}},
+leaf:{name:'a beech leaf',R:80,h:5,hp:1,draw(c,op,r){
+  const pts=[];const N=60;
+  for(let k=0;k<=N;k++){const t=k/N,y=46-112*t;let w=36*Math.pow(Math.sin(Math.PI*Math.min(1,t*1.02)),.85)*(1-.28*t);
+    w*=1+.035*Math.sin(t*Math.PI*20);pts.push([w,y]);}
+  c.beginPath();c.moveTo(0,46);for(const p of pts)c.lineTo(p[0],p[1]);for(let k=pts.length-1;k>=0;k--)c.lineTo(-pts[k][0]*.96,pts[k][1]);c.closePath();
+  paint(c,op,'#a5652c',.8);c.fill();
+  c.lineCap='round';ink(c,op,'#6e3f17',.97,1.6);c.beginPath();c.moveTo(0,76);c.lineTo(0,-64);c.stroke();
+  ink(c,op,'#7b4a1d',.95,.9);
+  for(let i=0;i<9;i++){const t=.08+i*.095,y=46-112*t,k2=Math.min(N,Math.round((t+.09)*N)),e=pts[k2];
+    for(const sd of[1,-1]){c.beginPath();c.moveTo(0,y);c.quadraticCurveTo(sd*e[0]*.45,y-6,sd*e[0]*.9,e[1]);c.stroke();}}
+}},
+lace:{name:'a lace doily',R:78,h:1.5,hp:.5,draw(c,op,r){
+  paint(c,op,'#efe6cf',.86);
+  c.beginPath();c.arc(0,0,64,0,7);c.fill();
+  for(let k=0;k<24;k++){const a=k/24*Math.PI*2;c.beginPath();c.arc(70*Math.cos(a)*.93,70*Math.sin(a)*.93,9.5,0,7);c.fill();}
+  cut(c);
+  c.beginPath();c.arc(0,0,6,0,7);c.fill();
+  for(let k=0;k<8;k++){const a=k/8*Math.PI*2;c.beginPath();c.ellipse(22*Math.cos(a),22*Math.sin(a),10,4.4,a,0,7);c.fill();}
+  for(let k=0;k<16;k++){const a=(k+.5)/16*Math.PI*2;c.beginPath();c.arc(39*Math.cos(a),39*Math.sin(a),3.4,0,7);c.fill();}
+  for(let k=0;k<32;k++){const a=k/32*Math.PI*2;c.beginPath();c.arc(50*Math.cos(a),50*Math.sin(a),1.9,0,7);c.fill();
+    const b=a+Math.PI/32;c.beginPath();c.arc(57*Math.cos(b),57*Math.sin(b),1.9,0,7);c.fill();}
+  for(let k=0;k<24;k++){const a=k/24*Math.PI*2;c.beginPath();c.arc(66*Math.cos(a),66*Math.sin(a),2.6,0,7);c.fill();}
+  uncut(c);
+}},
+key:{name:'a key',R:70,h:9,hp:9,draw(c,op,r){
+  paint(c,op,'#3f3a36',1);
+  c.beginPath();c.arc(0,-46,17,0,7);c.fill();
+  c.fillRect(-6,-31,12,6);c.fillRect(-3.6,-30,7.2,80);
+  c.fillRect(3.6,30,17,20);
+  cut(c);c.beginPath();c.arc(0,-46,10,0,7);c.fill();
+  c.fillRect(10,30,4,9);c.fillRect(16,43,5,7);
+  uncut(c);
+  if(!op){c.strokeStyle='rgba(255,255,255,.18)';c.lineWidth=1.2;c.beginPath();c.arc(0,-46,14,3.6,5.6);c.stroke();c.beginPath();c.moveTo(-2,-20);c.lineTo(-2,46);c.stroke();}
+}},
+feather:{name:'a feather',R:96,h:22,hp:2,draw(c,op,r){
+  const P=s=>[6*Math.sin(s*Math.PI*.9),88-176*s];
+  const gaps=[.35+.4*r(),.5+.4*r(),.25+.6*r()];
+  c.lineCap='round';
+  for(let i=0;i<=440;i++){const s=.12+.88*i/440;
+    for(const side of[1,-1]){
+      const Wm=side>0?30:20,u=(s-.12)/.88;
+      let w=Wm*Math.pow(Math.sin(Math.PI*Math.min(.98,u*.92+.04)),.55)*(1-.35*u);
+      if(u>.93)w*=(1-u)/.07*1+.0;
+      const p=P(s),down=u<.18;
+      let ang=(-90+side*(down?62:52))*Math.PI/180;
+      for(const g of gaps)if(Math.abs(u-g)<.012&&side===(g>.5?1:-1))ang+=side*.25;
+      const len=down?w*1.15:w;
+      const ex=p[0]+Math.cos(ang)*len,ey=p[1]+Math.sin(ang)*len-(down?0:len*.12);
+      ink(c,op,down?'rgba(225,221,212,.35)':'rgba(236,232,222,.55)',down?.14:.24,down?.9:.7);
+      c.beginPath();c.moveTo(p[0],p[1]);
+      if(down)c.quadraticCurveTo((p[0]+ex)/2+side*3*(r()-.5)*4,(p[1]+ey)/2+6*(r()-.5),ex,ey);
+      else c.quadraticCurveTo((p[0]+ex)/2,(p[1]+ey)/2-len*.1,ex,ey);
+      c.stroke();}
+  }
+  for(let i=0;i<24;i++){const s0=i/24,s1=(i+1)/24,a=P(s0),b=P(s1);ink(c,op,'#d8d0bf',.7,2.4*(1-s0)+.5);c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();}
+}},
+bottle:{name:'a bottle',R:104,h:48,hp:48,rigid:true,draw(c,op,r){
+  c.beginPath();
+  c.moveTo(-58,-28);c.lineTo(30,-28);c.quadraticCurveTo(44,-28,54,-11);c.lineTo(86,-11);c.lineTo(86,-13);c.lineTo(94,-13);c.lineTo(94,13);c.lineTo(86,13);c.lineTo(86,11);c.lineTo(54,11);c.quadraticCurveTo(44,28,30,28);c.lineTo(-58,28);c.quadraticCurveTo(-72,28,-72,14);c.lineTo(-72,-14);c.quadraticCurveTo(-72,-28,-58,-28);c.closePath();
+  paint(c,op,'rgba(140,182,152,.38)',.42);c.fill();
+  ink(c,op,'rgba(64,104,80,.75)',.55,5);c.stroke();
+  if(!op){c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=2.5;c.lineCap='round';c.beginPath();c.moveTo(-60,-19);c.lineTo(28,-19);c.stroke();c.beginPath();c.moveTo(58,-6);c.lineTo(84,-6);c.stroke();}
+}},
+grass:{name:'a grass head',R:90,h:10,hp:1.5,draw(c,op,r){
+  const P=s=>[8*s*s-2,84-170*s];
+  c.lineCap='round';
+  for(let i=0;i<24;i++){const s0=i/24,s1=(i+1)/24,a=P(s0),b=P(s1);ink(c,op,'#a58f48',.95,1.8-s0);c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();}
+  paint(c,op,'#a58f48',.9);
+  c.beginPath();c.moveTo(-1,78);c.quadraticCurveTo(-30,30,-34,-6);c.quadraticCurveTo(-24,32,1,70);c.fill();
+  paint(c,op,'#bda65d',.88);
+  let side=1;
+  for(let s=.44;s<1.005;s+=.032){const p=P(s),sz=1-(s-.44)*.9;side=-side;
+    c.save();c.translate(p[0]+side*4.5*sz,p[1]);c.rotate(side*(.45+.25*r()));
+    c.beginPath();c.ellipse(0,-2,2.6*sz+.8,7.5*sz+2,0,0,7);c.fill();c.restore();}
+}},
+scissors:{name:'scissors',R:80,h:7,hp:7,rigid:true,draw(c,op,r){
+  paint(c,op,'#878d94',1);
+  for(const sd of[1,-1]){c.save();c.rotate(sd*.07);c.beginPath();c.moveTo(-3.8,7);c.lineTo(3.8,7);c.lineTo(sd>0?1.5:0.2,-74);c.lineTo(sd>0?-.6:-1.8,-72);c.closePath();c.fill();c.restore();}
+  for(const sd of[1,-1]){c.beginPath();c.moveTo(sd*1.5,4);c.lineTo(sd*12,30);c.lineTo(sd*6,32);c.lineTo(-sd*1.5,6);c.fill();
+    c.beginPath();c.ellipse(sd*15,42,14,12,sd*.4,0,7);c.fill();}
+  cut(c);for(const sd of[1,-1]){c.beginPath();c.ellipse(sd*15,42,9,7.5,sd*.4,0,7);c.fill();}uncut(c);
+  if(!op){c.fillStyle='#c4c8cc';c.beginPath();c.arc(0,0,3.2,0,7);c.fill();}
+}}
+};
+const ORDER=['fern','leaf','lace','key','feather','grass','scissors','bottle'];
+
+// ---------- state ----------
+let objs=[],selI=-1,seq=1,glass=false,day=0;
+let E=new Float32Array(W*H),coat=new Float32Array(W*H),grain=new Float32Array(W*H);
+let state='arrange'; // arrange | open | washing | done
+let tMin=0,lastTick=0,washT=0,dryT=0,openSince=null,anyOpen=false;
+let sunStart=null,sunEnd=null;
+let sheetSeed=1;
+
+function height(o){const T=THINGS[o.k];return glass?T.hp:T.h;}
+
+// coated area: brushed on, ragged at the edges, streaky
+function newSheet(){
+  sheetSeed=(Math.random()*1e9)|0;const r=rng(sheetSeed);
+  E.fill(0);
+  const L=[],R=[],T=14+r()*6,B=H-16-r()*6;
+  let a=16,b=16;
+  for(let y=0;y<H;y++){a+=(r()-.5)*1.6;a=Math.max(9,Math.min(24,a));b+=(r()-.5)*1.6;b=Math.max(9,Math.min(24,b));L.push(a);R.push(W-b);}
+  const streak=[];for(let y=0;y<H;y++)streak.push(0);
+  for(let k=0;k<26;k++){const y0=r()*H,w=2+r()*7,amp=(r()-.5)*.09;for(let y=0;y<H;y++){const d=(y-y0)/w;streak[y]+=amp*Math.exp(-d*d);}}
+  const tails=[];for(let k=0;k<5;k++)tails.push({y:T+r()*(B-T),len:5+r()*9,left:r()<.5,w:2+r()*3});
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    let c=1;
+    const ex=Math.min(x-L[y],R[y]-x),ey=Math.min(y-T-(Math.sin(x*.11)*1.5),B-y+(Math.sin(x*.07)*1.5));
+    let e=Math.min(ex,ey);
+    c=Math.max(0,Math.min(1,(e+1.5)/3));
+    for(const t of tails){const dy=(y-t.y)/t.w;if(Math.abs(dy)<1){const inside=t.left?(x>L[y]-t.len&&x<L[y]+2):(x<R[y]+t.len&&x>R[y]-2);if(inside&&ey>0){const dd=t.left?(L[y]-x)/t.len:(x-R[y])/t.len;c=Math.max(c,.7*(1-dy*dy)*Math.max(0,1-Math.max(0,dd)));}}}
+    c*=0.9+streak[y]+ .04*Math.sin(x*.05+y*.002);
+    coat[y*W+x]=Math.max(0,Math.min(1.08,c));
+    grain[y*W+x]=(r()-.5);
+  }
+}
+
+// ---------- masks ----------
+const G=document.createElement('canvas');G.width=W;G.height=H;const gx=G.getContext('2d',{willReadFrequently:true});
+function buildMask(o){
+  const T=THINGS[o.k];
+  gx.setTransform(1,0,0,1,0,0);gx.globalCompositeOperation='source-over';gx.clearRect(0,0,W,H);
+  gx.setTransform(Math.cos(o.rot),Math.sin(o.rot),-Math.sin(o.rot),Math.cos(o.rot),o.x,o.y);
+  T.draw(gx,true,rng(o.seed));
+  gx.setTransform(1,0,0,1,0,0);
+  const d=gx.getImageData(0,0,W,H).data;
+  const t=new Float32Array(W*H);let x0=W,y0=H,x1=-1,y1=-1;
+  for(let i=0;i<W*H;i++){const a=d[i*4+3]/255;t[i]=1-a;if(a>.004){const x=i%W,y=(i/W)|0;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}}
+  o.t=t;o.bb=x1<0?null:[x0,y0,x1,y1];o.tb=null;
+}
+function blur(src,r,bb){
+  // three box passes over a padded box, returns full array
+  const out=new Float32Array(src);if(r<1||!bb)return out;
+  const pad=r*3+2,X0=Math.max(0,bb[0]-pad),X1=Math.min(W-1,bb[2]+pad),Y0=Math.max(0,bb[1]-pad),Y1=Math.min(H-1,bb[3]+pad);
+  const tmp=new Float32Array(Math.max(W,H));
+  for(let pass=0;pass<3;pass++){
+    for(let y=Y0;y<=Y1;y++){let s=0,n=0;for(let x=X0;x<=X1;x++)tmp[x]=out[y*W+x];
+      for(let x=X0;x<=X1;x++){let a=0,m=0;for(let k=-r;k<=r;k++){const xx=x+k;a+=(xx<0||xx>=W)?1:(xx<X0||xx>X1?1:tmp[xx]);m++;}out[y*W+x]=a/m;}}
+    for(let x=X0;x<=X1;x++){for(let y=Y0;y<=Y1;y++)tmp[y]=out[y*W+x];
+      for(let y=Y0;y<=Y1;y++){let a=0,m=0;for(let k=-r;k<=r;k++){const yy=y+k;a+=(yy<0||yy>=H)?1:(yy<Y0||yy>Y1?1:tmp[yy]);m++;}out[y*W+x]=a/m;}}
+  }
+  return out;
+}
+function prep(o){if(!o.t)buildMask(o);if(!o.tb){const r=Math.round(height(o)*.75);o.tb=blur(o.t,r,o.bb);o.tbr=r;}}
+
+// ---------- sky ----------
+const DAYS=[
+  {doy:172,start:10.5,clouds:[[9,3,.8],[31,4,.9],[52,2.5,.6]],base:0,name:'June'},
+  {doy:290,start:14.0,clouds:[],base:0,name:'October'},
+  {doy:80,start:11.6,clouds:[[3,2.5,.9],[10,3,1],[17,2,.7],[24,4,1],[33,3,.9],[41,2,.8],[49,3.5,1],[58,3,1]],base:.12,name:'March'}
+];
+let cloudJit=[];
+function jitterClouds(){const r=rng(sheetSeed^0x9e37);cloudJit=DAYS.map(d=>d.clouds.map(c=>[c[0]+(r()-.5)*5,c[1]*(.8+.4*r()),c[2]*(.8+.25*r())]));}
+const LAT=52*Math.PI/180;
+function sunAt(m){
+  const D=DAYS[day],dec=23.44*Math.PI/180*Math.sin(2*Math.PI*(284+D.doy)/365);
+  const hr=D.start+m/60,Ha=(hr-12)*15*Math.PI/180;
+  const se=Math.sin(LAT)*Math.sin(dec)+Math.cos(LAT)*Math.cos(dec)*Math.cos(Ha);
+  const e=Math.asin(se);
+  let ca=(Math.sin(dec)-se*Math.sin(LAT))/(Math.cos(e)*Math.cos(LAT));ca=Math.max(-1,Math.min(1,ca));
+  let az=Math.acos(ca);if(Ha>0)az=2*Math.PI-az;
+  let c=D.base;for(const q of cloudJit[day]){const d=(m-q[0])/q[1];c+=q[2]*Math.exp(-d*d);}
+  c=Math.max(0,Math.min(1,c));
+  const s=Math.max(0,Math.sin(e));
+  const S=1.1*Math.pow(s,1.5)*(1-.88*c),Kd=.35*Math.pow(s,.8)*(1+.35*c);
+  return{e,az,c,S,K:Kd,hr,vx:Math.sin(az),vy:-Math.cos(az)};
+}
+function clockStr(h){const hh=Math.floor(h),mm=Math.floor((h-hh)*60);return hh+':'+String(mm).padStart(2,'0');}
+function compass(az){const n=['north','north-northeast','northeast','east-northeast','east','east-southeast','southeast','south-southeast','south','south-southwest','southwest','west-southwest','west','west-northwest','northwest','north-northwest'];return n[Math.round(az/(Math.PI/8))%16];}
+
+// ---------- exposure ----------
+const Tdir=new Float32Array(W*H),SA=new Float32Array(W*H),SB=new Float32Array(W*H);let Tdif=null;const RATE=1/13.5;
+function buildDiffuse(){Tdif=new Float32Array(W*H).fill(1);for(const o of objs){prep(o);if(!o.bb)continue;const r=o.tbr*3+2,b=o.bb;
+  for(let y=Math.max(0,b[1]-r);y<=Math.min(H-1,b[3]+r);y++)for(let x=Math.max(0,b[0]-r);x<=Math.min(W-1,b[2]+r);x++){const i=y*W+x;Tdif[i]*=o.tb[i];}}}
+function sample(t,x,y){if(x<0||y<0||x>=W-1||y>=H-1)return 1;const xi=x|0,yi=y|0,fx=x-xi,fy=y-yi,i=yi*W+xi;
+  return(t[i]*(1-fx)+t[i+1]*fx)*(1-fy)+(t[i+W]*(1-fx)+t[i+W+1]*fx)*fy;}
+function step(dt){
+  const s=sunAt(tMin),cot=Math.min(6,Math.cos(s.e)/Math.max(.05,Math.sin(s.e)));
+  Tdir.fill(1);
+  for(const o of objs){if(!o.bb)continue;const h=height(o),sx=s.vx*h*cot,sy=s.vy*h*cot,b=o.bb;
+    const X0=Math.max(0,Math.floor(b[0]-sx)-1),X1=Math.min(W-1,Math.ceil(b[2]-sx)+1),Y0=Math.max(0,Math.floor(b[1]-sy)-1),Y1=Math.min(H-1,Math.ceil(b[3]-sy)+1);
+    if(h<=6){for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++)Tdir[y*W+x]*=sample(o.t,x+sx,y+sy);continue;}
+    // the thing stands from the paper up to h: its shadow is every layer's at once,
+    // the mask swept along the shadow 1 px at a time, done by doubling
+    const XA=Math.max(0,Math.min(X0,b[0])),XB=Math.min(W-1,Math.max(X1,b[2])),YA=Math.max(0,Math.min(Y0,b[1])),YB=Math.min(H-1,Math.max(Y1,b[3]));
+    const n=Math.ceil(Math.hypot(sx,sy)),ux=n?sx/n:0,uy=n?sy/n:0;
+    let A=SA,B=SB;
+    for(let y=YA;y<=YB;y++)for(let x=XA;x<=XB;x++){const i=y*W+x;A[i]=o.t[i];}
+    let cov=1;
+    while(cov<=n){const c=Math.min(cov,n+1-cov),dx=ux*c,dy=uy*c;
+      for(let y=YA;y<=YB;y++)for(let x=XA;x<=XB;x++){const X=x+dx,Y=y+dy;let v=1;
+        if(X>=XA&&Y>=YA&&X<XB&&Y<YB){const xi=X|0,yi=Y|0,fx=X-xi,fy=Y-yi,i=yi*W+xi;v=(A[i]*(1-fx)+A[i+1]*fx)*(1-fy)+(A[i+W]*(1-fx)+A[i+W+1]*fx)*fy;}
+        const i=y*W+x;B[i]=A[i]<v?A[i]:v;}
+      const T=A;A=B;B=T;cov+=c;}
+    for(let y=YA;y<=YB;y++)for(let x=XA;x<=XB;x++){const i=y*W+x;Tdir[i]*=A[i];}}
+  const g=glass?.85:1,k=dt*RATE*g;
+  for(let i=0;i<W*H;i++)E[i]+=k*(s.S*Tdir[i]+s.K*Tdif[i]);
+  tMin+=dt;
+}
+
+// ---------- colour ----------
+function ramp(stops,v){if(v<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++)if(v<=stops[i][0]){const a=stops[i-1],b=stops[i],f=(v-a[0])/(b[0]-a[0]);return[a[1][0]+(b[1][0]-a[1][0])*f,a[1][1]+(b[1][1]-a[1][1])*f,a[1][2]+(b[1][2]-a[1][2])*f];}return stops[stops.length-1][1];}
+const PAPER=[244,241,233];
+const RAW=[[0,[217,212,140]],[.35,[176,182,142]],[1,[112,126,132]],[2,[124,121,102]],[3.5,[136,126,92]]];
+const BLUE=[[0,[244,242,234]],[.22,[196,214,228]],[.5,[112,150,196]],[.78,[52,96,156]],[1,[22,56,114]]];
+function density(e){let D=1-Math.exp(-2.3*Math.pow(e,1.15));D=Math.max(0,(D-.05)/.95);if(e>2.2)D*=1-.15*Math.min(1,(e-2.2)/3);return D;}
+const off=document.createElement('canvas');off.width=W;off.height=H;const ox=off.getContext('2d');const img=ox.createImageData(W,H);
+function renderPaper(washRow,tau){
+  const d=img.data;
+  for(let y=0;y<H;y++){const washed=y<washRow;for(let x=0;x<W;x++){const i=y*W+x,c=Math.min(1,coat[i]),g=grain[i];let col;
+    if(washed){const D=density(E[i])*coat[i]*(.7+.3*tau);col=ramp(BLUE,Math.min(1,D));
+      if(tau<1){const f=(1-tau)*.18*Math.min(1,D*2);col=[col[0]*(1-f)+40*f,col[1]*(1-f)+120*f,col[2]*(1-f)+130*f];}}
+    else{const r=ramp(RAW,E[i]);col=[PAPER[0]+(r[0]-PAPER[0])*c,PAPER[1]+(r[1]-PAPER[1])*c,PAPER[2]+(r[2]-PAPER[2])*c];}
+    const n=g*7;d[i*4]=col[0]+n;d[i*4+1]=col[1]+n;d[i*4+2]=col[2]+n;d[i*4+3]=255;}}
+  ox.putImageData(img,0,0);
+}
+
+// ---------- drawing ----------
+const looks={};
+function lookOf(o){const T=THINGS[o.k],key=o.k+'|'+o.seed+'|'+K;if(looks[key])return looks[key];
+  const s=Math.ceil(2*T.R*K)+4,c=document.createElement('canvas');c.width=s;c.height=s;const g=c.getContext('2d');
+  g.setTransform(K,0,0,K,s/2,s/2);T.draw(g,false,rng(o.seed));looks[key]=c;return c;}
+function draw(){
+  cx.setTransform(1,0,0,1,0,0);cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+  cx.drawImage(off,0,0,cv.width,cv.height);
+  if(state==='arrange'||state==='open'||(state==='washing'&&washT<.25)){
+    const fade=state==='washing'?1-washT/.25:1;
+    const s=sunAt(tMin),cot=Math.min(6,Math.cos(s.e)/Math.max(.05,Math.sin(s.e)));
+    objs.forEach((o,i)=>{const L=lookOf(o),h=height(o);
+      cx.save();cx.globalAlpha=fade;
+      const sh=Math.min(h*cot,60)*K;
+      cx.shadowColor='rgba(0,0,0,'+(.18+.22*(1-s.c))+')';cx.shadowBlur=(1+h*.5)*K;cx.shadowOffsetX=-s.vx*sh;cx.shadowOffsetY=-s.vy*sh;
+      cx.translate(o.x*K,o.y*K);cx.rotate(o.rot);cx.drawImage(L,-L.width/2,-L.height/2);cx.restore();
+      if(i===selI&&state==='arrange'){cx.save();cx.strokeStyle='rgba(31,79,143,.7)';cx.setLineDash([4*K,3*K]);cx.lineWidth=1.2*K;cx.beginPath();cx.arc(o.x*K,o.y*K,THINGS[o.k].R*.55*K,0,7);cx.stroke();cx.restore();}
+    });
+    if(glass&&state!=='washing'){cx.save();cx.fillStyle='rgba(200,225,230,.08)';cx.fillRect(0,0,cv.width,cv.height);cx.strokeStyle='rgba(255,255,255,.5)';cx.lineWidth=2*K;cx.beginPath();cx.moveTo(cv.width*.08,cv.height*.18);cx.lineTo(cv.width*.3,cv.height*.04);cx.moveTo(cv.width*.1,cv.height*.26);cx.lineTo(cv.width*.42,cv.height*.05);cx.stroke();cx.restore();}
+    if(state==='arrange'&&anyOpen){/* covered: a dark card over it */}
+  }
+  if(state==='washing'&&washT>=.25&&washT<1){const y=((washT-.25)/.75)*cv.height;cx.fillStyle='rgba(120,170,200,.18)';cx.fillRect(0,0,cv.width,y);
+    cx.strokeStyle='rgba(255,255,255,.6)';cx.lineWidth=2;cx.beginPath();for(let x=0;x<=cv.width;x+=6)cx.lineTo(x,y+Math.sin(x*.05+washT*30)*3);cx.stroke();}
+}
+function resize(){const w=cv.parentElement.clientWidth,dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(w*dpr);cv.height=Math.round(w*dpr*H/W);K=cv.width/W;draw();}
+
+// ---------- ui ----------
+function tray(){const t=$('tray');t.innerHTML='';for(const k of ORDER){const b=document.createElement('button');b.textContent=THINGS[k].name;b.dataset.k=k;
+  b.disabled=(state!=='arrange')||(k==='bottle'&&glass);b.onclick=()=>add(k);t.appendChild(b);}}
+function add(k){const r=Math.random;const o={k,x:W/2+(r()-.5)*90,y:H/2+(r()-.5)*120,rot:(r()-.5)*1.4,seed:(seq++)*7919+((r()*1e6)|0)};objs.push(o);buildMask(o);selI=objs.length-1;ui();draw();}
+function ui(){
+  const s=sunAt(tMin);
+  $('clk').textContent=fmtMin(tMin);
+  $('clknote').textContent=state==='open'?'in the sun':state==='arrange'?(anyOpen?'covered':'covered, not yet out'):state==='washing'?'washing':'washed';
+  const lv=(s.S+s.K)/1.21;$('mt').style.width=Math.min(100,lv*100)+'%';
+  const cl=s.c>.6?'cloud over the sun':s.c>.25?'thin cloud':'sun out';
+  $('sky').textContent=clockStr(s.hr)+' by the sun · sun '+Math.round(s.e*180/Math.PI)+'° up in the '+compass(s.az)+' · '+cl;
+  $('go').textContent=state==='open'?'cover':anyOpen?'uncover again':'uncover';
+  $('go').disabled=!(state==='arrange'||state==='open');
+  $('wash').disabled=!(state==='arrange'&&anyOpen);
+  $('setup').style.display=(state==='arrange')?'':'none';
+  $('day').disabled=anyOpen;
+  $('turn').disabled=$('lift').disabled=selI<0;
+  $('glass').classList.toggle('on',glass);$('glass').textContent=glass?'glass on':'glass over it';
+  $('glass').disabled=objs.some(o=>THINGS[o.k].rigid&&o.k==='bottle')&&!glass;
+  $('sel').textContent=selI>=0?THINGS[objs[selI].k].name+(height(objs[selI])>6?', standing a little off the paper':', lying flat')+'.':
+    (anyOpen?'Covered. You can move things now and uncover again; the paper keeps what it has had.':'Drag things to arrange them. Tap one to turn it or take it off.');
+  if(objs.some(o=>o.k==='bottle')&&!glass)$('sel').textContent+=' The glass won’t sit flat over a bottle.';
+  tray();
+}
+function fmtMin(m){const t=Math.round(m*60),mm=Math.floor(t/60),ss=t%60;return mm+':'+String(ss).padStart(2,'0');}
+
+function pt(ev){const r=cv.getBoundingClientRect();return[(ev.clientX-r.left)/r.width*W,(ev.clientY-r.top)/r.height*H];}
+let drag=null;
+cv.addEventListener('pointerdown',ev=>{if(state!=='arrange')return;const[x,y]=pt(ev);let hit=-1;
+  for(let i=objs.length-1;i>=0;i--){const o=objs[i];if(!o.t)buildMask(o);const xi=Math.round(x),yi=Math.round(y);let near=false;
+    for(let dy=-3;dy<=3&&!near;dy++)for(let dx=-3;dx<=3;dx++){const X=xi+dx,Y=yi+dy;if(X>=0&&Y>=0&&X<W&&Y<H&&o.t[Y*W+X]<.9){near=true;break;}}
+    if(near||Math.hypot(x-o.x,y-o.y)<12){hit=i;break;}}
+  selI=hit;
+  if(hit>=0){const o=objs.splice(hit,1)[0];objs.push(o);selI=objs.length-1;drag={dx:x-o.x,dy:y-o.y,moved:false};cv.setPointerCapture(ev.pointerId);}
+  ui();draw();});
+cv.addEventListener('pointermove',ev=>{if(!drag)return;const[x,y]=pt(ev),o=objs[selI];o.x=Math.max(0,Math.min(W,x-drag.dx));o.y=Math.max(0,Math.min(H,y-drag.dy));drag.moved=true;draw();});
+const up=()=>{if(!drag)return;const o=objs[selI];if(drag.moved){buildMask(o);}drag=null;draw();};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+
+$('turn').onclick=()=>{if(selI<0)return;const o=objs[selI];o.rot+=Math.PI/6;buildMask(o);draw();};
+$('lift').onclick=()=>{if(selI<0)return;objs.splice(selI,1);selI=-1;ui();draw();};
+$('glass').onclick=()=>{glass=!glass;for(const o of objs)o.tb=null;ui();draw();};
+$('day').onchange=()=>{day=+$('day').value;ui();draw();};
+
+let raf=0;
+function loop(ts){
+  if(state==='open'){const dtReal=Math.min(.1,(ts-lastTick)/1000);lastTick=ts;
+    let sim=dtReal/.3; // one minute of sun every 0.3 s
+    while(sim>0){const d=Math.min(.25,sim);step(d);sim-=d;}
+    sunEnd=sunAt(tMin);renderPaper(-1,0);ui();draw();raf=requestAnimationFrame(loop);}
+  else if(state==='washing'){const dt=Math.min(.1,(ts-lastTick)/1000);lastTick=ts;
+    if(washT<1){washT=Math.min(1,washT+dt/2.4);renderPaper(washT<.25?-1:Math.round((washT-.25)/.75*H),0);}
+    else{dryT=Math.min(1,dryT+dt/4);renderPaper(H,dryT);if(dryT>=1){state='done';verdict();}}
+    ui();draw();if(state==='washing')raf=requestAnimationFrame(loop);else finish();}
+}
+$('go').onclick=()=>{
+  if(state==='arrange'){
+    for(const o of objs){if(!o.t)buildMask(o);prep(o);}buildDiffuse();
+    if(!anyOpen)sunStart=sunAt(tMin);
+    state='open';anyOpen=true;selI=-1;lastTick=performance.now();
+    $('info').innerHTML='<span class="mute">Out in the light. Watch the open paper: yellow-green, then slate, then a dull bronze.</span>';
+    ui();raf=requestAnimationFrame(loop);
+  }else if(state==='open'){state='arrange';cancelAnimationFrame(raf);
+    $('info').innerHTML='<span class="mute">Covered after '+fmtMin(tMin)+'. Wash it to see the print, or uncover it again for more.</span>';ui();draw();}
+};
+$('wash').onclick=()=>{state='washing';washT=0;dryT=0;selI=-1;lastTick=performance.now();
+  $('info').innerHTML='<span class="mute">Into the water. The yellow runs off; what the light turned stays.</span>';ui();raf=requestAnimationFrame(loop);};
+
+function median(a){a.sort((x,y)=>x-y);return a.length?a[a.length>>1]:0;}
+function openE(){const v=[];for(let i=0;i<W*H;i+=7)if(coat[i]>.9&&(!Tdif||Tdif[i]>.985))v.push(E[i]);return median(v);}
+function verdict(){
+  const e=openE();let msg;
+  if(e<.35)msg='Underexposed. The open paper only reached a pale, washed blue; the sky needed longer.';
+  else if(e<.75)msg='A little thin. The blue is there but light; another few minutes would have deepened it.';
+  else if(e<1.6)msg='A good exposure: the open paper went deep blue and the whites under flat things washed clean.';
+  else if(e<2.6)msg='Heavy. The blue is as deep as it goes, and light has crept in under the edges of things.';
+  else msg='Overexposed. The paper bronzed in the sun and the blue came out a little flat; light got in under everything that wasn’t pressed down.';
+  let out='<div>'+fmtMin(tMin)+' in the light'+(glass?', under glass':'')+'. The open paper had about '+e.toFixed(1)+' times a full exposure.</div><p>'+msg+'</p>';
+  const notes=[];
+  if(sunStart&&sunEnd){
+    for(const o of objs){const h=height(o);if(h<6)continue;
+      const c0=Math.min(6,Math.cos(sunStart.e)/Math.sin(sunStart.e)),c1=Math.min(6,Math.cos(sunEnd.e)/Math.sin(sunEnd.e));
+      const dx=h*(c1*sunEnd.vx-c0*sunStart.vx),dy=h*(c1*sunEnd.vy-c0*sunStart.vy),mv=Math.hypot(dx,dy)*MM;
+      const len=h*(c0+c1)/2*MM;
+      const nm=THINGS[o.k].name.replace(/^a /,'the ').replace(/^scissors/,'the scissors'),pos=o.k==='scissors'?'\u2019':'\u2019s';
+      o._mv=mv;if(mv>=2)notes.push(nm[0].toUpperCase()+nm.slice(1)+pos+' shadow moved about '+Math.round(mv)+' mm while the sun went round, so its edge printed soft and doubled.');
+      else notes.push(nm[0].toUpperCase()+nm.slice(1)+' stood off the paper and its shadow fell about '+Math.round(len)+' mm '+compass((sunEnd.az+Math.PI)%(2*Math.PI))+' of it, so the sky got in under one side.');
+    }
+    notes.splice(3);
+    if(Math.abs(sunStart.az-sunEnd.az)*180/Math.PI>3||Math.abs(sunStart.e-sunEnd.e)*180/Math.PI>2)notes.push('The sun went from '+compass(sunStart.az)+' at '+Math.round(sunStart.e*180/Math.PI)+'° to '+compass(sunEnd.az)+' at '+Math.round(sunEnd.e*180/Math.PI)+'°.');
+  }
+  if(notes.length)out+='<p class="mute">'+notes.join(' ')+'</p>';
+  out+='<p class="mute">Fresh from the water it was paler and a little green; it has deepened as it dried.</p>';
+  $('info').innerHTML=out;
+}
+function finish(){$('after').style.display='';
+  const s=document.createElement('canvas');s.width=W*2;s.height=H*2;const g=s.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(off,0,0,s.width,s.height);
+  try{$('save').href=s.toDataURL('image/png');}catch(e){$('save').style.display='none';}
+}
+function reset(keep){
+  cancelAnimationFrame(raf);state='arrange';tMin=0;anyOpen=false;sunStart=sunEnd=null;Tdif=null;selI=-1;
+  if(!keep)objs=[];newSheet();jitterClouds();renderPaper(-1,0);$('after').style.display='none';
+  $('info').innerHTML='<span class="mute">A fresh sheet, coated and dry. Arrange what you like on it, then uncover it to the sky. Cover it when you think it’s enough.</span>';
+  ui();draw();
+}
+$('again').onclick=()=>reset(true);
+$('fresh').onclick=()=>reset(false);
+
+// first sheet: a fern, a key and a doily
+newSheet();jitterClouds();
+objs=[{k:'fern',x:112,y:200,rot:-.35,seed:11},{k:'lace',x:212,y:96,rot:.2,seed:23},{k:'key',x:222,y:268,rot:.6,seed:37}];
+for(const o of objs)buildMask(o);
+renderPaper(-1,0);
+window.addEventListener('resize',resize);resize();ui();
+
+window.__sun={get objs(){return objs},E,coat,sunAt,step,openE,density,get state(){return state},set day(v){day=v},
+  expose(min){for(const o of objs){prep(o)}buildDiffuse();if(!anyOpen)sunStart=sunAt(tMin);anyOpen=true;let m=min;while(m>0){const d=Math.min(.25,m);step(d);m-=d;}sunEnd=sunAt(tMin);renderPaper(-1,0);ui();draw();},
+  washNow(){renderPaper(H,1);state='done';verdict();finish();ui();draw();},reset};
+})();
+</script>
+</body>
+</html>
