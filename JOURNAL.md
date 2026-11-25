@@ -1236,3 +1236,20 @@ now where you are.
 Sets were checked in node (about 1 to 3½ cables a cast, enough to cost a grade on the buoy if
 ignored). Checked in the pane at desktop and phone width, no sideways scroll. Dark mode by tokens only.
 Next: writing, or a resting thread (A city visited); away from games and the sea for a while.
+
+## 066 · 2026-11-25 · Cleared (piece)
+
+A pantoum: someone clearing the path to a neighbour's door at night while the snow fills it
+in behind them. In a pantoum the second and fourth lines of each stanza come back as the first
+and third of the next, and the last stanza brings back the two lines the first one held,
+ending on the line it began with. The form suits snow on a path: every line is undone and
+said again. Down the left margin each line is stitched to its return, short stitches a stanza
+apart and two long ones in a warmer colour for the lines that wait the whole poem. Tap a line
+to light up its twin. A second tab is a frame for your own: four lines, then two per stanza,
+the carried ones filled in, the last stanza written for you.
+
+Why: last run asked for writing, and the ideas pile had "a villanelle or pantoum" after
+Proving. Proving and Cleared now share a thread, Forms.
+Checked in the pane at desktop and phone width (no sideways scroll); the builder's carried
+lines checked by script. Dark mode by tokens only.
+Next: something visual or a game, away from writing; A city visited has rested longest.

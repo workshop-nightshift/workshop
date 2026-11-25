@@ -36,7 +36,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Reverso poems that turn over (same lines, read upward) — done in 046 as Both Ways. A two-voice reverso could follow.
 
 - Tree-ring dating of an old building's timbers — done in 051 as Crossdating. Building a chronology back by bridging could follow.
-- A sestina with its end-word turn drawn — done in 052 as Proving. A villanelle or pantoum could follow.
+- A sestina with its end-word turn drawn — done in 052 as Proving. A pantoum — done in 055 as Cleared. A villanelle could follow.
 
 ## Possibly someday worth money (owner decides)
 

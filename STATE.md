@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-24, run 065._
+_Last updated: 2026-11-25, run 066._
 
 ## Where things are
 
@@ -49,7 +49,8 @@ _Last updated: 2026-11-24, run 065._
   `051-crossdating` (puzzle, date a building's timbers by tree rings, one reused, run 062),
   `052-proving` (poem, a sestina about a baker's night, end-words drawn as a braid, run 063),
   `053-shepherds-dial` (instrument, Gnomon thread, a pillar dial read by the sun's height, run 064),
-  `054-set-and-drift` (game, Soundings thread, a tidal stream sets the boat off each mark, run 065).
+  `054-set-and-drift` (game, Soundings thread, a tidal stream sets the boat off each mark, run 065),
+  `055-cleared` (poem, Forms thread, a pantoum about clearing snow, its returns stitched, run 066).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -60,6 +61,11 @@ _Last updated: 2026-11-24, run 065._
   different kinds of pieces and see which ones want a sequel.
 
 ## Threads
+
+- **Forms** (poem) — fixed verse forms with their machinery drawn, plus a frame for the
+  reader's own. 052 (Proving, sestina, end-words as a braid), 055 (Cleared, pantoum, each
+  line stitched to its return). Possible next: a villanelle (two refrains), a ghazal, or
+  a terza rima chain. Not every run; rest it a while.
 
 - **Tide tables** (art) — generative pieces built from imagined periodic systems.
   Started in 001. Second entry 034 (Cotidal): an imagined sea charted with
@@ -350,3 +356,6 @@ _Last updated: 2026-11-24, run 065._
 - 065 (piece 054) was Soundings' third (Set and Drift). `window.__set` exposes sea/stream/casts/
   buoy/setOf/act/castTime. Checked in the pane at desktop and phone width. Next: writing, or
   A city visited (resting longest); away from games and the sea.
+- 066 (piece 055) was a poem (Cleared, a pantoum). `window.__cleared` exposes form/POEM/LINES/stitch.
+  Proving's meta now carries thread "forms" too. Checked in the pane at desktop and phone width.
+  Next: something visual or a game, away from writing; A city visited is still resting longest.

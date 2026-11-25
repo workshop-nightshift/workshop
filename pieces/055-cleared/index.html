@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cleared</title>
+<style>
+:root{--bg:#e9ecef;--paper:#fbfbf9;--fg:#1f2328;--mute:#6f7580;--rule:#d3d8de;--ink:#3f6a8c;--far:#9a5a3c;--snow:rgba(120,140,165,.55);--shadow:rgba(20,30,50,.22)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f141b;--paper:#171d26;--fg:#e6e9ee;--mute:#8e98a6;--rule:#2b3441;--ink:#8fbbe0;--far:#e3a07c;--snow:rgba(235,242,250,.7);--shadow:rgba(0,0,0,.7)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:17px/1.6 Georgia,"Iowan Old Style","Palatino Linotype",serif;padding:22px 16px 96px;display:flex;justify-content:center}
+canvas#snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+main{position:relative;z-index:1;width:100%;max-width:620px}
+header h1{font-size:25px;font-weight:normal;margin:0;letter-spacing:.04em}
+header p{margin:3px 0 14px;color:var(--mute);font-style:italic;font-size:15px}
+nav{display:flex;gap:4px;margin:0 0 12px;flex-wrap:wrap}
+nav button{font:inherit;font-size:14.5px;background:none;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:4px 10px 5px;cursor:pointer;touch-action:manipulation;letter-spacing:.05em}
+nav button.cur{color:var(--fg);border-bottom-color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.card{background:var(--paper);border:1px solid var(--rule);box-shadow:0 18px 34px -28px var(--shadow)}
+.poem{position:relative;padding:26px 20px 12px 64px}
+.poem h2{font-size:20px;font-weight:normal;font-style:italic;margin:0 0 16px}
+.poem svg.gut{position:absolute;left:0;top:0;width:60px;height:100%;overflow:visible;pointer-events:none}
+.gut path{fill:none;stroke:var(--ink);stroke-width:1.5;stroke-linecap:round;opacity:.55;transition:opacity .3s,stroke-width .3s}
+.gut path.far{stroke:var(--far)}
+.gut circle{fill:var(--ink);opacity:.7;transition:opacity .3s}
+.gut circle.far{fill:var(--far)}
+.gut circle.lone{fill:none;stroke:var(--mute);stroke-width:1.2;opacity:.6}
+.st{margin:0 0 18px}
+.st p{margin:0;text-indent:-1em;padding-left:1em;cursor:pointer;border-radius:2px;transition:opacity .3s,background .3s}
+.st p.empty{color:var(--mute);font-style:italic}
+.sel .st p{opacity:.3}
+.sel .st p.on{opacity:1;background:color-mix(in srgb,var(--ink) 10%,transparent)}
+.sel .st p.on.far{background:color-mix(in srgb,var(--far) 12%,transparent)}
+.sel .gut path,.sel .gut circle{opacity:.12}
+.sel .gut .on{opacity:1}
+.sel .gut path.on{stroke-width:2.6}
+.cap{color:var(--mute);font-size:13.5px;font-style:italic;margin:2px 0 10px;min-height:1.3em}
+.yours{display:none}
+.yours.on{display:block}
+.maker{padding:18px 16px 12px}
+.maker .st{margin:0 0 14px}
+.maker .n{font-size:12.5px;color:var(--mute);letter-spacing:.06em;margin:0 0 2px}
+.maker .ln{display:flex;align-items:baseline;gap:8px;margin:0 0 3px}
+.maker .ln b{font-weight:normal;color:var(--mute);font-size:12px;width:1.2em;flex:none;text-align:right}
+.maker .carried{color:var(--mute);font-style:italic;flex:1;min-width:0;overflow-wrap:anywhere}
+.maker .carried.blank{opacity:.6}
+input{font:inherit;font-size:16px;background:transparent;color:var(--fg);border:0;border-bottom:1px solid var(--rule);border-radius:0;padding:3px 2px;min-width:0;flex:1}
+select{font:inherit;font-size:15px;background:var(--paper);color:var(--fg);border:1px solid var(--rule);border-radius:3px;padding:2px 6px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 0;color:var(--mute);font-size:13.5px;font-style:italic;flex-wrap:wrap}
+.row button{font:inherit;font-size:14px;background:none;color:var(--fg);border:1px solid var(--rule);border-radius:16px;padding:4px 14px;cursor:pointer;font-style:normal}
+.row button:hover{border-color:var(--ink)}
+.out{margin-top:16px}
+.about{color:var(--mute);font-size:14.5px;margin:22px 2px 0}
+.about p{margin:0 0 8px}
+@media (max-width:480px){body{font-size:15.5px}.poem{padding:20px 12px 8px 44px}.poem svg.gut{width:42px}.st p{text-indent:-.7em;padding-left:.7em}}
+</style>
+</head>
+<body>
+<canvas id="snow" aria-hidden="true"></canvas>
+<main>
+<header>
+  <h1>Cleared</h1>
+  <p>A pantoum: every line comes back once, and the last line is the first.</p>
+</header>
+<nav id="tabs">
+  <button class="cur" data-t="poem">the poem</button>
+  <button data-t="yours">one of your own</button>
+</nav>
+
+<section id="t-poem">
+  <p class="cap" id="cap">Tap a line to see where it comes back.</p>
+  <div class="card poem" id="poem"></div>
+</section>
+
+<section id="t-yours" class="yours">
+  <p class="cap">Write four lines. After that each stanza only asks for two; the other two are carried down, and the last stanza writes itself.</p>
+  <div class="card maker">
+    <div class="row" style="margin:0 0 12px"><label>stanzas <select id="nst"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option></select></label><button id="clear" type="button">clear</button></div>
+    <div id="fields"></div>
+  </div>
+  <div class="card poem out" id="mine"></div>
+</section>
+
+<div class="about">
+  <p>The pantoum came into French and English verse from the Malay <i>pantun</i>. Its rule is a ratchet: the second and fourth lines of each stanza become the first and third of the next, so every line is said twice and the poem moves forward half a step at a time. To close, the two lines the first stanza left unrepeated, its first and third, come back in the last, and the poem ends on the line it began with.</p>
+  <p>The stitches on the left join each line to its return. Most are short, a stanza apart; the two long ones, in the warmer colour, are the lines that wait the whole poem.</p>
+</div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+
+// ---- form: keys for each stanza, given first four and the new pairs
+function form(first, pairs){
+  const S = [first.slice()];
+  for (const [x, y] of pairs){ const p = S[S.length-1]; S.push([p[1], x, p[3], y]); }
+  const p = S[S.length-1];
+  S.push([p[1], first[2], p[3], first[0]]);
+  return S;
+}
+
+const LINES = {
+  a:"The snow comes down as fast as I can clear it.",
+  b:"The shovel rings on stone, and then on nothing.",
+  c:"Her kitchen light is on across the road.",
+  d:"I clear the path so she can see it’s cleared.",
+  e:"By morning no one will know I was here.",
+  f:"She waves, or lifts a hand to draw the curtain.",
+  g:"The street is one white field without its edges.",
+  h:"I’ve done this every winter since he died.",
+  i:"The cars are only shapes I have to guess at.",
+  j:"She never asks. I never say I’ll come.",
+  k:"My breath goes up and joins the falling weather.",
+  l:"I lean on the handle till her light goes out."
+};
+const POEM = form(["a","b","c","d"], [["e","f"],["g","h"],["i","j"],["k","l"]]);
+
+// ---- render a pantoum with its stitches
+function render(box, title, S, text){
+  box.innerHTML = "";
+  const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("class","gut"); box.appendChild(svg);
+  if (title){ const h = document.createElement("h2"); h.textContent = title; box.appendChild(h); }
+  const where = {};           // key -> [{s,l,el}]
+  S.forEach((st, si) => {
+    const d = document.createElement("div"); d.className = "st";
+    st.forEach((k, li) => {
+      const p = document.createElement("p"); const t = text(k);
+      p.textContent = t || "…"; if (!t) p.classList.add("empty");
+      p.dataset.k = k; d.appendChild(p);
+      (where[k] = where[k] || []).push({s:si, l:li, el:p});
+    });
+    box.appendChild(d);
+  });
+  box._where = where; box._S = S;
+  const far = k => where[k].length === 2 && where[k][1].s - where[k][0].s > 1;
+  for (const k in where) if (far(k)) where[k].forEach(o => o.el.classList.add("far"));
+  box._far = far;
+  stitch(box);
+}
+
+function stitch(box){
+  const svg = box.querySelector("svg.gut"), where = box._where; if (!svg || !where) return;
+  const W = svg.getBoundingClientRect().width, bt = box.getBoundingClientRect().top;
+  const g = W - 10, max = g - 6, n = box._S.length;
+  const yOf = el => { const r = el.getClientRects()[0] || el.getBoundingClientRect(); return r.top - bt + r.height/2; };
+  let html = "";
+  const keys = Object.keys(where);
+  keys.forEach((k, ki) => {
+    const o = where[k], far = box._far(k);
+    if (o.length === 2){
+      const y1 = yOf(o[0].el), y2 = yOf(o[1].el);
+      const span = o[1].s - o[0].s;
+      // short stitches alternate a little in depth so neighbours don't sit on each other
+      const d = far ? max - (o[0].l === 0 ? 0 : 7) : 12 + (o[0].l === 1 ? 0 : 7);
+      const cls = (far ? "far " : "") + "k-" + k;
+      html += `<path class="${cls}" d="M${g} ${y1.toFixed(1)}C${(g-d).toFixed(1)} ${y1.toFixed(1)} ${(g-d).toFixed(1)} ${y2.toFixed(1)} ${g} ${y2.toFixed(1)}"/>`;
+      html += `<circle class="${cls}" cx="${g}" cy="${y1.toFixed(1)}" r="2.4"/><circle class="${cls}" cx="${g}" cy="${y2.toFixed(1)}" r="2.4"/>`;
+    } else {
+      o.forEach(x => html += `<circle class="lone k-${k}" cx="${g}" cy="${yOf(x.el).toFixed(1)}" r="2.6"/>`);
+    }
+  });
+  svg.innerHTML = html;
+}
+
+// ---- select a line
+function wire(box, capEl){
+  box.addEventListener("click", e => {
+    const p = e.target.closest("p[data-k]"); if (!p) return;
+    const k = p.dataset.k, on = box.classList.contains("sel") && box._cur === k;
+    box.querySelectorAll(".on").forEach(x => x.classList.remove("on"));
+    if (on){ box.classList.remove("sel"); box._cur = null; if (capEl) capEl.textContent = "Tap a line to see where it comes back."; return; }
+    box.classList.add("sel"); box._cur = k;
+    box.querySelectorAll(`p[data-k="${k}"], .gut .k-${k}`).forEach(x => x.classList.add("on"));
+    if (capEl){
+      const o = box._where[k];
+      const nm = i => ["first","second","third","fourth"][i];
+      capEl.textContent = o.length < 2 ? "Said once." :
+        `Line ${o[0].l+1} of stanza ${o[0].s+1}, back as line ${o[1].l+1} of stanza ${o[1].s+1}` +
+        (box._far(k) ? (o[1].s === box._S.length-1 && o[1].l === 3 ? " — the first line, kept for the last." : " — held back the whole poem.") : ".");
+    }
+  });
+}
+
+const poemBox = $("#poem");
+render(poemBox, "Cleared", POEM, k => LINES[k]);
+wire(poemBox, $("#cap"));
+
+// ---- one of your own
+const KEY = "nightshift-cleared-own";
+let own = {n:5, l:{}};
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.l) own = s; } catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(own)); }catch(e){} }
+$("#nst").value = String(own.n);
+
+function ownForm(){
+  const pairs = []; for (let s = 2; s < own.n; s++) pairs.push([`s${s}b`, `s${s}d`]);
+  return form(["s1a","s1b","s1c","s1d"], pairs);
+}
+const ownText = k => (own.l[k] || "").trim();
+
+function buildFields(){
+  const S = ownForm(), box = $("#fields"); box.innerHTML = "";
+  const seen = new Set();
+  S.forEach((st, si) => {
+    const d = document.createElement("div"); d.className = "st";
+    d.innerHTML = `<div class="n">${si === S.length-1 ? "last stanza, carried whole" : "stanza " + (si+1)}</div>`;
+    st.forEach((k, li) => {
+      const ln = document.createElement("div"); ln.className = "ln";
+      ln.innerHTML = `<b>${li+1}</b>`;
+      if (!seen.has(k)){
+        seen.add(k);
+        const inp = document.createElement("input"); inp.value = own.l[k] || ""; inp.dataset.k = k;
+        inp.placeholder = si === 0 ? ["begin here", "this one comes back next stanza", "this one waits till the end", "this one comes back next stanza"][li] : "a new line";
+        if (si === 0 && li === 0) inp.placeholder = "begin here (it will also end the poem)";
+        inp.setAttribute("aria-label", `stanza ${si+1}, line ${li+1}`);
+        ln.appendChild(inp);
+      } else {
+        const c = document.createElement("span"); c.className = "carried"; c.dataset.c = k;
+        ln.appendChild(c);
+      }
+      d.appendChild(ln);
+    });
+    box.appendChild(d);
+  });
+  refresh();
+}
+function refresh(){
+  document.querySelectorAll("#fields .carried").forEach(c => {
+    const t = ownText(c.dataset.c); c.textContent = t || "(carried down)"; c.classList.toggle("blank", !t);
+  });
+  render($("#mine"), "", ownForm(), ownText);
+}
+$("#fields").addEventListener("input", e => {
+  const k = e.target.dataset.k; if (!k) return;
+  own.l[k] = e.target.value; save(); refresh();
+});
+$("#nst").addEventListener("change", e => { own.n = +e.target.value; save(); buildFields(); });
+$("#clear").addEventListener("click", () => { own.l = {}; save(); buildFields(); });
+wire($("#mine"), null);
+buildFields();
+
+// ---- tabs
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("cur", x === b));
+  $("#t-poem").style.display = b.dataset.t === "poem" ? "" : "none";
+  $("#t-yours").classList.toggle("on", b.dataset.t === "yours");
+  stitch(poemBox); stitch($("#mine"));
+});
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { stitch(poemBox); stitch($("#mine")); }, 80); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => stitch(poemBox));
+
+// ---- snow, falling behind the page
+const cv = $("#snow"), cx = cv.getContext("2d");
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let flakes = [], SW = 0, SH = 0, dpr = 1;
+function size(){
+  dpr = Math.min(2, devicePixelRatio || 1); SW = innerWidth; SH = innerHeight;
+  cv.width = SW * dpr; cv.height = SH * dpr; cx.setTransform(dpr,0,0,dpr,0,0);
+  const want = Math.round(SW * SH / 9000);
+  while (flakes.length < want) flakes.push(flake(true));
+  flakes.length = want;
+}
+function flake(any){ const r = .6 + Math.random()**2 * 2.4; return {x:Math.random()*SW, y:any ? Math.random()*SH : -5, r, v:.25 + r*.28, ph:Math.random()*6.3}; }
+let col = getComputedStyle(document.documentElement).getPropertyValue("--snow");
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { col = getComputedStyle(document.documentElement).getPropertyValue("--snow"); });
+let t = 0;
+function frame(){
+  t += 1/60; cx.clearRect(0,0,SW,SH); cx.fillStyle = col;
+  for (const f of flakes){
+    if (!still){ f.y += f.v; f.x += Math.sin(t*.7 + f.ph) * .3 + .08; if (f.y > SH + 5){ Object.assign(f, flake(false)); } if (f.x > SW + 5) f.x = -5; }
+    cx.beginPath(); cx.arc(f.x, f.y, f.r, 0, 6.283); cx.fill();
+  }
+  if (!still) requestAnimationFrame(frame);
+}
+size(); addEventListener("resize", size); frame();
+if (still) addEventListener("resize", frame);
+
+window.__cleared = {form, POEM, LINES, own, stitch};
+</script>
+</body>
+</html>
