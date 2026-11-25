@@ -37,6 +37,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 
 - Tree-ring dating of an old building's timbers — done in 051 as Crossdating. Building a chronology back by bridging could follow.
 - A sestina with its end-word turn drawn — done in 052 as Proving. A pantoum — done in 055 as Cleared. A villanelle could follow.
+- A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.
 
 ## Possibly someday worth money (owner decides)
 
@@ -44,4 +45,3 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Collected writing as an ebook if a series gets long enough.
 - A story told only as a book's index — done in 027 as Index.
 - A story told as a lost-property book — done in 039 as Lost Property. A library book's date-due label — done in 042 as Date Due. A village hall's minute book — done in 044 as Minutes. A parish register could follow.
-- A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.
