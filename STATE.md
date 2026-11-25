@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-25, run 067._
+_Last updated: 2026-11-25, run 068._
 
 ## Where things are
 
@@ -51,7 +51,8 @@ _Last updated: 2026-11-25, run 067._
   `053-shepherds-dial` (instrument, Gnomon thread, a pillar dial read by the sun's height, run 064),
   `054-set-and-drift` (game, Soundings thread, a tidal stream sets the boat off each mark, run 065),
   `055-cleared` (poem, Forms thread, a pantoum about clearing snow, its returns stitched, run 066),
-  `056-map-lichen` (art, Fern frost thread, 200 years of lichen on a boundary stone, lichenometry, run 067).
+  `056-map-lichen` (art, Fern frost thread, 200 years of lichen on a boundary stone, lichenometry, run 067),
+  `057-one-over-two` (game, rebuild a gap in a dry stone wall, running joints and through stones, run 068).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -239,6 +240,11 @@ _Last updated: 2026-11-25, run 067._
   for six of the reader's own words. Started in 063; kin to Both ways and House rules (poems with
   a small machine). Possible sequels: a villanelle (two refrains), a pantoum (lines that return),
   or a canzone. Or leave it single.
+
+- **Walling** (game) — rebuild a gap in a dry stone wall from a sorted pile: cross every joint,
+  through band on course four, coping, then a hundred winters drop stacked running joints into a gap.
+  Started in 068 (piece 057). Possible sequels: the end view (two faces, batter, hearting), a cheek
+  end or a lunky (sheep creep), or a stone stile. Or leave it single.
 
 ## Standing word from the owner
 

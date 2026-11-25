@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One Over Two</title>
+<style>
+:root{--bg:#f1eee6;--fg:#1f1d19;--mute:#746d61;--line:#d6cfbf;--sky:#e6e9e6;--turf:#8c9a62;--soil:#6f6248;--void:#3b372f;
+  --s0:#b9b2a2;--s1:#a8a293;--s2:#c4bba8;--s3:#9d978a;--hi:#e3dccb;--speck:#7c7567;--through:#cfc4ab;--moss:#8a9a55;
+  --run:#b23a2a;--ok:#4f7a4a;--sel:#24435a}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e7e3da;--mute:#9a9488;--line:#2b2c2f;--sky:#1a1d21;--turf:#3e4a2c;--soil:#2e2a22;--void:#08090a;
+  --s0:#7b766c;--s1:#6c675e;--s2:#857e70;--s3:#615d55;--hi:#a39c8c;--speck:#4b4740;--through:#948a74;--moss:#5d6b3a;
+  --run:#e0745f;--ok:#8cbf82;--sel:#a9c8dc}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:14px 16px 56px}
+main{width:100%;max-width:640px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 10px;font-style:italic}
+canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+#wall{border:1px solid var(--line);cursor:pointer}
+#pile{margin-top:6px;cursor:pointer}
+#status{display:flex;justify-content:space-between;align-items:baseline;gap:4px 14px;flex-wrap:wrap;margin-top:8px}
+#count{color:var(--mute);font-size:13px}
+#log{min-height:3em;margin:4px 0 0}
+#log em{color:var(--mute)}
+#log b{font-weight:normal;color:var(--run)}
+.row{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+button:disabled{opacity:.4;cursor:default}
+#verdict{margin-top:12px;display:none}
+#verdict p{margin:.4em 0}
+#verdict ul{margin:.3em 0;padding-left:1.2em}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>One Over Two</h1>
+  <p class="sub">The sheep went through it in March. Twelve feet of wall to put back, a course at a time.</p>
+  <canvas id="wall" width="600" height="330" aria-label="A side view of a gap in a dry stone wall between two old standing ends. Stones are laid along it course by course."></canvas>
+  <div id="status"><span id="mode">Pick a stone from the pile.</span><span id="count"></span></div>
+  <canvas id="pile" width="600" height="124" aria-label="The pile of stones sorted for this course. Tap one to try it in the wall, tap again to lay it."></canvas>
+  <p id="log" aria-live="polite"></p>
+  <div class="row">
+    <button id="knap" disabled>knap it shorter</button>
+    <button id="lift" disabled>lift the last stone</button>
+    <button id="again">another pile</button>
+  </div>
+  <div id="verdict" aria-live="polite"></div>
+  <div class="row" id="wrow" style="display:none"><button id="winters">a hundred winters</button></div>
+  <details><summary>how it goes</summary>
+    <p>A dry stone wall holds up with no mortar, only weight and the way the stones are crossed. The rule
+    every waller is taught is <em>one over two, two over one</em>: each stone sits across the joint between
+    two stones below it. Where a joint lands straight above another, the wall has a <em>running joint</em>,
+    a seam that the frost, the sheep and the years will open.</p>
+    <p>You lay six courses, left to right, from the pile sorted for each: the big stones low, smaller ones as
+    you go up. Tap a stone to try it in the wall, and the joint it would make is marked: red if it lands within
+    a hand's width of a joint below. Tap it again to lay it. If it's too long for what's left, it gets dressed
+    to fit; you can also knap any stone shorter, three inches at a blow. Leave a sliver at the end of a course
+    and only a pinning stone will fill it, and pins work loose.</p>
+    <p>The fourth course is the through band. Through stones run the full width of the wall and tie its two
+    faces together; you see only their ends. Space them not much more than three feet apart.</p>
+    <p>When the coping is on, let a hundred winters at it. A single running joint cracks. Two or more stacked
+    one on another, and the wall drops into a gap there, the way the old one did. In a real wall each face is
+    built like this, leaning in to a batter, with small stones packed into the middle as hearting; here you
+    see one face. Today's pile is the same for everyone today.</p>
+  </details>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const wc = $("wall"), wg = wc.getContext("2d"), pc = $("pile"), pg = pc.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// half-units of 3 inches; the gap is 12 ft = 48
+const W = 48, PX = 11, X0 = 36, GROUND = 290;
+const CH = [32, 30, 28, 26, 24, 22];            // course heights, bottom up
+const RANGE = [[7,12],[6,11],[5,10],[5,9],[4,8],[4,7]];
+const THROUGH = 3, COPE_H = 34, PILE_N = 6;
+const courseY = []; { let y = GROUND; for (const h of CH){ y -= h; courseY.push(y); } }
+const COPE_Y = courseY[5] - COPE_H;
+
+function hash(s){ let h = 2166136261; for (const ch of String(s)){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed){ let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+const today = new Date(), dayKey = today.getFullYear() + "-" + (today.getMonth()+1) + "-" + today.getDate();
+let seed = hash("wall " + dayKey);
+let S, hist, sel, done, anim = null, winterT = 0, fallen = null;
+
+function css(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+let C = {};
+function readColors(){ for (const n of ["bg","fg","mute","line","sky","turf","soil","void","s0","s1","s2","s3","hi","speck","through","moss","run","ok","sel"]) C[n] = css("--" + n); }
+readColors();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); draw(); });
+
+// ---- stones ----------------------------------------------------------------
+function newStone(course, through){
+  const id = S.drawn++, r = rng(seed ^ hash("s" + id));
+  const [lo, hi] = RANGE[course];
+  let len = through ? 4 + Math.floor(r()*2) : lo + Math.floor(r()*(hi - lo + 1));
+  return {id, len, through: !!through, tone: Math.floor(r()*4)};
+}
+function fillPile(){
+  while (S.pile.length < PILE_N){
+    const t = S.course === THROUGH && S.pile.filter(s => s.through).length < 2;
+    S.pile.push(newStone(S.course, t));
+  }
+}
+function start(){
+  S = {course:0, laid:[[],[],[],[],[],[]], pile:[], drawn:0, knaps:0, dressed:0, pins:0};
+  hist = []; sel = -1; done = false; fallen = null; winterT = 0; anim && cancelAnimationFrame(anim); anim = null;
+  fillPile();
+  $("verdict").style.display = "none"; $("wrow").style.display = "none"; $("winters").disabled = false;
+  say("<em>The old wall stands either side. Footings are in; the first course wants your biggest stones.</em>");
+  update();
+}
+const cursor = k => S.laid[k].reduce((a, s) => a + s.len, 0);
+const joints = k => S.laid[k].slice(1).map(s => s.x);
+function runsAt(k, x){
+  if (k === 0 || x <= 0 || x >= W) return null;
+  for (const j of joints(k-1)) if (Math.abs(j - x) <= 1) return j;
+  return null;
+}
+function feet(h){ const inch = Math.round(h*3), f = Math.floor(inch/12), i = inch % 12; return (f ? f + " ft" : "") + (i ? (f ? " " : "") + i + " in" : (f ? "" : "0 in")); }
+
+// ---- actions ---------------------------------------------------------------
+function snapshot(){ hist.push(JSON.stringify(S)); }
+function select(i){ sel = (sel === i) ? -1 : i; update(); }
+function knap(){
+  if (sel < 0) return;
+  const s = S.pile[sel];
+  if (s.len <= 3){ say("<em>Knap that any more and there'll be nothing left of it.</em>"); return; }
+  snapshot(); s.len -= 1; S.knaps++;
+  say("<em>Tap, tap, and a flake comes off the end.</em> It's " + feet(s.len) + " now.");
+  update();
+}
+function lay(){
+  if (sel < 0 || done) return;
+  snapshot();
+  const k = S.course, s = S.pile[sel], x = cursor(k), rem = W - x;
+  let len = s.len, msg = "";
+  if (len > rem){ len = rem; S.dressed++; msg = "Dressed to fit the end. "; }
+  const placed = {x, len, id: s.id, through: s.through, tone: s.tone, pin: len < 3};
+  if (placed.pin){ S.pins++; msg += "Only a pinning stone would go in there. "; }
+  S.laid[k].push(placed);
+  S.pile.splice(sel, 1); sel = -1;
+  const end = x + len, run = end < W ? runsAt(k, end) : null;
+  if (run !== null) msg += "<b>That joint runs straight up from the one below.</b> ";
+  else if (k > 0 && end < W) msg += pick(["Crossed. ", "Sat across two. ", "One over two. ", "A good bed for it. "], placed.id);
+  if (end < W && W - end < 3) msg += "<em>That leaves a sliver at the end.</em>";
+  if (end >= W){
+    S.course++;
+    if (S.course === 6){ finish(); say(msg + " The last course is in, and the coping goes on."); update(); return; }
+    S.pile = []; fillPile();
+    msg += S.course === THROUGH ? " Course done. Next, the through band: the long stones that tie both faces." :
+           " Course done. The next pile is a size smaller.";
+  }
+  fillPile();
+  say(msg); update();
+}
+function pick(a, n){ return a[n % a.length]; }
+function lift(){
+  if (!hist.length || anim) return;
+  S = JSON.parse(hist.pop()); sel = -1;
+  if (done){ done = false; fallen = null; winterT = 0; $("verdict").style.display = "none"; $("wrow").style.display = "none"; }
+  say("<em>Lifted off again.</em>"); update();
+}
+
+// ---- verdict ---------------------------------------------------------------
+function assess(){
+  const runs = [];                                 // {k, x, j}
+  for (let k = 1; k < 6; k++) for (const x of joints(k)){ const j = runsAt(k, x); if (j !== null) runs.push({k, x, j}); }
+  // chains: a run at (k,x) stacked on a run at (k-1, j)
+  const key = (k, x) => k + ":" + x, at = new Map(runs.map(r => [key(r.k, r.x), r]));
+  for (const r of runs){ r.down = at.get(key(r.k - 1, r.j)) || null; if (r.down) r.down.up = r; }
+  const chains = [];
+  for (const r of runs) if (!r.down){ const c = []; let q = r; while (q){ c.push(q); q = q.up; } chains.push(c); }
+  const gaps = chains.filter(c => c.length >= 2), cracks = chains.filter(c => c.length === 1);
+  const th = S.laid[THROUGH].filter(s => s.through).map(s => s.x + s.len/2);
+  const marks = [0, ...th, W]; let wide = 0, widest = 0;
+  for (let i = 1; i < marks.length; i++){ const d = marks[i] - marks[i-1]; widest = Math.max(widest, d); if (d > 15) wide++; }
+  return {runs, gaps, cracks, th: th.length, wide, widest};
+}
+function finish(){
+  done = true;
+  const r = rng(seed ^ 77), cope = []; let x = 0;
+  while (x < W){ const w = Math.min(W - x, 2 + Math.floor(r()*2)); cope.push({x, len: w, id: 9000 + cope.length, tone: Math.floor(r()*4), lean: (r()-.5)*.08, h: COPE_H - 3 + r()*5}); x += w; }
+  S.cope = cope;
+  const a = assess();
+  const years = Math.max(12, Math.round(150 - 45*a.gaps.length - 14*a.cracks.length - 8*S.pins - 16*a.wide));
+  S.years = years;
+  let h = "<p><b style='color:var(--fg)'>" + (a.runs.length ? (a.gaps.length ? "It stands, for now." : "It stands.") : "A clean wall.") + "</b> ";
+  h += a.runs.length === 0 ? "No joint runs anywhere in it. " : a.runs.length + " running joint" + (a.runs.length > 1 ? "s" : "") + ". ";
+  h += "</p><ul>";
+  if (a.gaps.length) h += "<li>" + a.gaps.length + (a.gaps.length > 1 ? " places where" : " place where") + " joints stack two or more courses high: the frost will find " + (a.gaps.length > 1 ? "them" : "it") + ".</li>";
+  if (a.cracks.length) h += "<li>" + a.cracks.length + " single running joint" + (a.cracks.length > 1 ? "s" : "") + ": a crack, not a gap.</li>";
+  h += "<li>" + a.th + " through stone" + (a.th === 1 ? "" : "s") + ", " + (a.wide ? "with a stretch of " + feet(a.widest) + " left untied." : "none more than " + feet(a.widest) + " from the next.") + "</li>";
+  if (S.pins) h += "<li>" + S.pins + " pinning stone" + (S.pins > 1 ? "s" : "") + " in the face.</li>";
+  h += "<li>" + (S.knaps ? S.knaps + " blow" + (S.knaps > 1 ? "s" : "") + " of the hammer" : "No hammer work") + (S.dressed ? ", " + S.dressed + " stone" + (S.dressed > 1 ? "s" : "") + " dressed to fit an end" : "") + ".</li>";
+  h += "</ul><p id='after'></p>";
+  $("verdict").innerHTML = h; $("verdict").style.display = "block"; $("wrow").style.display = "flex";
+  S.assess = a;
+}
+function winters(){
+  if (!done || anim) return;
+  $("winters").disabled = true;
+  const a = S.assess, r = rng(seed ^ 991);
+  // which stones lose their bed: stones beside a stacked joint, then anything left hanging over them
+  const out = new Set(), when = new Map();
+  for (const c of a.gaps){
+    const t0 = .2 + .4*r()/c.length;
+    for (const q of c){
+      for (const kk of [q.k, q.k - 1]){
+        const xx = kk === q.k ? q.x : q.j;
+        for (const s of S.laid[kk]) if (s.x === xx || s.x + s.len === xx){ out.add(s.id); when.set(s.id, t0 + .03*r()); }
+      }
+    }
+  }
+  const rows = [...S.laid, S.cope];
+  for (let k = 1; k < rows.length; k++){
+    for (const s of rows[k]){
+      if (out.has(s.id)) continue;
+      let cover = 0, t = 0;
+      for (const b of rows[k-1]){ if (out.has(b.id)) { const o = Math.min(s.x+s.len, b.x+b.len) - Math.max(s.x, b.x); if (o > 0) t = Math.max(t, when.get(b.id)); continue; }
+        cover += Math.max(0, Math.min(s.x+s.len, b.x+b.len) - Math.max(s.x, b.x)); }
+      if (cover < s.len*.5){ out.add(s.id); when.set(s.id, t + .04 + .03*r()); }
+    }
+  }
+  fallen = {out, when, dx: new Map(), rot: new Map()};
+  for (const id of out){ fallen.dx.set(id, (r()-.5)*40); fallen.rot.set(id, (r()-.5)*1.6); }
+  const t0 = performance.now(), dur = reduce ? 1 : 4200;
+  const step = now => {
+    winterT = Math.min(1, (now - t0)/dur);
+    draw();
+    if (winterT < 1) anim = requestAnimationFrame(step);
+    else { anim = null; afterWord(a, out.size); }
+  };
+  anim = requestAnimationFrame(step);
+}
+function afterWord(a, n){
+  let t;
+  if (n) t = "A hundred winters on, the wall has " + (a.gaps.length > 1 ? a.gaps.length + " gaps" : "a gap") + " in it, " + n + " stones on the grass, and the sheep have found it. Someone will be along with a pile.";
+  else if (a.cracks.length) t = "A hundred winters on, it's cracked where the joints ran, and still standing. Good for " + (S.years > 100 ? "a few decades more" : "a while yet") + ".";
+  else t = "A hundred winters on, it's mossed over and hasn't moved. Good for another fifty, and then someone like you.";
+  const el = document.getElementById("after"); if (el) el.textContent = t;
+}
+
+// ---- drawing ---------------------------------------------------------------
+const TONES = () => [C.s0, C.s1, C.s2, C.s3];
+function stoneShape(g, x0, y0, w, h, id){
+  const r = rng(hash("shape" + id)), j = Math.min(3, h*.12);
+  const P = [
+    [x0 + 1 + r()*j, y0 + 1 + r()*j],
+    [x0 + w*(.3 + .2*r()), y0 + .5 + r()*j*.6],
+    [x0 + w*(.65 + .2*r()), y0 + .5 + r()*j*.8],
+    [x0 + w - 1 - r()*j, y0 + 1 + r()*j],
+    [x0 + w - .5 - r()*j*.7, y0 + h*(.4 + .2*r())],
+    [x0 + w - 1 - r()*j, y0 + h - 1 - r()*j*.6],
+    [x0 + w*(.4 + .3*r()), y0 + h - .5 - r()*j*.4],
+    [x0 + 1 + r()*j, y0 + h - 1 - r()*j*.5],
+    [x0 + .5 + r()*j*.7, y0 + h*(.4 + .2*r())],
+  ];
+  g.beginPath();
+  for (let i = 0; i < P.length; i++){
+    const a = P[i], b = P[(i+1) % P.length], m = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+    if (i === 0){ const z = P[P.length-1]; g.moveTo((z[0]+a[0])/2, (z[1]+a[1])/2); }
+    g.quadraticCurveTo(a[0], a[1], m[0], m[1]);
+  }
+  g.closePath();
+}
+function drawStone(g, x0, y0, w, h, s, alpha){
+  g.save(); g.globalAlpha = alpha == null ? 1 : alpha;
+  stoneShape(g, x0, y0, w, h, s.id);
+  g.fillStyle = s.through ? C.through : TONES()[s.tone]; g.fill();
+  g.save(); g.clip();
+  const r = rng(hash("spk" + s.id));
+  g.fillStyle = C.speck;
+  for (let i = 0, n = Math.round(w*h/90); i < n; i++){ g.globalAlpha = (alpha == null ? 1 : alpha) * (.25 + .35*r()); g.fillRect(x0 + r()*w, y0 + r()*h, 1 + r()*1.5, 1); }
+  g.globalAlpha = alpha == null ? 1 : alpha;
+  g.strokeStyle = C.hi; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x0 + 3, y0 + 2.2); g.lineTo(x0 + w - 4, y0 + 2 + r()*1.5); g.stroke();
+  if (s.through){
+    g.strokeStyle = C.speck; g.lineWidth = 1; g.globalAlpha *= .7;
+    for (let i = 1; i <= 2; i++){ g.beginPath(); g.ellipse(x0 + w/2, y0 + h/2, w*.16*i, h*.16*i, 0, 0, 6.3); g.stroke(); }
+  }
+  if (s.moss){ g.globalAlpha = .55; g.fillStyle = C.moss; for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(x0 + r()*w, y0 + r()*h*.5, 1.5 + r()*3, 0, 6.3); g.fill(); } }
+  g.restore();
+  g.restore();
+}
+function oldEnds(g){
+  // the standing wall either side of the gap
+  const r = rng(seed ^ 5);
+  for (const side of [0, 1]){
+    let id = 5000 + side*100;
+    g.save(); g.beginPath(); side ? g.rect(X0 + W*PX, 0, wc.width, wc.height) : g.rect(0, 0, X0, wc.height); g.clip();
+    for (let k = 0; k < 6; k++){
+      let x = side ? X0 + W*PX : 0; const lim = side ? wc.width : X0;
+      if (!side) x = -r()*20;
+      while (x < lim){ const w = 30 + r()*40, xx = side ? x : x; drawStone(g, xx, courseY[k], w, CH[k], {id: id++, tone: Math.floor(r()*4), moss: r() < .5}); x += w; }
+    }
+    let x = side ? X0 + W*PX : -10; const lim = side ? wc.width : X0;
+    while (x < lim){ const w = 18 + r()*10; drawStone(g, x, COPE_Y + 2, w, COPE_H - 2, {id: id++, tone: Math.floor(r()*4), moss: true}); x += w; }
+    g.restore();
+  }
+}
+function draw(){
+  const g = wg, Wd = wc.width, Hd = wc.height;
+  g.fillStyle = C.sky; g.fillRect(0, 0, Wd, Hd);
+  g.fillStyle = C.turf; g.fillRect(0, GROUND, Wd, Hd - GROUND);
+  g.fillStyle = C.soil; g.fillRect(0, GROUND, Wd, 3);
+  oldEnds(g);
+  g.fillStyle = C.void; g.fillRect(X0, courseY[5], W*PX, GROUND - courseY[5]);
+  g.fillStyle = C.sky; g.globalAlpha = 1;
+  // gaps not yet built show sky above the built part
+  for (let k = 0; k < 6; k++){
+    const c = S.laid[k].reduce((a, s) => a + s.len, 0);
+    if (c < W){ g.fillStyle = C.sky; g.fillRect(X0 + c*PX, courseY[k], (W - c)*PX, CH[k] + (k === 0 ? 0 : 0)); }
+  }
+  // fill above unbuilt: courses above current with nothing = sky; done above
+  const fallT = t => fallen ? fallen.when.get(t) : null;
+  const drawLaid = (s, y, h, lean) => {
+    let x = X0 + s.x*PX, w = s.len*PX;
+    const t0 = fallen && fallen.out.has(s.id) ? fallen.when.get(s.id) : null;
+    if (t0 != null && winterT > t0){
+      const p = Math.min(1, (winterT - t0)/.12), drop = (GROUND - y - h + 4 + (s.id % 3)*-3);
+      g.save(); g.translate(x + w/2 + fallen.dx.get(s.id)*p, y + h/2 + drop*p*p); g.rotate(fallen.rot.get(s.id)*p);
+      drawStone(g, -w/2, -h/2, w, h, s); g.restore(); return;
+    }
+    if (lean){ g.save(); g.translate(x + w/2, y + h); g.rotate(lean); drawStone(g, -w/2, -h, w, h, s); g.restore(); }
+    else drawStone(g, x, y, w, h, s);
+  };
+  // when stones have fallen, their holes show through
+  if (fallen && winterT > 0) for (let k = 0; k < 6; k++) for (const s of S.laid[k]){
+    const t0 = fallen.out.has(s.id) ? fallen.when.get(s.id) : null;
+    if (t0 != null && winterT > t0){ g.fillStyle = C.sky; g.fillRect(X0 + s.x*PX, courseY[k], s.len*PX, CH[k]); }
+  }
+  const aged = done && winterT > .5;
+  for (let k = 0; k < 6; k++) for (const s of S.laid[k]){ if (aged) s.moss = (s.id % 3 === 0); drawLaid(s, courseY[k], CH[k], 0); }
+  if (done && S.cope){
+    for (const s of S.cope){
+      const t0 = fallen && fallen.out.has(s.id) ? fallen.when.get(s.id) : null;
+      if (t0 != null && winterT > t0){ drawLaid(s, courseY[5] - s.h, s.h, 0); continue; }
+      if (aged) s.moss = true;
+      drawLaid(s, courseY[5] - s.h, s.h, s.lean);
+    }
+  }
+  // fallen stones drawn last so they sit in front
+  // running joints: marked when finished
+  if (done){
+    const a = S.assess;
+    g.strokeStyle = C.run; g.lineWidth = 2;
+    for (const q of a.runs){
+      if (fallen && winterT > .15 && fallen.out.size && a.gaps.some(c => c.includes(q))) continue;
+      const x1 = X0 + q.j*PX, x2 = X0 + q.x*PX, ya = courseY[q.k - 1] + CH[q.k - 1] - 2, yb = courseY[q.k] + 2;
+      g.globalAlpha = winterT > 0 ? Math.min(1, winterT*3) : .8;
+      g.beginPath(); g.moveTo(x1, ya); g.lineTo((x1 + x2)/2 + 1.5, (ya + yb)/2); g.lineTo(x2, yb); g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+  // ghost of the selected stone
+  if (!done && sel >= 0){
+    const k = S.course, s = S.pile[sel], x = cursor(k), len = Math.min(s.len, W - x);
+    drawStone(g, X0 + x*PX, courseY[k], len*PX, CH[k], s, .62);
+    g.strokeStyle = C.sel; g.lineWidth = 1.5; g.setLineDash([4, 3]);
+    g.strokeRect(X0 + x*PX + .5, courseY[k] + .5, len*PX - 1, CH[k] - 1); g.setLineDash([]);
+    if (k > 0){
+      g.fillStyle = C.mute;
+      for (const j of joints(k-1)){ const jx = X0 + j*PX; g.beginPath(); g.moveTo(jx - 4, courseY[k] + CH[k] + 1); g.lineTo(jx + 4, courseY[k] + CH[k] + 1); g.lineTo(jx, courseY[k] + CH[k] - 5); g.fill(); }
+    }
+    const end = x + len;
+    if (end < W){
+      const run = runsAt(k, end), jx = X0 + end*PX;
+      g.strokeStyle = run !== null ? C.run : C.ok; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(jx, courseY[k] - 6); g.lineTo(jx, courseY[k] + CH[k] + (run !== null ? CH[k-1] : 0)); g.stroke();
+    }
+  }
+  // the course being built
+  if (!done){
+    const k = S.course; g.fillStyle = C.mute; g.font = "12px Georgia, serif"; g.textAlign = "left";
+    g.fillText("course " + (k + 1) + (k === THROUGH ? " · through band" : ""), X0, 18);
+  } else if (winterT > 0){
+    g.fillStyle = C.mute; g.font = "12px Georgia, serif"; g.textAlign = "left";
+    g.fillText(Math.round(winterT*100) + " winters", X0, 18);
+  }
+  drawPile();
+}
+let pileRects = [];
+function drawPile(){
+  const g = pg, Wd = pc.width, Hd = pc.height;
+  g.clearRect(0, 0, Wd, Hd);
+  pileRects = [];
+  if (done){
+    g.fillStyle = C.mute; g.font = "italic 14px Georgia, serif"; g.textAlign = "center";
+    g.fillText(S.years ? "The pile's used up. The barrow goes back down the field." : "", Wd/2, Hd/2);
+    return;
+  }
+  const k = S.course, h = CH[k];
+  let x = 8, y = 10;
+  S.pile.forEach((s, i) => {
+    const w = s.len*PX;
+    if (x + w > Wd - 8){ x = 8; y += h + 30; }
+    pileRects.push({x, y, w, h, i});
+    const lift = i === sel ? -4 : 0;
+    g.fillStyle = C.void; g.globalAlpha = .25; g.beginPath(); g.ellipse(x + w/2, y + h + 4, w/2, 3, 0, 0, 6.3); g.fill(); g.globalAlpha = 1;
+    drawStone(g, x, y + lift, w, h, s, i === sel ? .45 : 1);
+    if (i === sel){ g.strokeStyle = C.sel; g.lineWidth = 1.5; g.setLineDash([4, 3]); g.strokeRect(x + .5, y + lift + .5, w - 1, h - 1); g.setLineDash([]); }
+    g.fillStyle = C.mute; g.font = "14px Georgia, serif"; g.textAlign = "center";
+    g.fillText(feet(s.len) + (s.through ? " · through" : ""), x + w/2, y + h + 18);
+    x += w + 14;
+  });
+}
+
+// ---- interface -------------------------------------------------------------
+function say(h){ $("log").innerHTML = h; }
+function update(){
+  const k = S.course;
+  $("knap").disabled = done || sel < 0;
+  $("lift").disabled = !hist.length || !!anim;
+  if (done) $("mode").textContent = "The coping's on.";
+  else if (sel >= 0) $("mode").textContent = "Tap it again, or the wall, to lay it.";
+  else $("mode").textContent = k === THROUGH ? "Pick a stone. Leave room for the throughs." : "Pick a stone from the pile.";
+  const built = S.laid.reduce((a, c) => a + c.reduce((b, s) => b + s.len, 0), 0);
+  $("count").textContent = done ? "six courses and the coping" : "course " + (k + 1) + " of 6 · " + feet(cursor(k)) + " of 12 ft";
+  draw();
+}
+function pt(cv, e){ const b = cv.getBoundingClientRect(); return [(e.clientX - b.left)*cv.width/b.width, (e.clientY - b.top)*cv.height/b.height]; }
+pc.addEventListener("click", e => {
+  if (done) return;
+  const [x, y] = pt(pc, e);
+  const hit = pileRects.find(r => x >= r.x - 4 && x <= r.x + r.w + 4 && y >= r.y - 6 && y <= r.y + r.h + 20);
+  if (!hit) return;
+  if (hit.i === sel) lay(); else select(hit.i);
+});
+wc.addEventListener("click", () => { if (sel >= 0) lay(); });
+$("knap").onclick = knap;
+$("lift").onclick = lift;
+$("again").onclick = () => { seed = (Math.random()*4294967296) >>> 0; start(); };
+$("winters").onclick = winters;
+start();
+})();
+</script>
+</body>
+</html>

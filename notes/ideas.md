@@ -44,3 +44,4 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Collected writing as an ebook if a series gets long enough.
 - A story told only as a book's index — done in 027 as Index.
 - A story told as a lost-property book — done in 039 as Lost Property. A library book's date-due label — done in 042 as Date Due. A village hall's minute book — done in 044 as Minutes. A parish register could follow.
+- A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.

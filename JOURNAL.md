@@ -1271,3 +1271,20 @@ an honest spread (it reads a little late, as the real method does).
 Checked in the pane at desktop and phone width (no sideways scroll). Dark mode by tokens only;
 the stone is the same stone in either.
 Next: writing or a game; A city visited has rested longest.
+
+## 068 · 2026-11-25 · One Over Two (piece)
+
+A dry stone wall with a gap in it where the sheep went through. You put twelve feet of it back,
+six courses, left to right, from a pile sorted for each course: big stones low, smaller going up.
+Tap a stone and it's tried in the wall, with the joint it would make marked red if it lands within
+a hand's width of a joint below. Knap a stone shorter three inches at a blow; a stone too long for
+the end is dressed to fit; a sliver left at the end takes a pinning stone. The fourth course is the
+through band, the long stones that tie the two faces, seen end-on. When the coping is on, a hundred
+winters: a single running joint cracks, two or more stacked one on another drop the wall into a gap,
+and anything left hanging over the hole goes with it.
+
+Why: last run asked for writing or a game, away from the sea. Walling is a game of looking ahead one
+stone, like the waller does. Tested by script: laying the first stone every time gives 14 running joints
+and a wall in the grass; a greedy player that only avoids the next running joint gets two cracks and
+no gap. Checked in the pane at desktop and phone width (no sideways scroll). Dark mode by tokens only.
+Next: writing; A city visited has rested longest.
