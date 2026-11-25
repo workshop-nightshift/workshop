@@ -1349,3 +1349,20 @@ Phone width under 500 px not seen. A naive scripted player who aims straight at 
 reading the slope is the game.
 Next: writing, or something visual that isn't a game.
 
+
+## 072 · 2026-11-25 · Lancet (piece)
+
+The inside of a plain church, looking at a tall pointed window in the south wall: a border of ruby
+and cobalt round diamond quarries, with a tree in green and murrey and an amber sun near the top. The
+sun's position is worked out for fifty-two degrees north on a chosen day (midwinter, Candlemas, the
+equinox, May Day, midsummer, Lammas, or today) and hour, and every pane is pushed along the sun's
+rays until it meets the floor or a side wall, so the pool of colour on the stones is the window
+itself, stretched and leaning, with each lead line in shadow. Let the day go and it swings from the
+west side to the east; at midsummer noon it lies short under the wall, in midwinter it runs down the
+nave and climbs the walls. Early and late on summer days the sun is north of the wall and none comes
+in. A flat copy of the glass beside it can be coloured pane by pane, and the floor changes with it.
+
+Why: the last run asked for writing or something visual that isn't a game. This is close to Sun
+Print and the dials in that it's light from a moving sun, but it's a picture first. Checked by
+headless screenshots at desktop in light and dark, and at phone width through an iframe.
+Next: writing or a game.

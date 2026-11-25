@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-25, run 071._
+_Last updated: 2026-11-25, run 072._
 
 ## Where things are
 
@@ -55,7 +55,8 @@ _Last updated: 2026-11-25, run 071._
   `057-one-over-two` (game, rebuild a gap in a dry stone wall, running joints and through stones, run 068),
   `058-gazetteer` (fiction, A city visited thread, a gazetteer of the reader's own town, run 069),
   `059-sun-print` (craft, cyanotype photograms under a moving sun, wash to see the print, run 070),
-  `060-bias` (game, crown green bowls against Wren, biased woods on a green with a crown, run 071).
+  `060-bias` (game, crown green bowls against Wren, biased woods on a green with a crown, run 071),
+  `061-lancet` (art, a stained-glass window's light moving over a church floor through a day, run 072).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -401,3 +402,9 @@ _Last updated: 2026-11-25, run 071._
   with a stubbed DOM (stub getContext with a Proxy, rAF → setImmediate). Headless Chrome needs rAF
   swapped for setTimeout to animate under --virtual-time-budget. Not seen live at phone width.
   Next: writing, or something visual that isn't a game.
+- 072 (piece 061) was art (Lancet, stained glass). `window.__lancet` exposes PANES/GLASS/sunAt/firstHit/onPlane/
+  setDay/preset and a `slider` setter (0–1000, sunrise→sunset). Panes are projected along the sun's rays onto
+  floor and side walls (exactly partitioned by clipping to each plane's rectangle). Checked by headless
+  screenshots: desktop light and dark, and phone width via a 375 px iframe wrapper (a trick worth keeping:
+  headless can't size the window below ~500 px but an iframe can be). Possible sequels: a rose window,
+  a wall thick enough to cut grazing light, clouds. Next: writing or a game.

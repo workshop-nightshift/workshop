@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lancet</title>
+<style>
+:root{--bg:#efede8;--fg:#1f1c19;--mute:#6f685f;--line:#cdc6bb;--card:#f8f6f2;--accent:#8a2a2a;--on:#8a2a2a}
+@media (prefers-color-scheme:dark){:root{--bg:#131210;--fg:#e8e3da;--mute:#9a9286;--line:#34302a;--card:#1b1916;--accent:#e09a7a;--on:#e09a7a}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 64px}
+main{width:100%;max-width:860px}
+h1{font-size:22px;font-weight:normal;margin:0;font-style:italic;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+#room{display:block;width:100%;height:auto;border-radius:3px;background:#0c0b0a}
+.layout{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:flex-start;margin-top:14px}
+.glasswrap{flex:0 0 auto;width:min(100%,240px);margin:0 auto}
+@media (max-width:600px){.glasswrap{width:150px;order:2}.side{order:1}}
+#glass{display:block;width:100%;height:auto;touch-action:none;cursor:pointer}
+.side{flex:1 1 300px;min-width:0}
+.clock{font-size:30px;line-height:1.1;font-variant-numeric:tabular-nums}
+.clock small{font-size:14px;color:var(--mute);font-style:italic}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer}
+button:hover{border-color:var(--mute)}
+button.on{border-color:var(--on);color:var(--on)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.sw{width:30px;height:30px;padding:0;border-radius:50%;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.sw.on{border-color:var(--fg)}
+.lbl{font-size:13px;color:var(--mute);font-style:italic;margin:12px 0 2px}
+.mute{color:var(--mute)}
+#where{min-height:3em}
+.prose{max-width:36em}
+p{margin:.6em 0}
+h2{font-size:16px;font-weight:normal;margin:28px 0 8px;color:var(--mute);font-style:italic}
+</style>
+</head>
+<body>
+<main>
+  <h1>Lancet</h1>
+  <p class="sub">a south window, a stone floor, and a day of sun going over</p>
+
+  <canvas id="room" aria-label="the inside of a church: a pointed window in the far wall, and coloured light from it lying on the floor"></canvas>
+
+  <div class="layout">
+    <div class="glasswrap">
+      <canvas id="glass" aria-label="the window's glass, pane by pane; tap a pane to colour it"></canvas>
+      <div class="mute" style="font-size:12.5px;text-align:center;margin-top:4px;font-style:italic">tap or drag on the glass to colour it</div>
+    </div>
+    <div class="side">
+      <div class="clock"><span id="clk">12:00</span> <small id="clknote">sun time</small></div>
+      <input type="range" id="t" min="0" max="1000" value="500" aria-label="time of day">
+      <div class="row">
+        <button id="play">▶ let the day go</button>
+      </div>
+      <div class="mute" style="font-size:13.5px" id="sun">&nbsp;</div>
+      <div id="where" style="margin-top:6px">&nbsp;</div>
+
+      <div class="lbl">day of the year</div>
+      <div class="row" id="days"></div>
+
+      <div class="lbl">glass</div>
+      <div class="row" id="pal"></div>
+      <div class="row" id="presets"></div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <h2>about</h2>
+    <p>A tall pointed window in the south wall of a church at fifty-two degrees north, glazed
+    in quarries, small diamonds of glass held in lead, with a border round the edge. The sun
+    comes through it and lays a copy of the window on the floor, stretched and leaning, each
+    pane in its own colour and every lead line drawn in shadow.</p>
+    <p>The copy is the window pushed along the sun's rays until it meets something. At midsummer
+    noon the sun is high, so the pool lies short and close under the wall. In midwinter it is so
+    low that the light runs right down the nave and up the wall behind you, out of sight. Through
+    the morning the pool swings from the west side of the floor to the east, and in the late
+    afternoon it climbs the east wall. Early and late on summer days the sun is round to the
+    north and this window gets none of it.</p>
+    <p>Times are sun time: noon is when the sun is due south. Colour the glass and let a day go by.</p>
+  </div>
+</main>
+
+<script>
+(function(){
+"use strict";
+const R2D=180/Math.PI, D2R=Math.PI/180;
+const LAT=52*D2R;
+
+// ---------- the window ----------
+const HW=1.2, SILL=1.0, SPRING=4.6, RAD=2.4, BORDER=0.17, LEAD=0.028;
+function outlinePts(inset){
+  const hw=HW-inset, sill=SILL+inset, r=RAD-inset, c=RAD-HW; // arc centres at ±c
+  const segs=[];
+  const line=(a,b,n)=>{const s=[];for(let i=0;i<=n;i++){const k=i/n;s.push([a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k]);}return s;};
+  const arc=(cx,t0,t1,n)=>{const s=[];for(let i=0;i<=n;i++){const t=t0+(t1-t0)*i/n;s.push([cx+r*Math.cos(t),SPRING+r*Math.sin(t)]);}return s;};
+  const ta=Math.acos(c/r);
+  segs.push(line([-hw,sill],[hw,sill],6));
+  segs.push(line([hw,sill],[hw,SPRING],9));
+  segs.push(arc(-c,0,ta,6));
+  segs.push(arc(c,Math.PI-ta,Math.PI,6));
+  segs.push(line([-hw,SPRING],[-hw,sill],9));
+  return segs;
+}
+const OUT=outlinePts(0), IN=outlinePts(BORDER);
+const flat=segs=>{const p=[];segs.forEach(s=>{for(let i=0;i<s.length-1;i++)p.push(s[i]);});return p;};
+const OUTLINE=flat(OUT), INLINE=flat(IN);
+const APEX=SPRING+Math.sqrt(RAD*RAD-(RAD-HW)*(RAD-HW));
+
+function area(p){let a=0;for(let i=0;i<p.length;i++){const q=p[i],r=p[(i+1)%p.length];a+=q[0]*r[1]-r[0]*q[1];}return a/2;}
+function clipConvex(poly,clip){
+  let out=poly;
+  for(let i=0;i<clip.length&&out.length;i++){
+    const a=clip[i],b=clip[(i+1)%clip.length];
+    const side=p=>(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]);
+    const inp=out;out=[];
+    for(let j=0;j<inp.length;j++){
+      const p=inp[j],q=inp[(j+1)%inp.length],sp=side(p),sq=side(q);
+      if(sp>=0)out.push(p);
+      if((sp>=0)!==(sq>=0)){const k=sp/(sp-sq);out.push([p[0]+(q[0]-p[0])*k,p[1]+(q[1]-p[1])*k]);}
+    }
+  }
+  return out;
+}
+function clipRect(poly,x0,x1,y0,y1){return clipConvex(poly,[[x0,y0],[x1,y0],[x1,y1],[x0,y1]]);}
+function centroid(p){let x=0,y=0;p.forEach(q=>{x+=q[0];y+=q[1];});return [x/p.length,y/p.length];}
+function shrink(p,d){const c=centroid(p);return p.map(q=>{const dx=q[0]-c[0],dy=q[1]-c[1],L=Math.hypot(dx,dy)||1,k=Math.max(0.15,1-d/L);return [c[0]+dx*k,c[1]+dy*k];});}
+function inside(p,pt){let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const a=p[i],b=p[j];if(((a[1]>pt[1])!==(b[1]>pt[1]))&&(pt[0]<(b[0]-a[0])*(pt[1]-a[1])/(b[1]-a[1])+a[0]))c=!c;}return c;}
+
+// panes: border ring, then quarries
+const PANES=[];
+OUT.forEach((seg,k)=>{const sin=IN[k];for(let i=0;i<seg.length-1;i++){
+  const poly=[seg[i],seg[i+1],sin[i+1],sin[i]];
+  PANES.push({poly,border:true,k,i,n:seg.length-1});
+}});
+const DW=0.34, DH=0.5;
+for(let j=0;;j++){
+  const cy=SILL+BORDER+j*DH/2; if(cy>APEX+DH)break;
+  for(let i=-6;i<=6;i++){
+    const cx=(i+((j%2)?0.5:0))*DW;
+    const d=[[cx,cy-DH/2],[cx+DW/2,cy],[cx,cy+DH/2],[cx-DW/2,cy]];
+    const c=clipConvex(d,INLINE);
+    if(c.length>=3&&area(c)>0.004)PANES.push({poly:c,border:false,cx,cy});
+  }
+}
+PANES.forEach(p=>{p.lp=shrink(p.poly,LEAD);p.c=centroid(p.poly);});
+
+// glass: what it looks like lit from behind, and the light it lets through
+const GLASS=[
+  {name:"clear", see:"#dfe8d2", light:[255,236,196], a:0.50},
+  {name:"ruby", see:"#a8132a", light:[255,34,52], a:0.62},
+  {name:"cobalt", see:"#1b3a9e", light:[54,92,255], a:0.66},
+  {name:"emerald", see:"#1d7a3c", light:[52,196,86], a:0.60},
+  {name:"amber", see:"#e2a01a", light:[255,184,40], a:0.60},
+  {name:"murrey", see:"#6a2770", light:[196,64,210], a:0.62},
+  {name:"lead", see:"#2a2724", light:null, a:0}
+];
+const hash=(a,b)=>{const s=Math.sin(a*127.1+b*311.7)*43758.5453;return s-Math.floor(s);};
+const PRESETS={
+  "tree":p=>{
+    if(p.border)return (p.i%2)?2:1;
+    const [x,y]=p.c, ty=SILL+BORDER;
+    if(Math.hypot(x,y-(APEX-0.45))<0.36)return 4;
+    if(Math.hypot(x*0.9,y-4.2)<1.0)return hash(p.cx,p.cy)<0.18?1:3;
+    if(Math.abs(x)<0.2&&y<4.0)return 5;
+    if(y<ty+0.3)return 3;
+    return 0;
+  },
+  "rose":p=>{
+    if(p.border)return (p.i%2)?4:3;
+    const r=Math.hypot(p.c[0],p.c[1]-3.9);
+    return r<0.3?4:r<0.68?1:r<1.02?2:r<1.15?4:0;
+  },
+  "quarries":p=>p.border?((p.i%3)?0:4):(hash(p.cx,p.cy)<0.08?4:0),
+  "clear":p=>0,
+  "jumble":p=>Math.floor(hash(p.c[0]*3.1,p.c[1]*1.7+Math.random())*6)
+};
+function preset(n){PANES.forEach(p=>p.g=PRESETS[n](p));curPreset=n;presetBtns();dirty=true;drawGlass();}
+let curPreset="tree";
+
+// ---------- sun ----------
+const DAYS=[
+  ["midwinter",-23.44],["candlemas",-17.1],["equinox",0],["may day",15.0],["midsummer",23.44],["lammas",18.0],["today",null]
+];
+let dayIdx=4, decl=23.44*D2R;
+function todayDecl(){const n=new Date(),s=new Date(n.getFullYear(),0,0),N=Math.floor((n-s)/864e5);return -23.44*Math.cos(2*Math.PI*(N+10)/365);}
+function riseSet(){
+  const cH=-Math.tan(LAT)*Math.tan(decl); const H0=Math.acos(Math.max(-1,Math.min(1,cH)))*R2D/15;
+  return [12-H0-0.4,12+H0+0.4];
+}
+function sunAt(h){
+  const H=(h-12)*15*D2R;
+  const sa=Math.sin(LAT)*Math.sin(decl)+Math.cos(LAT)*Math.cos(decl)*Math.cos(H);
+  const alt=Math.asin(sa);
+  const az=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(LAT)-Math.tan(decl)*Math.cos(LAT)); // from south, + west
+  return {alt,az};
+}
+const sstep=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
+
+// ---------- the room ----------
+// x: + is west (right, looking south at the window), y up, z out from the window wall toward you
+const RX=4, RZ=10, RY=9, CY=5, CZ=11;
+const room=document.getElementById("room"), rc=room.getContext("2d");
+let W=0,H=0,F=0,OX=0,OY=0,DPR=1;
+function sizeRoom(){
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  const w=room.clientWidth||room.parentNode.clientWidth;
+  const h=Math.round(Math.max(300,Math.min(w<600?w*0.95:w*0.68,620)));
+  room.width=Math.round(w*DPR);room.height=Math.round(h*DPR);
+  room.style.height=h+"px";
+  W=w;H=h;F=H/1.42;OX=W/2;OY=0.32*F;
+  dirty=true;
+}
+const P=(x,y,z)=>{const d=CZ-z;return [OX+F*x/d, OY-F*(y-CY)/d];};
+function path(ctx,pts){ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.closePath();}
+
+let hour=12, sun=sunAt(12), dirty=true;
+function lightDir(){
+  const ca=Math.cos(sun.alt);
+  return [-ca*Math.sin(sun.az),-Math.sin(sun.alt),ca*Math.cos(sun.az)];
+}
+// a window point (x,y,0) along d, onto floor/left/right: returns [plane, 3d point, t]
+function firstHit(x,y,d){
+  let best=null;
+  const tf=-y/d[1]; best=["floor",tf];
+  if(d[0]<-1e-6){const t=(-RX-x)/d[0];if(t<best[1])best=["left",t];}
+  if(d[0]>1e-6){const t=(RX-x)/d[0];if(t<best[1])best=["right",t];}
+  const t=best[1];return [best[0],[x+d[0]*t,y+d[1]*t,d[2]*t],t];
+}
+// project a pane polygon onto one plane, clip to the plane's rectangle, return 3D points
+function onPlane(poly,d,plane){
+  let q,back;
+  if(plane==="floor"){
+    q=poly.map(p=>{const t=-p[1]/d[1];return [p[0]+d[0]*t,d[2]*t];});
+    q=clipRect(q,-RX,RX,0,RZ);back=a=>[a[0],0,a[1]];
+  }else{
+    const X=plane==="left"?-RX:RX;
+    if(plane==="left"&&d[0]>=-1e-6)return null;
+    if(plane==="right"&&d[0]<=1e-6)return null;
+    q=poly.map(p=>{const t=(X-p[0])/d[0];return [d[2]*t,p[1]+d[1]*t];});
+    q=clipRect(q,0,RZ,0,RY);back=a=>[X,a[1],a[0]];
+  }
+  if(q.length<3)return null;
+  return q.map(back);
+}
+
+function sunState(){
+  const alt=sun.alt, ent=Math.cos(sun.az);
+  const sky=sstep(-6*D2R,10*D2R,alt);
+  const lit=alt>0&&ent>0.02;
+  const I=lit?sstep(0,5*D2R,alt)*sstep(0.02,0.2,ent):0;
+  const warm=sstep(0,22*D2R,alt);
+  return {sky,lit,I,warm};
+}
+function tint(c,warm){return [c[0],Math.round(c[1]*(0.72+0.28*warm)),Math.round(c[2]*(0.45+0.55*warm))];}
+
+// fixed specks of dust in the beam
+const MOTES=[];
+(function(){let s=7;const rnd=()=>{s=(s*16807)%2147483647;return s/2147483647;};
+  while(MOTES.length<110){const x=(rnd()*2-1)*HW,y=SILL+rnd()*(APEX-SILL);if(inside(OUTLINE,[x,y]))MOTES.push({x,y,s:rnd(),ph:rnd()*6.28,sp:0.4+rnd()});}
+})();
+
+function hull(pts){
+  pts=pts.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+  const lo=[],up=[];
+  for(const p of pts){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+  for(let i=pts.length-1;i>=0;i--){const p=pts[i];while(up.length>=2&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}
+  up.pop();lo.pop();return lo.concat(up);
+}
+
+function drawRoom(now){
+  const ctx=rc;ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.globalCompositeOperation="source-over";
+  ctx.fillStyle="#0d0c0b";ctx.fillRect(0,0,W,H);
+  const st=sunState();
+  const amb=0.22+0.78*st.sky;
+  const shade=(r,g,b)=>`rgb(${Math.round(r*amb)},${Math.round(g*amb)},${Math.round(b*amb)})`;
+  // ceiling shadow, walls
+  path(ctx,[P(-RX,RY,0),P(RX,RY,0),P(RX,RY,RZ),P(-RX,RY,RZ)]);ctx.fillStyle=shade(40,36,32);ctx.fill();
+  path(ctx,[P(-RX,0,0),P(-RX,0,RZ),P(-RX,RY,RZ),P(-RX,RY,0)]);ctx.fillStyle=shade(150,142,128);ctx.fill();
+  path(ctx,[P(RX,0,0),P(RX,0,RZ),P(RX,RY,RZ),P(RX,RY,0)]);ctx.fillStyle=shade(138,130,117);ctx.fill();
+  path(ctx,[P(-RX,0,0),P(RX,0,0),P(RX,RY,0),P(-RX,RY,0)]);ctx.fillStyle=shade(126,118,104);ctx.fill();
+  // floor and its flags
+  path(ctx,[P(-RX,0,0),P(RX,0,0),P(RX,0,RZ),P(-RX,0,RZ)]);ctx.fillStyle=shade(104,98,90);ctx.fill();
+  ctx.strokeStyle=shade(70,65,59);ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let z=0,r=0;z<=RZ;z+=1.0,r++){const a=P(-RX,0,z),b=P(RX,0,z);ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);
+    if(z<RZ)for(let x=-RX+((r%2)?0.75:0);x<RX;x+=1.5){if(x<=-RX)continue;const p=P(x,0,z),q=P(x,0,Math.min(RZ,z+1));ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);}}
+  ctx.stroke();
+  // a ledger slab
+  path(ctx,[P(-0.9,0,3.4),P(0.9,0,3.4),P(0.9,0,5.9),P(-0.9,0,5.9)]);ctx.fillStyle=shade(58,56,54);ctx.fill();
+  path(ctx,[P(-0.75,0,3.55),P(0.75,0,3.55),P(0.75,0,5.75),P(-0.75,0,5.75)]);ctx.strokeStyle=shade(86,83,80);ctx.stroke();
+  ctx.beginPath();const c1=P(0,0,4.0),c2=P(0,0,5.3),c3=P(-0.4,0,4.4),c4=P(0.4,0,4.4);
+  ctx.moveTo(c1[0],c1[1]);ctx.lineTo(c2[0],c2[1]);ctx.moveTo(c3[0],c3[1]);ctx.lineTo(c4[0],c4[1]);ctx.stroke();
+  // corners of the room
+  ctx.strokeStyle=shade(60,56,50);ctx.beginPath();
+  [[-RX,0,0,-RX,RY,0],[RX,0,0,RX,RY,0],[-RX,0,0,-RX,0,RZ],[RX,0,0,RX,0,RZ]].forEach(e=>{const a=P(e[0],e[1],e[2]),b=P(e[3],e[4],e[5]);ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);});ctx.stroke();
+  // the window: splay, lead, glass
+  const splay=OUTLINE.map(p=>{const dx=p[0],dy=p[1]-3.6,L=Math.hypot(dx,dy);return [p[0]+dx/L*0.22,p[1]+dy/L*0.22];});
+  path(ctx,splay.map(p=>P(p[0],p[1],0)));ctx.fillStyle=shade(96,89,78);ctx.fill();
+  path(ctx,OUTLINE.map(p=>P(p[0],p[1],0)));ctx.fillStyle="#181614";ctx.fill();
+  const glow=0.18+0.82*st.sky;
+  PANES.forEach(p=>{const g=GLASS[p.g];path(ctx,p.lp.map(q=>P(q[0],q[1],0)));ctx.fillStyle=g.see;ctx.globalAlpha=glow;ctx.fill();ctx.globalAlpha=1;});
+  if(st.sky<1){ctx.globalAlpha=(1-st.sky)*0.5;path(ctx,OUTLINE.map(p=>P(p[0],p[1],0)));ctx.fillStyle="#0d0c0b";ctx.fill();ctx.globalAlpha=1;}
+  if(st.lit&&st.I>0){
+    ctx.globalAlpha=0.1*st.I;path(ctx,OUTLINE.map(p=>P(p[0],p[1],0)));ctx.fillStyle="#fff6dc";ctx.globalCompositeOperation="lighter";ctx.fill();ctx.globalAlpha=1;
+  }
+  // the light
+  if(st.lit&&st.I>0){
+    const d=lightDir();
+    ctx.globalCompositeOperation="lighter";
+    const planes=[["floor",-d[1]],["left",Math.max(0,-d[0])],["right",Math.max(0,d[0])]];
+    for(const [pl,cosI] of planes){
+      if(cosI<=1e-4)continue;
+      const k=st.I*(0.34+0.66*cosI);
+      for(const p of PANES){
+        const g=GLASS[p.g];if(!g.light)continue;
+        const q=onPlane(p.lp,d,pl);if(!q)continue;
+        const c=tint(g.light,st.warm);
+        path(ctx,q.map(a=>P(a[0],a[1],a[2])));
+        ctx.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},${(g.a*k).toFixed(3)})`;ctx.fill();
+      }
+    }
+    // the beam itself, faintly, and dust in it
+    const pts=[];OUTLINE.forEach(o=>{pts.push(P(o[0],o[1],0));const h=firstHit(o[0],o[1],d)[1];pts.push(P(h[0],h[1],Math.min(h[2],CZ-0.6)));});
+    const hl=hull(pts);
+    const a=P(0,3.6,0),hc=firstHit(0,3.6,d)[1],b=P(hc[0],hc[1],Math.min(hc[2],CZ-0.6));
+    const gr=ctx.createLinearGradient(a[0],a[1],b[0],b[1]);
+    const wc=tint([255,240,205],st.warm);
+    gr.addColorStop(0,`rgba(${wc[0]},${wc[1]},${wc[2]},${(0.10*st.I).toFixed(3)})`);
+    gr.addColorStop(1,`rgba(${wc[0]},${wc[1]},${wc[2]},${(0.025*st.I).toFixed(3)})`);
+    path(ctx,hl);ctx.fillStyle=gr;ctx.fill();
+    const tt=now/1000;
+    for(const m of MOTES){
+      const s=(m.s+tt*0.004*m.sp)%1;
+      const h=firstHit(m.x,m.y,d);const t=h[2]*s;
+      const x=m.x+d[0]*t+0.08*Math.sin(tt*0.3*m.sp+m.ph),y=m.y+d[1]*t+0.06*Math.sin(tt*0.23+m.ph*2),z=d[2]*t;
+      if(z>CZ-1.2)continue;
+      const tw=0.5+0.5*Math.sin(tt*1.7*m.sp+m.ph);
+      const q=P(x,y,z),r=Math.max(0.6,Math.min(2.2,F*0.012/(CZ-z)));
+      ctx.fillStyle=`rgba(${wc[0]},${wc[1]},${wc[2]},${(0.55*st.I*tw).toFixed(3)})`;
+      ctx.beginPath();ctx.arc(q[0],q[1],r,0,6.283);ctx.fill();
+    }
+    ctx.globalCompositeOperation="source-over";
+  }
+}
+
+// ---------- the glass, flat, to colour ----------
+const glass=document.getElementById("glass"), gc=glass.getContext("2d");
+let GW=0,GH=0,GS=0,GDPR=1;
+function sizeGlass(){
+  GDPR=Math.min(2,window.devicePixelRatio||1);
+  const w=glass.clientWidth||240; const s=w/(2*HW+0.5); const h=Math.round(s*(APEX-SILL+0.5));
+  glass.width=Math.round(w*GDPR);glass.height=Math.round(h*GDPR);glass.style.height=h+"px";
+  GW=w;GH=h;GS=s;drawGlass();
+}
+const G=(x,y)=>[GW/2+x*GS, GH-(y-SILL+0.25)*GS];
+const Ginv=(px,py)=>[(px-GW/2)/GS, SILL-0.25+(GH-py)/GS];
+function drawGlass(){
+  const ctx=gc;ctx.setTransform(GDPR,0,0,GDPR,0,0);ctx.clearRect(0,0,GW,GH);
+  const splay=OUTLINE.map(p=>{const dx=p[0],dy=p[1]-3.6,L=Math.hypot(dx,dy);return [p[0]+dx/L*0.12,p[1]+dy/L*0.12];});
+  path(ctx,splay.map(p=>G(p[0],p[1])));ctx.fillStyle="#8c8475";ctx.fill();
+  path(ctx,OUTLINE.map(p=>G(p[0],p[1])));ctx.fillStyle="#24211e";ctx.fill();
+  PANES.forEach(p=>{path(ctx,p.lp.map(q=>G(q[0],q[1])));ctx.fillStyle=GLASS[p.g].see;ctx.fill();});
+}
+let painting=false, brush=1, paintTo=null;
+function paneAt(ev){
+  const r=glass.getBoundingClientRect();const pt=Ginv(ev.clientX-r.left,ev.clientY-r.top);
+  for(const p of PANES)if(inside(p.poly,pt))return p;return null;
+}
+glass.addEventListener("pointerdown",ev=>{
+  const p=paneAt(ev);if(!p)return;painting=true;glass.setPointerCapture(ev.pointerId);
+  paintTo=(p.g===brush)?0:brush;p.g=paintTo;curPreset=null;presetBtns();drawGlass();dirty=true;ev.preventDefault();
+});
+glass.addEventListener("pointermove",ev=>{if(!painting)return;const p=paneAt(ev);if(p&&p.g!==paintTo){p.g=paintTo;drawGlass();dirty=true;}});
+const stopPaint=()=>{painting=false;};
+glass.addEventListener("pointerup",stopPaint);glass.addEventListener("pointercancel",stopPaint);
+
+// ---------- controls ----------
+const $=id=>document.getElementById(id);
+const tR=$("t");
+function setHourFromSlider(){const [a,b]=riseSet();hour=a+(b-a)*tR.value/1000;sun=sunAt(hour);dirty=true;readout();}
+function fmt(h){h=(h+24)%24;let hh=Math.floor(h),mm=Math.round((h-hh)*60);if(mm===60){hh++;mm=0;}return hh+":"+String(mm).padStart(2,"0");}
+function compass(az){ // az from south, + west
+  const deg=Math.round(Math.abs(az*R2D));
+  if(deg<2)return "due south";
+  if(deg>178)return "due north";
+  if(Math.abs(deg-90)<2)return az>0?"due west":"due east";
+  return deg<90?`${deg}° ${az>0?"west":"east"} of south`:`${180-deg}° ${az>0?"west":"east"} of north`;
+}
+function readout(){
+  $("clk").textContent=fmt(hour);
+  const alt=sun.alt*R2D;
+  const st=sunState();
+  if(alt<-0.5){$("sun").textContent="the sun is down";}
+  else $("sun").textContent=`sun ${Math.max(0,alt).toFixed(0)}° up, ${compass(sun.az)}`;
+  let w;
+  if(alt<0)w="No sun. The glass is dark from outside; inside, the lead and the colours go to grey together.";
+  else if(Math.cos(sun.az)<=0.02)w="The sun is round to the north of the wall. No direct light comes through this window; the glass glows with the sky alone.";
+  else{
+    const d=lightDir(), h=firstHit(0,3.6,d);
+    const z=h[1][2];
+    if(h[0]==="floor"){
+      w=z<1.8?"The pool lies close under the window, short and bright, almost the same shape as the glass.":
+        z<3.4?"The pool lies a few paces out from the wall, stretched a little longer than the window is tall.":
+        z<5.9?"The pool lies across the ledger slab in the middle of the floor.":
+        z<8.5?"The pool has come most of the way down the nave toward you, long and thin.":
+        "The light runs right down the floor to your feet and beyond, onto the wall behind you.";
+    }else{
+      const side=h[0]==="left"?"east":"west";
+      w=`The middle of the pool has climbed the ${side} wall; the rest lies along the floor at its foot.`;
+    }
+    if(alt<8)w+=" The sun is low, and the light has gone warm.";
+  }
+  $("where").textContent=w;
+}
+tR.addEventListener("input",()=>{stopPlay();setHourFromSlider();});
+const daysEl=$("days");
+DAYS.forEach((d,i)=>{const b=document.createElement("button");b.textContent=d[0];b.onclick=()=>setDay(i);daysEl.appendChild(b);});
+function setDay(i){dayIdx=i;decl=(DAYS[i][1]===null?todayDecl():DAYS[i][1])*D2R;[...daysEl.children].forEach((b,j)=>b.classList.toggle("on",j===i));setHourFromSlider();}
+const palEl=$("pal");
+GLASS.forEach((g,i)=>{const b=document.createElement("button");b.className="sw";b.style.background=g.see;b.title=g.name;b.setAttribute("aria-label",g.name+" glass");b.onclick=()=>{brush=i;[...palEl.children].forEach((x,j)=>x.classList.toggle("on",j===i));};palEl.appendChild(b);});
+palEl.children[1].classList.add("on");
+const preEl=$("presets");
+Object.keys(PRESETS).forEach(n=>{const b=document.createElement("button");b.textContent=n;b.dataset.n=n;b.onclick=()=>preset(n);preEl.appendChild(b);});
+function presetBtns(){[...preEl.children].forEach(b=>b.classList.toggle("on",b.dataset.n===curPreset));}
+
+let playing=false,last=0;
+function stopPlay(){playing=false;$("play").textContent="▶ let the day go";}
+$("play").onclick=()=>{if(playing){stopPlay();return;}if(+tR.value>=1000)tR.value=0;playing=true;last=0;$("play").textContent="❚❚ hold it here";};
+
+function frame(now){
+  if(playing){
+    if(last){const dt=Math.min(0.1,(now-last)/1000);tR.value=Math.min(1000,+tR.value+dt*22);setHourFromSlider();if(+tR.value>=1000)stopPlay();}
+    last=now;
+  }
+  drawRoom(now);
+  requestAnimationFrame(frame);
+}
+
+window.addEventListener("resize",()=>{sizeRoom();sizeGlass();});
+preset("tree");
+sizeRoom();sizeGlass();
+tR.value=420;setDay(4);
+requestAnimationFrame(frame);
+
+window.__lancet={PANES,GLASS,sunAt,firstHit,onPlane,setDay,preset,get hour(){return hour;},set slider(v){tR.value=v;setHourFromSlider();}};
+})();
+</script>
+</body>
+</html>
