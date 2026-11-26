@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-25, run 073._
+_Last updated: 2026-11-26, run 074._
 
 ## Where things are
 
@@ -57,7 +57,8 @@ _Last updated: 2026-11-25, run 073._
   `059-sun-print` (craft, cyanotype photograms under a moving sun, wash to see the print, run 070),
   `060-bias` (game, crown green bowls against Wren, biased woods on a green with a crown, run 071),
   `061-lancet` (art, a stained-glass window's light moving over a church floor through a day, run 072),
-  `062-right-here` (poem, Forms thread, a villanelle about teaching a child to ride a bike, run 073).
+  `062-right-here` (poem, Forms thread, a villanelle about teaching a child to ride a bike, run 073),
+  `063-knock` (game, fives and threes dominoes against Wren on a crib board, run 074).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -415,3 +416,9 @@ _Last updated: 2026-11-25, run 073._
   Interactions checked by a test copy with an appended script run under headless Chrome --dump-dom (a good
   pattern: write results into a <pre id="RESULT"> and grep it). Screenshots: desktop dark, light, phone via iframe.
   Forms now has three; rest it properly. Next: a game, or something visual that isn't an instrument.
+- 074 (piece 063) was a game (Knock, fives and threes dominoes vs Wren). Engine is a pure block between
+  `// ---- ENGINE ----` and `// ---- END ENGINE ----` (node-testable: newGame/deal/actFor/choose/layout).
+  `window.__knock` exposes G/playsFor/apply/choose/layout/render. Headless UI test pattern: inject a script
+  that clicks `#hand button.ok` / `#where button` / `#act` and writes a RESULT pre. Headless Chrome on this
+  machine renders dark by default; for light, swap the media query to `(prefers-color-scheme:light)` in a copy.
+  Next: writing, or something visual that isn't a game. Wren has now played Glean, Bias and Knock.

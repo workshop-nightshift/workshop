@@ -1385,3 +1385,25 @@ rhymed "fear" twice; caught by the piece's own rhyme list, and line ten now ends
 Checked with headless screenshots (desktop dark and light, phone width through an iframe) and a
 scripted test of the taps and the maker. Forms has three now and should rest.
 Next: a game, or something visual that isn't an instrument.
+
+
+## 074 · 2026-11-26 · Knock (piece)
+
+Fives and threes, the pub domino game, against Wren. A double-six set, seven tiles each, the rest
+face down as the yard. After every tile you add the two open ends (a double at an end counts both
+halves) and score one for each five and one for each three in the total, so fifteen is eight. The
+points go up a drawn crib board, back peg jumping the front one, to sixty-one. If you can't go you
+draw, the last two tiles stay in the yard, and then you knock. The line runs out from the first tile
+both ways and turns at the table's edge, doubles crosswise. When a tile fits both ends the two
+choices are offered with what each would score. Wren plays as a learner, a regular, or sharp: sharp
+Wren weighs what you could make off the ends it leaves, from the tiles it hasn't seen, and
+remembers the numbers you knocked on.
+
+Why: the last run asked for a game, and this is one with an opponent rather than a game of feel.
+Checked in node: three thousand hands laid out at three widths with no tiles overlapping, and a
+thousand games for each pairing of Wren's levels (regular beats learner 850 to 150; sharp beats
+regular about 600 to 400). Three full games played through the page's own buttons under headless
+Chrome with no errors; screenshots in dark, light, and at phone width through an iframe.
+A double turned crosswise at the end of a row can sit tip to tip with one in the next row; it reads
+as touching, not joined, but it isn't pretty.
+Next: writing, or something visual that isn't a game.

@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Knock</title>
+<style>
+:root{--bg:#efe9de;--fg:#211c16;--mute:#73695b;--line:#d3c9b8;--table:#5d4330;--table2:#6a4d38;--tile:#f7f1e3;--edge:#bfb39c;--pip:#1e1a15;
+  --board:#b98f5f;--board2:#a77d4f;--hole:#3d2a1a;--you:#f4efe4;--youedge:#3d2a1a;--wren:#b8412b;--hi:#e0b24a;--back:#2c3d33}
+@media (prefers-color-scheme:dark){:root{--bg:#141210;--fg:#e8e2d6;--mute:#9b9183;--line:#2e2924;--table:#2a1e15;--table2:#33251a;--tile:#e6dfcf;--edge:#8c826f;--pip:#1a1612;
+  --board:#6e5236;--board2:#5d452d;--hole:#1a120b;--you:#ece6da;--youedge:#1a120b;--wren:#e06549;--hi:#e8bd57;--back:#3d5547}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:14px 16px 60px}
+main{width:100%;max-width:600px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 10px;font-style:italic}
+canvas{display:block;width:100%}
+#crib{height:84px;border-radius:6px}
+#score{display:flex;justify-content:space-between;align-items:baseline;gap:4px 14px;flex-wrap:wrap;margin:6px 0 8px}
+#score .n{font-size:20px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px;border:1px solid var(--youedge)}
+#info{color:var(--mute);font-size:13px}
+#tablewrap{background:var(--table);border-radius:8px;padding:8px 0 10px}
+#wrenhand{display:flex;gap:4px;justify-content:center;min-height:22px;margin-bottom:2px}
+#wrenhand span{width:11px;height:20px;border-radius:2px;background:var(--back);border:1px solid #0004}
+#wrenhand span.gone{opacity:0}
+#tbl{min-height:120px}
+#log{min-height:4.6em;margin:8px 0 0}
+#log p{margin:0}
+#log p+p{color:var(--mute);font-size:14px}
+#where{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:0;margin-top:4px}
+#hand{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;min-height:76px}
+#hand button{padding:0;border:none;background:none;cursor:pointer;transition:transform .15s;border-radius:5px}
+#hand button canvas{width:30px;height:60px}
+#hand button.ok{transform:translateY(-6px)}
+#hand button.ok canvas{filter:drop-shadow(0 2px 3px #0005)}
+#hand button.sel{outline:2px solid var(--hi);outline-offset:2px}
+#hand button.dim{opacity:.55;cursor:default}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 10px;flex-wrap:wrap;margin-top:12px}
+button.b{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+button.b.main{border-color:var(--fg);padding:3px 16px}
+button.b:disabled{opacity:.4;cursor:default}
+#where button.b{border-color:var(--hi)}
+details{margin-top:16px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>Knock</h1>
+  <p class="sub">Fives and threes against Wren. Count the open ends after every tile.</p>
+  <canvas id="crib" aria-label="A cribbage board: two tracks of sixty-one holes, one for you and one for Wren, each with a front peg and a back peg."></canvas>
+  <div id="score"><span><span class="dot" style="background:var(--you)"></span><span class="n" id="s0">0</span> you &nbsp;·&nbsp; <span class="dot" style="background:var(--wren)"></span><span class="n" id="s1">0</span> Wren</span><span id="info"></span></div>
+  <div id="tablewrap">
+    <div id="wrenhand" aria-label="Wren's tiles, face down"></div>
+    <canvas id="tbl" aria-label="The line of dominoes on the table."></canvas>
+  </div>
+  <div id="log" aria-live="polite"></div>
+  <div id="where"></div>
+  <div id="hand" aria-label="Your tiles"></div>
+  <div class="row">
+    <button class="b" id="lvl">Wren: regular</button>
+    <span><button class="b main" id="act" hidden>draw</button> <button class="b" id="fresh">new game</button></span>
+  </div>
+  <details><summary>how it goes</summary>
+    <p>A double-six set: twenty-eight tiles, every pair of numbers from blank to six once. You and Wren
+    take seven each and the rest lie face down as the yard. In the first hand, whoever holds the highest
+    double puts it down; after that, whoever went out last leads with anything.</p>
+    <p>You take turns adding a tile to one end of the line, matching the number there. Doubles go
+    crosswise. After each tile, add up the two open ends; a double at an end counts both its halves.
+    If the total divides by five you score a point for each five in it, and if it divides by three a point
+    for each three. Fifteen does both: three fives and five threes, eight. Ten is two; nine is three;
+    twelve is four; eighteen is six; twenty is four. Anything else is nothing.</p>
+    <p>If you can't go, you draw from the yard until you can, but the last two tiles stay there. When
+    you can't go and can't draw, you knock on the table and the turn passes. The first one out scores
+    one for the domino. If both knock in a row the hand is blocked, and whoever holds fewer pips scores
+    the one.</p>
+    <p>Points go up the crib board, the back peg jumping past the front one each time, out along the
+    first row and back along the second to the sixty-first hole. Win with the other still short of the
+    turn at thirty-one and they're lurched.</p>
+    <p>Wren plays at three strengths. A learner mostly plays whatever fits. A regular takes the best count
+    going. Sharp Wren also weighs what you could make off the ends it leaves you, from the tiles it
+    hasn't seen, and it remembers what you knocked on.</p>
+  </details>
+</main>
+<script>
+// ---- ENGINE ----
+const ALL=[];for(let a=0;a<=6;a++)for(let b=a;b<=6;b++)ALL.push([a,b]);
+const idOf=t=>Math.min(t[0],t[1])*7+Math.max(t[0],t[1]);
+function rng(seed){let s=(seed>>>0)||1;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296}}
+function scoreOf(sum){if(!sum)return 0;return(sum%5?0:sum/5)+(sum%3?0:sum/3)}
+const pips=t=>t[0]+t[1];
+function newGame(seed){return{rnd:rng(seed),score:[0,0],prev:[0,0],handNo:0,lastWinner:-1,over:false,winner:-1,hands:[[],[]],yard:[],lead:null,armL:[],armR:[],handOver:true}}
+function deal(G){
+  const r=G.rnd,t=ALL.map(x=>x.slice());
+  for(let i=t.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[t[i],t[j]]=[t[j],t[i]]}
+  G.hands=[t.slice(0,7),t.slice(7,14)];G.yard=t.slice(14);
+  G.lead=null;G.leadBy=-1;G.armL=[];G.armR=[];G.knock=[new Set(),new Set()];G.passes=0;G.handNo++;G.handOver=false;G.mustLead=null;G.last=null;G.result=null;
+  for(const h of G.hands)h.sort((x,y)=>x[0]-y[0]||x[1]-y[1]);
+  if(G.handNo===1||G.lastWinner<0&&G.handNo===1){
+    let best=null,who=0;
+    for(let p=0;p<2;p++)for(const x of G.hands[p]){const k=(x[0]===x[1]?100:0)+pips(x)*1+x[1]*.01;if(!best||k>best.k){best={k,x};who=p}}
+    G.turn=who;G.mustLead=best.x;
+  }else G.turn=G.lastWinner>=0?G.lastWinner:G.handNo%2;
+}
+function ends(G){
+  if(!G.lead)return null;
+  const ld=G.lead[0]===G.lead[1],l=G.armL.at(-1),r=G.armR.at(-1);
+  return{L:l?l.o:G.lead[0],Ld:l?l.d:ld,R:r?r.o:G.lead[1],Rd:r?r.d:ld,n:1+G.armL.length+G.armR.length};
+}
+function sumOf(e){if(!e)return 0;if(e.n===1)return 0;return(e.Ld?2:1)*e.L+(e.Rd?2:1)*e.R}
+function endsAfter(G,pl){
+  const t=pl.t,d=t[0]===t[1];
+  if(pl.side==='C')return{L:t[0],R:t[1],Ld:d,Rd:d,n:1,lead:t};
+  const e=ends(G),m=pl.side==='L'?e.L:e.R,o=t[0]===m?t[1]:t[0];
+  return pl.side==='L'?{L:o,Ld:d,R:e.R,Rd:e.Rd,n:e.n+1}:{L:e.L,Ld:e.Ld,R:o,Rd:d,n:e.n+1};
+}
+function sumAfter(G,pl){const e=endsAfter(G,pl);return e.n===1?pips(pl.t):sumOf(e)}
+function playsFor(G,p){
+  const h=G.hands[p];
+  if(!G.lead){if(G.mustLead)return h.includes(G.mustLead)?[{t:G.mustLead,side:'C'}]:[];return h.map(t=>({t,side:'C'}))}
+  const e=ends(G),out=[];
+  for(const t of h){
+    if(t[0]===e.L||t[1]===e.L)out.push({t,side:'L'});
+    if((t[0]===e.R||t[1]===e.R)&&!(e.L===e.R&&e.Ld===e.Rd&&(t[0]===e.L||t[1]===e.L)))out.push({t,side:'R'});
+  }
+  return out;
+}
+function peg(G,p,n){if(n<=0||G.over)return;G.prev[p]=G.score[p];G.score[p]=Math.min(61,G.score[p]+n);if(G.score[p]>=61){G.over=true;G.winner=p}}
+function apply(G,p,pl){
+  const h=G.hands[p];h.splice(h.indexOf(pl.t),1);
+  const t=pl.t,d=t[0]===t[1];
+  if(pl.side==='C'){G.lead=t;G.leadBy=p}
+  else{const e=ends(G),m=pl.side==='L'?e.L:e.R,rec={i:m,o:t[0]===m?t[1]:t[0],d,p,t};(pl.side==='L'?G.armL:G.armR).push(rec)}
+  G.mustLead=null;G.passes=0;
+  const e=ends(G),sum=e.n===1?pips(t):sumOf(e),sc=scoreOf(sum);
+  peg(G,p,sc);
+  const ev={kind:'play',p,t,side:pl.side,sum,sc,e};G.last=ev;
+  if(!G.over&&h.length===0){peg(G,p,1);G.handOver=true;G.lastWinner=p;G.result={kind:'domino',p}}
+  G.turn=1-p;
+  return ev;
+}
+const canDraw=G=>G.yard.length>2;
+function drawTile(G,p){if(!canDraw(G))return null;const t=G.yard.pop();const h=G.hands[p];h.push(t);h.sort((x,y)=>x[0]-y[0]||x[1]-y[1]);return t}
+function knock(G,p){
+  const e=ends(G);if(e){G.knock[p].add(e.L);G.knock[p].add(e.R)}
+  G.passes++;G.turn=1-p;
+  if(G.passes>=2){
+    const a=G.hands[0].reduce((s,t)=>s+pips(t),0),b=G.hands[1].reduce((s,t)=>s+pips(t),0);
+    const w=a<b?0:b<a?1:-1;G.handOver=true;G.lastWinner=w;G.result={kind:'blocked',p:w,pips:[a,b]};
+    if(w>=0)peg(G,w,1);
+  }
+}
+// Wren's choice. level 0 learner, 1 regular, 2 sharp.
+function expReply(G,p,pl){
+  const opp=1-p,seen=new Set();
+  for(const t of G.hands[p])seen.add(idOf(t));
+  if(G.lead)seen.add(idOf(G.lead));for(const r of G.armL)seen.add(idOf(r.t));for(const r of G.armR)seen.add(idOf(r.t));
+  seen.add(idOf(pl.t));
+  const no=G.knock[opp],unk=ALL.filter(t=>!seen.has(idOf(t))&&!no.has(t[0])&&!no.has(t[1]));
+  const h=G.hands[opp].length,n=unk.length;if(!n||!h)return 0;
+  const e=endsAfter(G,pl),sc=[];
+  for(const u of unk){
+    let best=0;
+    for(const side of['L','R']){const m=side==='L'?e.L:e.R;if(u[0]!==m&&u[1]!==m)continue;
+      const o=u[0]===m?u[1]:u[0],d=u[0]===u[1];
+      const s=side==='L'?(d?2:1)*o+(e.Rd?2:1)*e.R:(e.Ld?2:1)*e.L+(d?2:1)*o;best=Math.max(best,scoreOf(s))}
+    sc.push(best);
+  }
+  sc.sort((x,y)=>y-x);const q=Math.min(1,h/n);let ex=0,miss=1;
+  for(const s of sc){if(!s)break;ex+=s*q*miss;miss*=1-q}
+  return ex;
+}
+function choose(G,p,level){
+  const ps=playsFor(G,p);if(!ps.length)return null;
+  const r=G.rnd;
+  if(level===0){const s=ps.filter(x=>scoreOf(sumAfter(G,x))>0);if(s.length&&r()<.45)return s[Math.floor(r()*s.length)];return ps[Math.floor(r()*ps.length)]}
+  let best=null,bv=-1e9;
+  for(const pl of ps){
+    const sc=scoreOf(sumAfter(G,pl)),t=pl.t;let v=sc+pips(t)*.01+(t[0]===t[1]?.02:0);
+    if(level===2){
+      v=sc-.75*expReply(G,p,pl)+pips(t)*.03+(t[0]===t[1]?.15:0);
+      const e=endsAfter(G,pl),rest=G.hands[p].filter(x=>x!==t);
+      v+=.12*rest.filter(x=>x.includes(e.L)||x.includes(e.R)).length;
+      if(!rest.length)v+=3;
+    }
+    v+=r()*.001;
+    if(v>bv){bv=v;best=pl}
+  }
+  return best;
+}
+// one action for player p: returns {kind:'play'|'draw'|'knock',...}
+function actFor(G,p,level){
+  const pl=choose(G,p,level);
+  if(pl)return apply(G,p,pl);
+  if(canDraw(G))return{kind:'draw',p,t:drawTile(G,p)};
+  knock(G,p);return{kind:'knock',p};
+}
+// ---- END ENGINE ----
+
+// ---- UI ----
+const $=id=>document.getElementById(id);
+const crib=$('crib'),tbl=$('tbl');
+const LV=['learner','regular','sharp'];
+let level=1,G,seed=(Date.now()%1e9)|0,sel=null,timer=0,lines=[];
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const W1=['nought','one','two','three','four','five','six','seven','eight','nine','ten'];
+const nm=t=>t[0]+'|'+t[1];
+const who=p=>p===0?'You':'Wren';
+
+function fit(c,hpx){const d=window.devicePixelRatio||1,w=c.clientWidth;c.style.height=hpx+'px';c.width=Math.round(w*d);c.height=Math.round(hpx*d);const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);return{x,w,h:hpx}}
+
+function pipSpots(v,vert){
+  const A=.25,B=.5,C=.75;let s;
+  switch(v){case 0:s=[];break;case 1:s=[[B,B]];break;case 2:s=[[A,A],[C,C]];break;case 3:s=[[A,A],[B,B],[C,C]];break;
+    case 4:s=[[A,A],[C,A],[A,C],[C,C]];break;case 5:s=[[A,A],[C,A],[A,C],[C,C],[B,B]];break;
+    default:s=vert?[[A,A],[A,B],[A,C],[C,A],[C,B],[C,C]]:[[A,A],[B,A],[C,A],[A,C],[B,C],[C,C]]}
+  if(!vert)s=s.map(([x,y])=>[x,1-y]);
+  return s;
+}
+function domino(x,X,Y,w,h,v1,v2,ring){
+  const r=Math.min(w,h)*.14;
+  x.save();
+  x.shadowColor='#0006';x.shadowBlur=Math.min(w,h)*.12;x.shadowOffsetY=Math.min(w,h)*.05;
+  x.beginPath();x.roundRect(X,Y,w,h,r);x.fillStyle=css('--tile');x.fill();x.restore();
+  x.lineWidth=1;x.strokeStyle=css('--edge');x.beginPath();x.roundRect(X+.5,Y+.5,w-1,h-1,r);x.stroke();
+  const vert=h>w,s=vert?w:h;
+  x.beginPath();if(vert){x.moveTo(X+s*.18,Y+h/2);x.lineTo(X+w-s*.18,Y+h/2)}else{x.moveTo(X+w/2,Y+s*.18);x.lineTo(X+w/2,Y+h-s*.18)}
+  x.strokeStyle=css('--edge');x.lineWidth=Math.max(1,s*.04);x.stroke();
+  x.fillStyle=css('--pip');
+  const pr=s*.085;
+  [[v1,0],[v2,1]].forEach(([v,k])=>{const ox=vert?X:X+k*s,oy=vert?Y+k*s:Y;
+    for(const[a,b]of pipSpots(v,vert)){x.beginPath();x.arc(ox+a*s,oy+b*s,pr,0,7);x.fill()}});
+  if(ring){x.strokeStyle=css('--hi');x.lineWidth=2.5;x.setLineDash(ring==='dash'?[5,4]:[]);x.beginPath();x.roundRect(X-3,Y-3,w+6,h+6,r+3);x.stroke();x.setLineDash([])}
+}
+
+// lay out the line: lead at the origin, left arm out to the left then up, right arm out to the right then down
+function layout(G,lim){
+  const out=[];if(!G.lead)return out;
+  const[a,b]=G.lead,ld=a===b;
+  out.push(ld?{x:-.5,y:-1,w:1,h:2,v1:a,v2:b,src:'lead'}:{x:-1,y:-.5,w:2,h:1,v1:a,v2:b,src:'lead'});
+  for(const[arm,dir0,s]of[[G.armL,-1,-1],[G.armR,1,1]]){
+    let dir=dir0,row=0,x=ld?dir*.5:dir,prevD=ld;
+    for(const t of arm){
+      const len=t.d?1:2;
+      if(Math.abs(x+dir*len)>lim){
+        const vx=dir>0?x-1:x,off=prevD?1:.5;
+        out.push(s>0?{x:vx,y:row+off,w:1,h:2,v1:t.i,v2:t.o,src:t}:{x:vx,y:row-off-2,w:1,h:2,v1:t.o,v2:t.i,src:t});
+        row+=s*(off+1.5);x=dir>0?x-1:x+1;dir=-dir;prevD=false;continue;
+      }
+      if(t.d){out.push({x:dir>0?x:x-1,y:row-1,w:1,h:2,v1:t.i,v2:t.i,src:t});x+=dir}
+      else{out.push(dir>0?{x,y:row-.5,w:2,h:1,v1:t.i,v2:t.o,src:t}:{x:x-2,y:row-.5,w:2,h:1,v1:t.o,v2:t.i,src:t});x+=dir*2}
+      prevD=t.d;
+    }
+  }
+  return out;
+}
+function drawTable(){
+  const W=tbl.clientWidth,u=Math.max(13,Math.min(28,W/21)),lim=W/(2*u)-.45;
+  const R=layout(G,lim);
+  let y0=-2,y1=2;for(const r of R){y0=Math.min(y0,r.y);y1=Math.max(y1,r.y+r.h)}
+  const pad=10,H=Math.round((y1-y0)*u+2*pad),{x}=fit(tbl,H);
+  x.clearRect(0,0,W,H);
+  const ox=W/2,oy=pad-y0*u;
+  if(!R.length){x.fillStyle=css('--mute');x.font='italic 14px Georgia,serif';x.textAlign='center';
+    x.fillText(G.handOver?'':(G.turn===0?'your lead':'Wren to lead'),ox,oy+5);return}
+  const endL=G.armL.at(-1)||'lead',endR=G.armR.at(-1)||'lead';
+  for(const r of R){
+    let ring=null;
+    if(G.last&&(r.src===(G.last.side==='C'?'lead':G.last.side==='L'?G.armL.at(-1):G.armR.at(-1))))ring='solid';
+    if(sel&&sel.length>1&&(r.src===endL||r.src===endR))ring='dash';
+    domino(x,ox+r.x*u+1.5,oy+r.y*u+1.5,r.w*u-3,r.h*u-3,r.v1,r.v2,ring);
+  }
+}
+function drawCrib(){
+  const {x,w,h}=fit(crib,84);
+  const g=x.createLinearGradient(0,0,0,h);g.addColorStop(0,css('--board'));g.addColorStop(1,css('--board2'));
+  x.fillStyle=g;x.beginPath();x.roundRect(0,0,w,h,6);x.fill();
+  const padL=36,padR=14,step=(w-padL-padR)/(29+5*.9),xi=i=>padL+i*step+Math.floor(i/5)*.9*step;
+  const lanes=[[16,30],[54,68]];
+  const pos=(p,n)=>{const[a,b]=lanes[p];if(n===0)return[padL-20,a];if(n>=61)return[padL-20,b];if(n<=30)return[xi(n-1),a];return[xi(60-n),b]};
+  x.fillStyle=css('--hole');
+  for(let p=0;p<2;p++)for(let n=0;n<=61;n++){const[a,b]=pos(p,n);x.beginPath();x.arc(a,b,n===0||n===61?2.6:1.6,0,7);x.fill()}
+  x.strokeStyle=css('--hole');x.globalAlpha=.35;x.lineWidth=1;
+  for(let k=1;k<6;k++){const xx=(xi(k*5-1)+xi(k*5))/2;x.beginPath();x.moveTo(xx,10);x.lineTo(xx,36);x.moveTo(xx,48);x.lineTo(xx,74);x.stroke()}
+  x.globalAlpha=1;
+  x.fillStyle=css('--hole');x.font='9px Georgia,serif';x.textAlign='center';x.globalAlpha=.6;
+  x.fillText('61',padL-20,44);x.globalAlpha=1;
+  for(let p=0;p<2;p++){
+    const col=p?css('--wren'):css('--you');
+    for(const n of[G.prev[p],G.score[p]]){const[a,b]=pos(p,n);
+      x.beginPath();x.arc(a,b,4.2,0,7);x.fillStyle=col;x.fill();x.lineWidth=1;x.strokeStyle=css('--youedge');x.stroke()}
+  }
+}
+function drawHandTile(c,t,ok){
+  const d=window.devicePixelRatio||1;c.width=30*d;c.height=60*d;const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);
+  domino(x,2,2,26,56,t[0],t[1],null);
+}
+function render(){
+  $('s0').textContent=G.score[0];$('s1').textContent=G.score[1];
+  $('info').textContent=`hand ${G.handNo} · yard ${G.yard.length}`;
+  const wh=$('wrenhand');wh.innerHTML='';
+  for(let i=0;i<G.hands[1].length;i++){const s=document.createElement('span');wh.appendChild(s)}
+  if(G.handOver&&G.result&&G.hands[1].length){wh.innerHTML='';for(const t of G.hands[1]){const c=document.createElement('canvas');c.style.cssText='width:15px;height:30px;display:inline-block';const d=window.devicePixelRatio||1;c.width=15*d;c.height=30*d;const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);domino(x,.5,.5,14,29,t[0],t[1],null);wh.appendChild(c)}}
+  const mine=G.turn===0&&!G.handOver&&!G.over?playsFor(G,0):[];
+  const okT=new Set(mine.map(p=>p.t));
+  const hd=$('hand');hd.innerHTML='';
+  for(const t of G.hands[0]){
+    const b=document.createElement('button'),c=document.createElement('canvas');b.appendChild(c);drawHandTile(c,t);
+    const yours=G.turn===0&&!G.handOver&&!G.over;
+    b.className=okT.has(t)?'ok':yours?'dim':'';if(sel&&sel[0].t===t)b.className+=' sel';
+    b.setAttribute('aria-label',`${t[0]} and ${t[1]}`+(okT.has(t)?', playable':''));
+    b.onclick=()=>tapTile(t,mine.filter(p=>p.t===t));
+    hd.appendChild(b);
+  }
+  const wb=$('where');wb.innerHTML='';
+  if(sel&&sel.length>1){const e=ends(G);
+    for(const pl of sel){const v=pl.side==='L'?e.L:e.R,dd=pl.side==='L'?e.Ld:e.Rd,s=scoreOf(sumAfter(G,pl));
+      const b=document.createElement('button');b.className='b';b.textContent=`on the ${dd?'double ':''}${v} · ${s?'scores '+s:'nothing'}`;b.onclick=()=>playMine(pl);wb.appendChild(b)}
+  }
+  const act=$('act');act.hidden=true;act.disabled=false;
+  if(G.over){act.hidden=false;act.textContent='new game'}
+  else if(G.handOver){act.hidden=false;act.textContent='next hand'}
+  else if(G.turn===0&&!mine.length){act.hidden=false;act.textContent=canDraw(G)?'draw':'knock'}
+  $('log').innerHTML=lines.slice(0,3).map(s=>`<p>${s}</p>`).join('');
+  drawTable();drawCrib();
+}
+function say(s){lines.unshift(s);if(lines.length>8)lines.length=8}
+function sumText(ev){
+  const e=ev.e;if(e.n===1)return`${ev.t[0]} + ${ev.t[1]} = ${ev.sum}`;
+  const part=(v,d)=>d?`${v}+${v}`:`${v}`;return`${part(e.L,e.Ld)} + ${part(e.R,e.Rd)} = ${ev.sum}`;
+}
+function countText(sum,sc){
+  if(!sc)return'nothing';const f=sum%5?0:sum/5,t=sum%3?0:sum/3,bits=[];
+  if(f)bits.push(`${W1[f]} five${f>1?'s':''}`);if(t)bits.push(`${W1[t]} three${t>1?'s':''}`);
+  return`${bits.join(' and ')}, <b>${sc}</b>`;
+}
+function describe(ev){
+  if(ev.kind==='draw')return`${who(ev.p)} ${ev.p?'draws':'draw'} from the yard.`;
+  if(ev.kind==='knock')return`${who(ev.p)} ${ev.p?'knocks':'knock'}.`;
+  const verb=ev.p?'plays':'play';
+  const where=ev.side==='C'?'to lead':`on the ${ev.side==='L'?'left':'right'}`;
+  const t=ev.side==='C'?ev.t:(()=>{const r=(ev.side==='L'?G.armL:G.armR).at(-1);return ev.side==='L'?[r.o,r.i]:[r.i,r.o]})();
+  return`${who(ev.p)} ${verb} ${nm(t)} ${where}: ${sumText(ev)}, ${countText(ev.sum,ev.sc)}.`;
+}
+function afterHand(){
+  if(G.over){
+    const l=1-G.winner,lurch=G.score[l]<31;
+    say(G.winner===0?`You peg out at sixty-one${lurch?', and Wren is lurched':''}.`:`Wren pegs out at sixty-one${lurch?', and you\'re lurched':''}.`);
+    return;
+  }
+  if(!G.handOver)return;
+  const r=G.result;
+  if(r.kind==='domino')say(r.p===0?'You\'re out. Domino, one.':'Wren is out. Domino, one to Wren.');
+  else say(`Blocked. You hold ${r.pips[0]}, Wren ${r.pips[1]}`+(r.p<0?': level, nobody scores.':`: one to ${r.p===0?'you':'Wren'}.`));
+}
+function proceed(){
+  clearTimeout(timer);sel=null;
+  if(G.over||G.handOver){afterHand();render();return}
+  render();
+  if(G.turn===1)timer=setTimeout(wrenStep,750);
+}
+function wrenStep(){
+  if(G.over||G.handOver||G.turn!==1)return;
+  const ev=actFor(G,1,level);say(describe(ev));
+  if(ev.kind==='draw'){render();timer=setTimeout(wrenStep,380);return}
+  proceed();
+}
+function tapTile(t,pls){
+  if(!pls.length||G.turn!==0||G.handOver||G.over)return;
+  if(pls.length===1){playMine(pls[0]);return}
+  // two ends with different outcomes
+  sel=pls;render();
+}
+function playMine(pl){const ev=apply(G,0,pl);sel=null;say(describe(ev));proceed()}
+function startHand(){deal(G);lines=[];
+  if(G.mustLead)say(`${who(G.turn)} ${G.turn?'holds':'hold'} the ${G.mustLead[0]===G.mustLead[1]?'highest double':'heaviest tile'}, ${nm(G.mustLead)}, and ${G.turn?'leads':'lead'}.`);
+  else say(`Hand ${G.handNo}. ${G.turn===0?'Your lead.':'Wren leads.'}`);
+  proceed()}
+function startGame(){clearTimeout(timer);seed=(seed*1103515245+12345)>>>0;G=newGame(seed);startHand()}
+$('act').onclick=()=>{
+  if(G.over){startGame();return}
+  if(G.handOver){startHand();return}
+  if(G.turn!==0)return;
+  if(canDraw(G)){const t=drawTile(G,0);say(`You draw ${nm(t)}.`);render();return}
+  knock(G,0);say('You knock.');proceed();
+};
+$('fresh').onclick=startGame;
+$('lvl').onclick=()=>{level=(level+1)%3;$('lvl').textContent='Wren: '+LV[level]};
+let rw=0;addEventListener('resize',()=>{if(innerWidth!==rw){rw=innerWidth;render()}});
+matchMedia('(prefers-color-scheme:dark)').addEventListener?.('change',render);
+startGame();
+window.__knock={get G(){return G},set level(v){level=v},playsFor,apply,actFor,choose,scoreOf,sumAfter,layout,render,startGame,startHand,newGame,deal};
+</script>
+</body>
+</html>
