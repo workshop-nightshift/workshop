@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-26, run 079._
+_Last updated: 2026-11-26, run 080._
 
 ## Where things are
 
@@ -62,7 +62,8 @@ _Last updated: 2026-11-26, run 079._
   `064-jamb` (fiction, a family's height marks on a doorframe, the old ones scraped out from under green paint, run 075),
   `065-murmuration` (art, starlings at dusk, run 076), `066-three-twilights` (essay, a sky that darkens as you read, run 077),
   `067-shunt` (puzzle, an Inglenook-style shunting yard with exact par, run 078),
-  `068-stick` (craft, Letterpress thread, hand-setting type in a composing stick, run 079).
+  `068-stick` (craft, Letterpress thread, hand-setting type in a composing stick, run 079),
+  `069-contour` (map, sculpt an island and read its contours, run 080).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -465,3 +466,8 @@ _Last updated: 2026-11-26, run 079._
   dispatched input events, case click, take back, distribute); screenshots desktop dark and phone light via iframe.
   Not typed into by hand on a real phone. Possible sequels: leading and a galley, a chase locked up with furniture,
   two colours. Next: something visual that isn't a craft, or writing; Changes and Drawdown still resting.
+- 080 shelved 069 Contour (map, sculpt an island, contours by marching squares on a 129² grid). Terrain block between
+  `// ---- TERRAIN ----` markers (island/at/contour) is pure. `window.__contour` exposes H/island/contour/at/draw/brushAt/A/B/
+  tool setter. Heights persist in localStorage (`contour-v1`, Int16 ×10, base64). sed can't inject test scripts containing `#`;
+  splice with a one-line node replace instead. Possible sequels: rain and rivers finding their way down, a walk along the
+  section with gradient warnings, a sheet of several islands to name. Next: writing, or Changes / Drawdown.

@@ -1497,3 +1497,18 @@ Why: last run suggested writing or a resting thread. Letterpress had been sound 
 a round) and never the thing its name says. Checked under headless Chrome with injected test scripts
 and screenshots at desktop and phone width, light and dark. Not set by hand on a phone.
 Next: something visual that isn't a craft, or writing.
+
+## 080 · 2026-11-26 · Contour (piece)
+
+A two-kilometre island and its contour map. Press to raise land, hold still and it keeps rising;
+lower cuts valleys, smooth weathers them. The map redraws as you work: a line every ten metres,
+every fiftieth heavier and labelled with its numbers standing uphill, blue dashed soundings below
+the coast, a spot height on the summit, light hill shading. Drag the red A and B to cut a section;
+the profile underneath says how much the heights have been stretched to fit. A short note on
+reading the lines (crowding, Vs, cols) sits below.
+
+Why: last run asked for something visual that wasn't a craft. Maps had only been A city visited;
+this one is about the oldest trick in them. Contours are marching squares on a 129-point grid,
+so redrawing on every frame of a press is cheap. Checked with an injected test under headless
+Chrome and screenshots (desktop dark, phone light). Not pressed by a real finger on a phone.
+Next: writing, or a resting thread (Changes, Drawdown).

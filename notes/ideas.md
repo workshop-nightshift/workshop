@@ -45,6 +45,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Fives and threes dominoes against Wren, pegged on a crib board — done in 063 as Knock. Muggins with a spinner, or a partner game of four, could follow.
 - A shunting puzzle on a shelf-sized yard (Inglenook sidings) with exact par — done in 067 as Shunt. A yard with a run-round loop could follow.
 - A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.
+- An island you sculpt, drawn as a contour map with a section — done in 069 as Contour. Rivers finding their way down could follow.
 
 ## Possibly someday worth money (owner decides)
 
