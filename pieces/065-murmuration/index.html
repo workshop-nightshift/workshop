@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Murmuration</title>
+<style>
+:root{--bg:#ecebe7;--fg:#1d1c1a;--mute:#6d6860;--line:#cbc6bc;--accent:#7a3b2a}
+@media (prefers-color-scheme:dark){:root{--bg:#111214;--fg:#e6e2da;--mute:#9a948a;--line:#33322f;--accent:#e2a283}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.55 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 64px}
+main{width:100%;max-width:980px}
+h1{font-size:22px;font-weight:normal;margin:0;font-style:italic;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+#sky{display:block;width:100%;border-radius:3px;background:#2a2f45;touch-action:manipulation;cursor:crosshair}
+.bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;margin-top:10px}
+.clock{font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.clock small{font-size:13.5px;color:var(--mute);font-style:italic}
+.counts{color:var(--mute);font-size:14px;font-variant-numeric:tabular-nums}
+.ctl{display:flex;gap:6px;margin-left:auto}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+button:hover{border-color:var(--mute)}
+button.on{border-color:var(--accent);color:var(--accent)}
+#line{min-height:3.2em;margin:8px 0 0;font-style:italic;max-width:40em}
+.hint{color:var(--mute);font-size:13px;font-style:italic}
+.prose{max-width:38em}
+h2{font-size:16px;font-weight:normal;margin:30px 0 6px;color:var(--mute);font-style:italic}
+p{margin:.6em 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Murmuration</h1>
+  <p class="sub">a reedbed in late November, and the starlings coming in</p>
+
+  <canvas id="sky" aria-label="a dusk sky over a reedbed, with a flock of starlings wheeling in it; tap the sky to send a peregrine through the flock"></canvas>
+
+  <div class="bar">
+    <div class="clock"><span id="clk">15:50</span> <small id="sun">sunset at 16:01</small></div>
+    <div class="counts" id="counts">&nbsp;</div>
+    <div class="ctl">
+      <button id="play" aria-label="pause">❚❚</button>
+      <button id="fast" aria-pressed="false">2×</button>
+      <button id="again">again</button>
+    </div>
+  </div>
+  <div id="line">&nbsp;</div>
+  <div class="hint">tap the sky to send the peregrine through where you tapped</div>
+
+  <div class="prose">
+    <h2>how it's made</h2>
+    <p>Each bird looks at the six or seven birds nearest to it, whatever the distance, and steers
+    three ways at once: away from any that are too close, along the way they are going, and towards
+    where they are. That is the whole of the flock's mind. Field studies of real starlings found
+    roughly that rule: a bird keeps track of a handful of neighbours, not of everyone inside some
+    radius, which is why a flock can thin and thicken and still hold together.</p>
+    <p>The dark bands are turns. A bird that sees the falcon rolls away, and a bird that sees a
+    neighbour roll rolls too, a moment later. Rolling shows the wing broadside, so the turn reads as a
+    shadow running through the flock, faster than any bird in it is flying. Nothing much moves; the
+    wave is all handed on.</p>
+    <p>Then the light goes, and the flock starts to pour down out of itself into the reeds, the
+    lowest first, until the sky is empty and the reedbed is full of talk.</p>
+  </div>
+</main>
+<script>
+"use strict";
+// ---- SIM ----
+const K = 7;                 // topological neighbours
+const CAMH = 2, DZ = 100;    // camera height, camera behind z=0
+const V0 = 16, VMIN = 10, VMAX = 26;
+const RS = 10;              // separation radius
+const KSEP = 45, KALI = 2.2, KCOH = 0.15, KR = 0.06;
+const CELL = 16;
+const GX0 = -700, GX1 = 700, GY0 = -20, GY1 = 340, GZ0 = -60, GZ1 = 900;
+const NX = Math.ceil((GX1 - GX0) / CELL), NY = Math.ceil((GY1 - GY0) / CELL), NZ = Math.ceil((GZ1 - GZ0) / CELL);
+const T_END_ARRIVE = 120, T_DESCEND = 178, T_FORCE = 250;
+
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+function makeSim(N, seed, halfW, skyH) {
+  const S = {
+    N, n: 0, landed: 0, t: 0, frame: 0, rand: rng(seed), halfW: halfW || 220, skyH: skyH || 260,
+    px: new Float32Array(N), py: new Float32Array(N), pz: new Float32Array(N),
+    vx: new Float32Array(N), vy: new Float32Array(N), vz: new Float32Array(N),
+    ag: new Float32Array(N), ref: new Int16Array(N), turn: new Float32Array(N),
+    alive: new Uint8Array(N), nb: new Int32Array(N * K),
+    head: new Int32Array(NX * NY * NZ), next: new Int32Array(N),
+    groups: [], falcon: null, nextAuto: 105, lure: [0, 80, 320],
+  };
+  // plan arrivals: a starting flock, then groups until N
+  let left = N, t = 0;
+  const first = Math.min(left, Math.round(N * 0.06)); S.groups.push({ t: 0, n: first }); left -= first;
+  while (left > 0) {
+    t += 2 + S.rand() * 5;
+    const g = Math.min(left, Math.round(N * (0.025 + S.rand() * 0.07)));
+    S.groups.push({ t: Math.min(t, T_END_ARRIVE - 5), n: g }); left -= g;
+  }
+  return S;
+}
+
+function keen(i) { let h = Math.imul(i ^ 0x5bd1e995, 0x27d4eb2d); h ^= h >>> 15; return ((h >>> 0) % 10007) / 10007; }
+// the shape the flock is drawn to: a segment through the lure that turns, tilts, stretches and bends
+function ribbonAt(S, t) {
+  const th = 0.13 * t + 1.2 * Math.sin(t * 0.045), ph = 0.35 * Math.sin(t * 0.083 + 0.7);
+  const dx = Math.cos(th) * Math.cos(ph), dy = Math.sin(ph), dz = Math.sin(th) * Math.cos(ph);
+  // bend direction: mostly up, a little sideways
+  let bx = -dx * dy, by = 1 - dy * dy, bz = -dz * dy; const bl = Math.hypot(bx, by, bz) || 1;
+  const n = Math.min(1, S.n / (S.N || 1));
+  const hl = (25 + 70 * n) * (0.75 + 0.45 * Math.sin(t * 0.061 + 1.0));
+  return { dx, dy, dz, bx: bx / bl, by: by / bl, bz: bz / bl, hl: Math.max(15, hl), bend: 30 * Math.sin(t * 0.037 + 2.3) };
+}
+function lureAt(S, t) {
+  const a = Math.max(30, S.halfW - 160);
+  let x = a * (0.65 * Math.sin(t * 0.071) + 0.35 * Math.sin(t * 0.029 + 1.3));
+  let y = S.skyH * (0.38 + 0.08 * Math.sin(t * 0.053 + 0.4));
+  let z = 330 + 70 * Math.sin(t * 0.041 + 2.1);
+  if (t > T_DESCEND) {
+    const k = Math.min(1, (t - T_DESCEND) / 45);
+    x *= 1 - 0.6 * k; y = y * (1 - 0.6 * k) + 10 * k; z = z * (1 - k) + 300 * k;
+  }
+  return [x, y, z];
+}
+
+function spawnGroup(S, n) {
+  const R = S.rand, side = R() < 0.5 ? -1 : 1;
+  const L = S.lure;
+  const cx = side * (S.halfW + 160 + R() * 120), cy = 60 + R() * 90, cz = 220 + R() * 300;
+  let dx = L[0] - cx, dy = L[1] - cy, dz = L[2] - cz; const d = Math.hypot(dx, dy, dz);
+  dx /= d; dy /= d; dz /= d;
+  for (let k = 0; k < n && S.n < S.N; k++) {
+    const i = S.n++;
+    S.px[i] = cx + (R() - .5) * 30; S.py[i] = cy + (R() - .5) * 12; S.pz[i] = cz + (R() - .5) * 30;
+    S.vx[i] = dx * V0 * 1.2; S.vy[i] = dy * V0 * 1.2; S.vz[i] = dz * V0 * 1.2;
+    S.alive[i] = 1;
+  }
+}
+
+const F_SP = 56;
+// aim at bird j where it will be when the falcon gets there
+function falconAt(S, j) {
+  const tarr = 1.9;
+  return sendFalcon(S, S.px[j] + S.vx[j] * tarr, S.py[j] + S.vy[j] * tarr, S.pz[j] + S.vz[j] * tarr);
+}
+function sendFalcon(S, tx, ty, tz) {
+  if (S.falcon) return false;
+  const R = S.rand, side = R() < 0.5 ? -1 : 1;
+  let ox = side * (80 + R() * 20), oy = 45 + R() * 25, oz = -25 + R() * 50;
+  const od = Math.hypot(ox, oy, oz), want = F_SP * 1.9; ox *= want / od; oy *= want / od; oz *= want / od;
+  const sx = tx + ox, sy = ty + oy, sz = tz + oz;
+  let dx = tx - sx, dy = ty - sy, dz = tz - sz; const d = Math.hypot(dx, dy, dz);
+  const sp = F_SP;
+  S.falcon = { x: sx, y: sy, z: sz, vx: dx / d * sp, vy: dy / d * sp, vz: dz / d * sp, life: 7, flap: 0 };
+  return true;
+}
+
+function centroid(S) {
+  let x = 0, y = 0, z = 0, c = 0;
+  for (let i = 0; i < S.n; i++) if (S.alive[i]) { x += S.px[i]; y += S.py[i]; z += S.pz[i]; c++; }
+  return c ? [x / c, y / c, z / c, c] : null;
+}
+
+function step(S, dt) {
+  S.t += dt; S.frame++;
+  while (S.groups.length && S.groups[0].t <= S.t) spawnGroup(S, S.groups.shift().n);
+  S.lure = lureAt(S, S.t);
+  const L = S.lure, descending = S.t > T_DESCEND;
+  // auto falcon, twice a dusk, if nobody has sent one lately
+  if (S.t > S.nextAuto && S.t < T_DESCEND - 10 && !S.falcon) {
+    const c = centroid(S);
+    if (c && c[3] > 40) { let j = -1; for (let k = 0; k < 50 && j < 0; k++) { const q = (S.rand() * S.n) | 0; if (S.alive[q]) j = q; }
+      if (j >= 0) falconAt(S, j); }
+    S.nextAuto = S.t + 45 + S.rand() * 20;
+  }
+  // grid
+  const head = S.head, next = S.next; head.fill(-1);
+  const cellOf = (x, y, z) => {
+    let ix = ((x - GX0) / CELL) | 0, iy = ((y - GY0) / CELL) | 0, iz = ((z - GZ0) / CELL) | 0;
+    if (ix < 0) ix = 0; else if (ix >= NX) ix = NX - 1;
+    if (iy < 0) iy = 0; else if (iy >= NY) iy = NY - 1;
+    if (iz < 0) iz = 0; else if (iz >= NZ) iz = NZ - 1;
+    return (ix * NY + iy) * NZ + iz;
+  };
+  for (let i = 0; i < S.n; i++) if (S.alive[i]) { const c = cellOf(S.px[i], S.py[i], S.pz[i]); next[i] = head[c]; head[c] = i; }
+  const bd = new Float32Array(K), bi = new Int32Array(K);
+  const F = S.falcon, RF = 40;
+  const prop = (S.frame & 1) === 0;
+  const agOld = S.ag.slice(0, S.n);
+  const RB = ribbonAt(S, S.t);
+  for (let i = 0; i < S.n; i++) {
+    if (!S.alive[i]) continue;
+    const x = S.px[i], y = S.py[i], z = S.pz[i];
+    let ix = ((x - GX0) / CELL) | 0, iy = ((y - GY0) / CELL) | 0, iz = ((z - GZ0) / CELL) | 0;
+    let m = 0; for (let k = 0; k < K; k++) { bd[k] = 1e9; bi[k] = -1; }
+    let sx = 0, sy = 0, sz = 0;
+    for (let a = -1; a <= 1; a++) { const cx = ix + a; if (cx < 0 || cx >= NX) continue;
+      for (let b = -1; b <= 1; b++) { const cy = iy + b; if (cy < 0 || cy >= NY) continue;
+        for (let c = -1; c <= 1; c++) { const cz = iz + c; if (cz < 0 || cz >= NZ) continue;
+          for (let j = head[(cx * NY + cy) * NZ + cz]; j >= 0; j = next[j]) {
+            if (j === i) continue;
+            const dx = S.px[j] - x, dy = S.py[j] - y, dz = S.pz[j] - z;
+            const d2 = dx * dx + dy * dy + dz * dz;
+            if (d2 < RS * RS && d2 > 1e-6) { const d = Math.sqrt(d2), w = (1 - d / RS) / d; sx -= dx * w; sy -= dy * w; sz -= dz * w; }
+            if (d2 < bd[K - 1]) { let p = K - 1; while (p > 0 && bd[p - 1] > d2) { bd[p] = bd[p - 1]; bi[p] = bi[p - 1]; p--; } bd[p] = d2; bi[p] = j; }
+          } } } }
+    let ax = sx * KSEP, ay = sy * KSEP, az = sz * KSEP;
+    let mvx = 0, mvy = 0, mvz = 0, mpx = 0, mpy = 0, mpz = 0, maxAg = 0;
+    for (let k = 0; k < K; k++) { const j = bi[k]; S.nb[i * K + k] = j; if (j < 0) continue; m++;
+      mvx += S.vx[j]; mvy += S.vy[j]; mvz += S.vz[j]; mpx += S.px[j]; mpy += S.py[j]; mpz += S.pz[j];
+      if (agOld[j] > maxAg) maxAg = agOld[j]; }
+    const vx = S.vx[i], vy = S.vy[i], vz = S.vz[i];
+    if (m) {
+      ax += (mvx / m - vx) * KALI; ay += (mvy / m - vy) * KALI; az += (mvz / m - vz) * KALI;
+      ax += (mpx / m - x) * KCOH; ay += (mpy / m - y) * KCOH; az += (mpz / m - z) * KCOH;
+    }
+    // lure: a gentle pull to where the flock wants to be
+    const goes = descending && keen(i) < (S.t - T_DESCEND) / 55;
+    let lx, ly, lz;
+    if (goes) {
+      lx = (L[0] - x) * 0.05; lz = (L[2] - z) * 0.05; ly = (-30 - y) * 0.12;
+      const lh = Math.hypot(lx, lz); if (lh > 5) { lx *= 5 / lh; lz *= 5 / lh; }
+      if (ly > 6) ly = 6; else if (ly < -10) ly = -10;
+    } else {
+      // the ribbon: nearest point on a bent segment through the lure
+      const rx = x - L[0], ry = y - L[1], rz = z - L[2];
+      let u = rx * RB.dx + ry * RB.dy + rz * RB.dz;
+      if (u > RB.hl) u = RB.hl; else if (u < -RB.hl) u = -RB.hl;
+      const q = (u / RB.hl) * (u / RB.hl) - 0.33;
+      const tx = RB.dx * u + RB.bx * RB.bend * q, ty = RB.dy * u + RB.by * RB.bend * q, tz = RB.dz * u + RB.bz * RB.bend * q;
+      lx = (tx - rx) * KR; ly = (ty - ry) * KR * 1.4; lz = (tz - rz) * KR;
+      const lm = Math.hypot(lx, ly, lz), cap = m ? 7 : 14; if (lm > cap) { lx *= cap / lm; ly *= cap / lm; lz *= cap / lm; }
+    }
+    ax += lx; ay += ly; az += lz;
+    if (!goes && y < 22) ay += (22 - y) * 0.8;
+    if (z < 60) az += (60 - z) * 0.5;
+    // falcon
+    if (F) {
+      const dx = x - F.x, dy = y - F.y, dz = z - F.z, d = Math.hypot(dx, dy, dz);
+      if (d < RF) { const w = 110 * (1 - d / RF) / (d + 0.01); ax += dx * w; ay += dy * w; az += dz * w; S.ag[i] = 1; S.ref[i] = 70; }
+    }
+    // the turn handed on: an excitable medium over the neighbour graph
+    if (S.ref[i] > 0) S.ref[i]--;
+    else if (prop && maxAg > 0.72 && S.rand() < 0.55) { S.ag[i] = 1; S.ref[i] = 80; }
+    S.ag[i] *= 0.935;
+    // speed toward V0
+    const sp = Math.hypot(vx, vy, vz) || 1;
+    const want = V0 * (1 + 0.5 * S.ag[i]);
+    ax += vx / sp * (want - sp) * 1.5; ay += vy / sp * (want - sp) * 1.5; az += vz / sp * (want - sp) * 1.5;
+    ax += (S.rand() - .5) * 3; ay += (S.rand() - .5) * 2; az += (S.rand() - .5) * 3;
+    const am = Math.hypot(ax, ay, az), cap = 60; if (am > cap) { ax *= cap / am; ay *= cap / am; az *= cap / am; }
+    // turning (sideways part of the acceleration) drives the bank
+    const along = (ax * vx + ay * vy + az * vz) / sp;
+    const perp = Math.sqrt(Math.max(0, am * am - along * along)) / sp;
+    S.turn[i] += (Math.min(1, perp * 0.9) - S.turn[i]) * 0.15;
+    S.vx[i] = vx + ax * dt; S.vy[i] = vy + ay * dt; S.vz[i] = vz + az * dt;
+    const s2 = Math.hypot(S.vx[i], S.vy[i], S.vz[i]);
+    if (s2 > VMAX) { S.vx[i] *= VMAX / s2; S.vy[i] *= VMAX / s2; S.vz[i] *= VMAX / s2; }
+    else if (s2 < VMIN) { S.vx[i] *= VMIN / s2; S.vy[i] *= VMIN / s2; S.vz[i] *= VMIN / s2; }
+  }
+  for (let i = 0; i < S.n; i++) {
+    if (!S.alive[i]) continue;
+    S.px[i] += S.vx[i] * dt; S.py[i] += S.vy[i] * dt; S.pz[i] += S.vz[i] * dt;
+    if (S.py[i] < 1.5 && descending && (keen(i) < (S.t - T_DESCEND) / 55 || S.t > T_FORCE)) { S.alive[i] = 0; S.landed++; }
+    else if (S.py[i] < 3 && !(descending && keen(i) < (S.t - T_DESCEND) / 55)) { S.py[i] = 3; if (S.vy[i] < 0) S.vy[i] = -S.vy[i] * 0.5; }
+  }
+  if (F) {
+    F.x += F.vx * dt; F.y += F.vy * dt; F.z += F.vz * dt; F.life -= dt; F.flap += dt;
+    F.vy += 4 * dt; // pulls out of the stoop
+    if (F.life <= 0) S.falcon = null;
+  }
+}
+function inAir(S) { return S.n - S.landed; }
+function arrived(S) { return S.groups.length === 0; }
+function done(S) { return arrived(S) && S.landed >= S.N; }
+// ---- END SIM ----
+
+// ---- view ----
+const cv = document.getElementById("sky"), cx2 = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1, scale = 1, hY = 0, cxs = 0;
+let S = null, playing = true, fast = false, seed = (Date.now() % 100000) | 0;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function layout() {
+  const w = cv.clientWidth || 800;
+  const h = Math.round(w < 600 ? w * 1.2 : w * 0.58);
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = w; H = h; cv.style.height = h + "px";
+  cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
+  cx2.setTransform(DPR, 0, 0, DPR, 0, 0);
+  hY = H * (w < 600 ? 0.82 : 0.8); cxs = W / 2;
+  scale = w < 600 ? W / 300 : Math.min(W / 560, hY / 260);
+  reeds = makeReeds();
+}
+function halfWidthU() { return (W / scale) / 2; }
+function proj(x, y, z) { const f = scale * (330 + DZ) / (z + DZ); return [cxs + x * f, hY - (y - CAMH) * f, f / scale]; }
+
+// clock: 1 s of the piece is 10 s of dusk; sunset 16:01
+const T0 = 15 * 3600 + 50 * 60;
+function clockOf(t) { const s = T0 + t * 10; const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; return h + ":" + String(m).padStart(2, "0"); }
+function minsAfterSunset(t) { return (T0 + t * 10 - (16 * 3600 + 60)) / 60; }
+
+const KEYS = [ // minutes after sunset → sky top, sky mid, horizon, ground
+  [-12, [86, 112, 160], [170, 150, 160], [242, 176, 110], [52, 44, 34]],
+  [0, [66, 84, 134], [150, 118, 140], [236, 142, 92], [42, 36, 30]],
+  [12, [40, 52, 96], [96, 82, 118], [196, 112, 96], [30, 27, 26]],
+  [24, [22, 29, 62], [52, 50, 84], [118, 78, 88], [20, 19, 21]],
+  [36, [12, 15, 34], [24, 26, 48], [52, 44, 60], [11, 11, 14]],
+  [60, [7, 9, 20], [12, 14, 28], [24, 24, 36], [7, 7, 10]],
+];
+function skyAt(mins) {
+  let a = KEYS[0], b = KEYS[KEYS.length - 1];
+  for (let k = 0; k < KEYS.length - 1; k++) if (mins >= KEYS[k][0] && mins <= KEYS[k + 1][0]) { a = KEYS[k]; b = KEYS[k + 1]; break; }
+  if (mins < KEYS[0][0]) b = a; if (mins > b[0]) a = b;
+  const u = b[0] === a[0] ? 0 : (mins - a[0]) / (b[0] - a[0]);
+  return [1, 2, 3, 4].map(q => a[q].map((v, n) => Math.round(v + (b[q][n] - v) * u)));
+}
+const rgb = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+
+let reeds = [], tufts = [];
+function makeReeds() {
+  const R = rng(77), out = [], n = Math.round(W / 2.2);
+  for (let k = 0; k < n; k++) {
+    const x = R() * W, h = 10 + R() * 26 + (R() < 0.15 ? 14 : 0);
+    out.push({ x, h, ph: R() * 6.28, lean: (R() - .5) * 0.25, head: R() < 0.7 });
+  }
+  tufts = [];
+  for (let k = 0; k < W / 40; k++) tufts.push({ x: R() * W, n: 3 + ((R() * 5) | 0), h: 5 + R() * 12 });
+  return out.sort((a, b) => a.h - b.h);
+}
+
+function draw() {
+  const mins = minsAfterSunset(S.t), [top, mid, hor, gnd] = skyAt(mins);
+  const g = cx2.createLinearGradient(0, 0, 0, hY);
+  g.addColorStop(0, rgb(top)); g.addColorStop(0.62, rgb(mid)); g.addColorStop(1, rgb(hor));
+  cx2.fillStyle = g; cx2.fillRect(0, 0, W, hY + 2);
+  // far low hills
+  const hill = gnd.map((v, n) => Math.round(v * 0.75 + hor[n] * 0.25));
+  cx2.fillStyle = rgb(hill); cx2.beginPath(); cx2.moveTo(0, hY);
+  for (let x = 0; x <= W; x += 8) cx2.lineTo(x, hY - 6 - 5 * Math.sin(x * 0.006 + 1) - 3 * Math.sin(x * 0.017));
+  cx2.lineTo(W, hY + 2); cx2.lineTo(0, hY + 2); cx2.fill();
+  // marsh below the horizon: reedbed, open water, near bank
+  const rc = gnd.map(v => Math.round(v * 0.62));
+  const rb = hY + (H - hY) * 0.42, wb = hY + (H - hY) * 0.74;
+  cx2.fillStyle = rgb(gnd); cx2.fillRect(0, hY, W, rb - hY + 1);
+  const wg = cx2.createLinearGradient(0, rb, 0, wb);
+  wg.addColorStop(0, rgb(hor.map((v, n) => Math.round(v * 0.55 + gnd[n] * 0.45))));
+  wg.addColorStop(1, rgb(mid.map((v, n) => Math.round(v * 0.45 + gnd[n] * 0.55))));
+  cx2.fillStyle = wg; cx2.fillRect(0, rb, W, wb - rb + 1);
+  cx2.strokeStyle = rgb(hor.map((v, n) => Math.round(v * 0.75 + gnd[n] * 0.25))); cx2.lineWidth = 1; cx2.globalAlpha = 0.35;
+  cx2.beginPath();
+  for (let k = 0; k < 7; k++) { const yy = rb + (wb - rb) * (0.18 + k * 0.11), x0 = (k * 137 % 97) / 97 * W * 0.6; cx2.moveTo(x0, yy); cx2.lineTo(x0 + W * (0.15 + (k % 3) * 0.1), yy); }
+  cx2.stroke(); cx2.globalAlpha = 1;
+  // birds, far first
+  const bird = Math.max(0.12, 1 - Math.max(0, mins - 20) / 60);
+  const idx = []; for (let i = 0; i < S.n; i++) if (S.alive[i]) idx.push(i);
+  idx.sort((a, b) => S.pz[b] - S.pz[a]);
+  const small = W < 600;
+  for (const i of idx) {
+    const [sx, sy, f] = proj(S.px[i], S.py[i], S.pz[i]);
+    if (sx < -10 || sx > W + 10 || sy < -10 || sy > H) continue;
+    const bank = Math.max(S.ag[i], S.turn[i] * 0.55);
+    const s = Math.max(0.9, (small ? 1.9 : 1.5) * scale * 0.55 * f);
+    const a = Math.min(1, 0.6 + 0.3 * f + 0.5 * bank) * (0.65 + 0.35 * bird);
+    cx2.fillStyle = `rgba(14,12,16,${a.toFixed(2)})`;
+    const w = s * (1 + 0.35 * bank), h = Math.max(0.9, s * (0.55 + 1.1 * bank));
+    cx2.fillRect(sx - w, sy - h / 2, w * 2, h);
+  }
+  // falcon
+  const F = S.falcon;
+  if (F) {
+    const [sx, sy, f] = proj(F.x, F.y, F.z);
+    const s = scale * 5 * f * (small ? 1.3 : 1), fl = Math.sin(F.flap * 9) * 0.25;
+    const dir = Math.sign(F.vx) || 1;
+    cx2.fillStyle = "rgba(10,9,12,.95)"; cx2.beginPath();
+    cx2.moveTo(sx + dir * s * 0.9, sy);
+    cx2.lineTo(sx - dir * s * 0.1, sy - s * (0.9 + fl));
+    cx2.lineTo(sx - dir * s * 0.25, sy - s * 0.1);
+    cx2.lineTo(sx - dir * s * 1.0, sy + s * 0.05);
+    cx2.lineTo(sx - dir * s * 0.25, sy + s * 0.15);
+    cx2.lineTo(sx - dir * s * 0.1, sy + s * (0.7 - fl));
+    cx2.closePath(); cx2.fill();
+  }
+  // the reedbed: a dark mass, stems and heads above it, swaying
+  const now = performance.now() / 1000;
+  const mass = hY + (H - hY) * 0.1;
+  cx2.fillStyle = rgb(rc); cx2.fillRect(0, mass, W, rb - mass);
+  cx2.strokeStyle = rgb(rc); cx2.lineWidth = 1.2;
+  cx2.beginPath();
+  for (const r of reeds) {
+    const sway = Math.sin(now * 0.9 + r.ph + r.x * 0.01) * 2.2 + r.lean * r.h;
+    const top = hY - r.h * 0.8 + 6;
+    cx2.moveTo(r.x, mass + 2); cx2.quadraticCurveTo(r.x, (mass + top) / 2, r.x + sway, top);
+  }
+  cx2.stroke();
+  for (const r of reeds) if (r.head) {
+    const sway = Math.sin(now * 0.9 + r.ph + r.x * 0.01) * 2.2 + r.lean * r.h;
+    const top = hY - r.h * 0.8 + 6;
+    cx2.beginPath(); cx2.ellipse(r.x + sway + 1.2, top + 2.5, 1.5, 3.8, 0.5 + r.lean, 0, 6.29); cx2.fill();
+  }
+  // the reeds' dark edge in the water, and the near bank
+  cx2.fillStyle = rgb(rc); cx2.globalAlpha = 0.5; cx2.fillRect(0, rb, W, Math.max(2, (wb - rb) * 0.12)); cx2.globalAlpha = 1;
+  const nb = gnd.map(v => Math.round(v * 0.45));
+  cx2.fillStyle = rgb(nb); cx2.beginPath(); cx2.moveTo(0, H);
+  for (let x = 0; x <= W; x += 6) cx2.lineTo(x, wb + 3 * Math.sin(x * 0.013) + 2 * Math.sin(x * 0.051 + 1));
+  cx2.lineTo(W, H); cx2.fill();
+  cx2.strokeStyle = rgb(nb); cx2.lineWidth = 1; cx2.beginPath();
+  for (const t of tufts) for (let k = 0; k < t.n; k++) { const x = t.x + k * 1.6, hh = t.h * (0.6 + 0.4 * Math.sin(k * 2.1 + t.x)); cx2.moveTo(x, wb + 5); cx2.lineTo(x + (k - t.n / 2) * 1.1, wb + 2 - hh); }
+  cx2.stroke();
+}
+
+const $ = id => document.getElementById(id);
+function words() {
+  const t = S.t, a = inAir(S);
+  if (done(S)) return "All down. The reeds talk among themselves for an hour, a sound like rain on a tin roof, and then go quiet.";
+  if (t > T_DESCEND + 4) return S.landed < S.N * 0.3 ? "The light has gone enough. The lowest of them peel off and pour down into the reeds, and the rest follow in streams." : "They are going down in sheets now. What's left wheels lower each turn.";
+  if (S.falcon) return "The peregrine. The birds nearest it roll away, and the roll is handed on, bird to bird, across the whole flock.";
+  if (t < 12) return "The first of them over the reeds already, going round and round, waiting for the rest.";
+  if (!arrived(S)) return "More come in from the fields, low and fast, a few dozen at a time, and the flock takes them in without slowing.";
+  if (t < 150) return "Everyone is here. The flock thins to a veil, folds, thickens to a knot, and stretches out again.";
+  return "Nearly dark. The shapes come lower and tighter; they are looking at the reeds.";
+}
+function hud() {
+  $("clk").textContent = clockOf(S.t);
+  const m = Math.round(minsAfterSunset(S.t));
+  $("sun").textContent = m < 0 ? "sunset at 16:01" : m === 0 ? "sunset" : m + " min after sunset";
+  const a = inAir(S);
+  $("counts").textContent = S.landed ? `${a.toLocaleString()} in the air · ${S.landed.toLocaleString()} in the reeds` : `${a.toLocaleString()} in the air`;
+  const w = words(); if ($("line").textContent !== w) $("line").textContent = w;
+}
+
+function start() {
+  layout();
+  const N = W < 600 ? 800 : 1500;
+  S = makeSim(N, seed++, halfWidthU(), hY / scale);
+  for (let k = 0; k < 30; k++) step(S, 1 / 60);
+  draw(); hud();
+}
+let last = 0;
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (!playing || !S) { if (S) draw(); return; }
+  const n = fast ? 2 : 1;
+  for (let k = 0; k < n && !done(S); k++) step(S, 1 / 60);
+  draw();
+  if ((S.frame & 7) === 0 || done(S)) hud();
+  if (done(S) && playing) { setPlay(false); hud(); }
+}
+function setPlay(p) { playing = p; $("play").textContent = p ? "❚❚" : "▶"; $("play").setAttribute("aria-label", p ? "pause" : "play"); }
+$("play").onclick = () => { if (done(S)) { start(); setPlay(true); return; } setPlay(!playing); };
+$("fast").onclick = () => { fast = !fast; $("fast").classList.toggle("on", fast); $("fast").setAttribute("aria-pressed", fast); };
+$("again").onclick = () => { start(); setPlay(true); };
+cv.addEventListener("pointerdown", e => {
+  if (!S || S.t > T_DESCEND) return;
+  const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+  let best = -1, bd = (W < 600 ? 50 : 70) ** 2;
+  for (let i = 0; i < S.n; i++) if (S.alive[i]) { const p = proj(S.px[i], S.py[i], S.pz[i]); const d = (p[0] - mx) ** 2 + (p[1] - my) ** 2; if (d < bd) { bd = d; best = i; } }
+  let ok;
+  if (best >= 0) ok = falconAt(S, best);
+  else {
+    const c = centroid(S), z = c ? c[2] : 330, f = scale * (330 + DZ) / (z + DZ);
+    const x = (mx - cxs) / f, y = CAMH + (hY - my) / f;
+    if (y < 5) return;
+    ok = sendFalcon(S, x, y, z);
+  }
+  if (ok) { S.nextAuto = Math.max(S.nextAuto, S.t + 40); if (!playing) setPlay(true); hud(); }
+});
+let rw = 0;
+addEventListener("resize", () => { const w = cv.clientWidth; if (Math.abs(w - rw) > 30) { rw = w; layout(); S.halfW = halfWidthU(); S.skyH = hY / scale; draw(); } });
+start(); rw = cv.clientWidth;
+if (reduce) setPlay(false);
+requestAnimationFrame(frame);
+window.__murm = { get S() { return S; }, step: (n) => { for (let k = 0; k < n; k++) step(S, 1 / 60); draw(); hud(); }, sendFalcon: (...a) => sendFalcon(S, ...a), centroid: () => centroid(S), draw, hud };
+</script>
+</body>
+</html>

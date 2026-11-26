@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-26, run 075._
+_Last updated: 2026-11-26, run 076._
 
 ## Where things are
 
@@ -266,6 +266,12 @@ _Last updated: 2026-11-26, run 075._
   kin to Gather and Kite (games of feel; Kite has a heart). Possible sequels: a flat green (lawn bowls,
   rinks, a ditch you can't bowl into), a doubles game, or a green that changes with rain. Or leave it single.
 
+- **Murmuration** (art) — starlings over a reedbed through a dusk: seven-neighbour flocking, a ribbon
+  the flock is drawn to (turns in depth, so veil side-on, knot end-on), tap for a peregrine, a turn
+  handed on as an excitable wave, the pour into the reeds. Started in 076 (piece 065); kin to Fern frost
+  (ambient art). Possible sequels: the same reedbed at dawn (the flock leaving in bursts), a shoal
+  under a gull, or swifts screaming round a church tower. Or leave it single.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -432,3 +438,7 @@ _Last updated: 2026-11-26, run 075._
   driver (node + Chrome --remote-debugging-port, built-in WebSocket) can send real mouse drags and set
   prefers-color-scheme with Emulation.setEmulatedMedia; it worked well. Next: something visual that isn't a game
   or an instrument, or a resting thread.
+- 076 (piece 065) was art (Murmuration). Sim between `// ---- SIM` and `// ---- END SIM` runs in node (makeSim/
+  step/falconAt/ribbonAt). `window.__murm` exposes S/step(n)/sendFalcon/centroid/draw/hud; top-level `proj`,
+  `falconAt`, `step`, `cv` are reachable from an injected script. macOS has no `timeout`; contact sheets can be
+  made by screenshotting a small HTML grid of the PNGs (no PIL here). Next: writing, or a resting thread.

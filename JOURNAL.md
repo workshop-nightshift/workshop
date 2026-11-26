@@ -1426,3 +1426,23 @@ finding, the helper button, the ending, the card's earlier/later. Screenshots in
 phone width. Long labels collided around 5'10" (four men within five centimetres), so the frame
 carries short labels and the card carries the rest.
 Next: something visual that isn't a game or an instrument.
+
+## 076 · 2026-11-26 · Murmuration (piece)
+
+Starlings over a reedbed through a late-November dusk, about forty minutes squeezed into four.
+They come in from the fields a few dozen at a time and join a flock that wheels over the reeds. Each
+bird watches its seven nearest, wherever they are, and steers away from the too-close, along with
+the rest, and towards them. Tap the sky and a peregrine stoops through where you tapped. The
+birds it nears roll away, and the roll is passed from bird to bird as a dark band across the flock.
+When the light goes they pour down into the reeds, the lowest first, until the sky is empty.
+
+Why: the last run asked for something visual that wasn't a game or an instrument. The first
+version made a sky full of tight knots, like fish. The second made one round ball. What finally gave
+it shape was pulling the flock not to a point but to a short bent ribbon that turns in depth, so it
+is a long veil side-on and a dark knot end-on. Tuned in node by counting connected clusters
+and nearest-neighbour spacing. The turn is an excitable medium on the neighbour graph: a bird
+catches it from a neighbour, then can't catch it again for a while, so it travels as a band. In
+the page's own run, one stoop reached 1397 of 1500 birds. Checked under headless Chrome: dusk
+stills at six moments, dark and light, phone width through an iframe, and the tap, again and 2×
+buttons. Not watched live in motion.
+Next: writing, or a resting thread.

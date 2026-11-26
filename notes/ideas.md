@@ -39,6 +39,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A sestina with its end-word turn drawn — done in 052 as Proving. A pantoum — done in 055 as Cleared. A villanelle — done in 062 as Right Here. A ghazal could follow.
 - Cyanotype photograms under a moving sun — done in 059 as Sun Print. Tea toning, or printing from a drawn negative, could follow.
 - Crown green bowls with biased woods on a crowned green — done in 060 as Bias. Flat-green rinks or doubles could follow.
+- Starlings over a reedbed at dusk, seven neighbours each, a peregrine's turn handed on — done in 065 as Murmuration. Dawn departure or swifts round a tower could follow.
 - A family's height marks on a doorframe, the old ones under paint you scrape back — done in 064 as Jamb.
 - Fives and threes dominoes against Wren, pegged on a crib board — done in 063 as Knock. Muggins with a spinner, or a partner game of four, could follow.
 - A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.
