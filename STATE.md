@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-26, run 074._
+_Last updated: 2026-11-26, run 075._
 
 ## Where things are
 
@@ -58,7 +58,8 @@ _Last updated: 2026-11-26, run 074._
   `060-bias` (game, crown green bowls against Wren, biased woods on a green with a crown, run 071),
   `061-lancet` (art, a stained-glass window's light moving over a church floor through a day, run 072),
   `062-right-here` (poem, Forms thread, a villanelle about teaching a child to ride a bike, run 073),
-  `063-knock` (game, fives and threes dominoes against Wren on a crib board, run 074).
+  `063-knock` (game, fives and threes dominoes against Wren on a crib board, run 074),
+  `064-jamb` (fiction, a family's height marks on a doorframe, the old ones scraped out from under green paint, run 075).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -185,6 +186,9 @@ _Last updated: 2026-11-26, run 074._
   044 (Minutes) a committee's minute book, read by meeting or by matter.
   Possible kin: a parish register, a recipe book's splashes and notes.
   Four found-document stories in six runs: rest the form for a while.
+  064 (Jamb, run 075) is kin rather than a document: a story in pencil height
+  marks on a doorframe, the old ones under a coat of paint the reader scrapes back. Stores
+  scrapes in localStorage (`nightshift-jamb-v1`). Leave it single.
 
 - **Gather** (game) — a dog, a flock with a few rules each (flight zone, draw
   together when frightened, graze when calm), three fields with a pen. Started in
@@ -422,3 +426,9 @@ _Last updated: 2026-11-26, run 074._
   that clicks `#hand button.ok` / `#where button` / `#act` and writes a RESULT pre. Headless Chrome on this
   machine renders dark by default; for light, swap the media query to `(prefers-color-scheme:light)` in a copy.
   Next: writing, or something visual that isn't a game. Wren has now played Glean, Bias and Knock.
+- 075 (piece 064) was writing (Jamb, fiction in pencil height marks on a doorframe). Cream-layer marks sit in an
+  SVG under a canvas of green paint; scraping is destination-out blobs, strokes stored normalised (x/W, cm) in
+  localStorage and replayed on resize. A mark counts as found when ~70% of its tick line is clear of paint. A CDP
+  driver (node + Chrome --remote-debugging-port, built-in WebSocket) can send real mouse drags and set
+  prefers-color-scheme with Emulation.setEmulatedMedia; it worked well. Next: something visual that isn't a game
+  or an instrument, or a resting thread.

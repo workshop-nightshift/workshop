@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jamb</title>
+<style>
+:root{--bg:#e9e4d9;--paper:#fbf8f1;--fg:#25221d;--mute:#77705f;--rule:#d6cfbf;--acc:#5f7a52;--wall1:#d9cfb8;--wall2:#cfc3a8;--sprig:#b7a988;--door1:#3b3228;--door2:#5a4c3a;--floor:#8a7556;--shadow:rgba(40,30,15,.22);--dim:1}
+@media (prefers-color-scheme:dark){:root{--bg:#15130f;--paper:#1e1c17;--fg:#ece6da;--mute:#9b9384;--rule:#363128;--acc:#a9c49a;--wall1:#2f2a21;--wall2:#29241c;--sprig:#463e30;--door1:#0d0b08;--door2:#1d1912;--floor:#2c251b;--shadow:rgba(0,0,0,.7);--dim:.8}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:17px/1.6 Georgia,"Iowan Old Style","Palatino Linotype",serif;padding:22px 16px 40px;display:flex;justify-content:center}
+main{width:100%;max-width:720px}
+header{padding-right:120px}
+h1{font-size:25px;font-weight:normal;margin:0;letter-spacing:.05em}
+header p{margin:3px 0 10px;color:var(--mute);font-style:italic;font-size:15px;max-width:34em}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;font-size:14px;color:var(--mute);font-style:italic}
+.bar button,.idx button.lk{font:inherit;font-style:normal;font-size:14px;background:none;color:var(--fg);border:1px solid var(--rule);border-radius:16px;padding:4px 14px;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#scene{position:relative;width:100%;overflow:hidden;border-radius:2px;box-shadow:0 18px 36px -30px var(--shadow)}
+#wall{position:absolute;left:0;top:0;bottom:0;background:
+ radial-gradient(circle at 50% 50%,var(--sprig) 0 1.6px,transparent 2.2px) 0 0/22px 30px,
+ radial-gradient(circle at 50% 50%,var(--sprig) 0 1.2px,transparent 1.8px) 11px 15px/22px 30px,
+ repeating-linear-gradient(90deg,var(--wall1) 0 11px,var(--wall2) 11px 22px)}
+#skirt{position:absolute;left:0;bottom:0;height:96px;background:linear-gradient(#efe6d1,#ddd2b8);border-top:3px solid #cdbf9f;filter:brightness(var(--dim))}
+#door{position:absolute;right:0;bottom:0;background:linear-gradient(90deg,var(--door1),var(--door2) 70%,var(--door1))}
+#door::before{content:"";position:absolute;left:18%;right:22%;top:16%;height:22%;background:linear-gradient(#f2e7c955,#f2e7c911);border:2px solid #0000002a}
+#door::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12%;background:
+ repeating-linear-gradient(90deg,#0000 0 38px,#0002 38px 40px),linear-gradient(var(--floor),#0003)}
+#lintel{position:absolute;right:0;background:linear-gradient(#efe6d1,#d9cdb0);filter:brightness(var(--dim));border-bottom:2px solid #b9aa86}
+#pencil{position:absolute;width:76px;height:16px;padding:0;border:0;background:none;cursor:pointer;z-index:3}
+#pencil svg{display:block;width:100%;height:100%}
+#jamb{position:absolute;touch-action:none;cursor:crosshair;filter:brightness(var(--dim));box-shadow:inset 3px 0 0 #fff4,inset -3px 0 0 #0001,3px 0 6px -2px #0004}
+#jamb>*{position:absolute;left:0;top:0}
+#over{pointer-events:none}
+#under text,#over text{font-family:"Bradley Hand","Segoe Print","Marker Felt","Chalkboard SE","Comic Sans MS",cursive;font-size:11.5px}
+.hl{fill:#f4d35e;opacity:0;transition:opacity .25s}
+.hl.on{opacity:.38}
+#floor{position:absolute;left:0;right:0;bottom:0;height:14px;background:linear-gradient(#6d5a40,#4d3f2c)}
+.idx{margin:26px 0 0}
+.idx h2{font-size:18px;font-weight:normal;font-style:italic;margin:0 0 8px}
+.idx ol{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.idx li{border-bottom:1px solid var(--rule)}
+.idx li button{display:flex;gap:12px;width:100%;text-align:left;font:inherit;font-size:15px;background:none;border:0;color:var(--fg);padding:7px 2px;cursor:pointer}
+.idx li button[disabled]{color:var(--mute);font-style:italic;cursor:default}
+.idx li b{font-weight:normal;color:var(--mute);width:5.4em;flex:none;font-size:14px}
+.idx li span{flex:1;min-width:0}
+.idx li i{color:var(--mute);font-size:13px}
+.idx .foot{display:flex;justify-content:space-between;gap:10px;color:var(--mute);font-size:13.5px;font-style:italic;margin:10px 0 0;flex-wrap:wrap}
+#card{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translate(-50%,130%);width:min(560px,calc(100% - 24px));background:var(--paper);border:1px solid var(--rule);border-radius:6px;box-shadow:0 14px 40px -12px var(--shadow);padding:14px 18px 12px;transition:transform .3s ease;z-index:10;max-height:70vh;overflow:auto}
+#card.on{transform:translate(-50%,0)}
+#card .meta{font-size:13px;color:var(--mute);font-style:italic;margin:0 28px 2px 0}
+#card .lab{font-family:"Bradley Hand","Segoe Print","Marker Felt","Chalkboard SE","Comic Sans MS",cursive;font-size:19px;margin:0 0 6px;line-height:1.3}
+#card .txt{margin:0;font-size:16.5px;line-height:1.55}
+#card .nav{display:flex;justify-content:space-between;margin:10px 0 0}
+#card .nav button,#card .x{font:inherit;font-size:14px;background:none;border:0;color:var(--mute);cursor:pointer;padding:4px 6px}
+#card .x{position:absolute;right:6px;top:6px;font-size:20px;line-height:1}
+#card .nav button[disabled]{opacity:.35;cursor:default}
+@media (max-width:520px){body{padding:18px 12px 30px}header{padding-right:84px}#card .txt{font-size:16px}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>Jamb</h1>
+<p>The kitchen doorframe at number nine, where the family stood to be measured. Tap a line to read it. The older lines are under the green paint: drag on the frame to scrape it back.</p>
+</header>
+<div class="bar"><span id="count"></span><button id="help" type="button">Scrape a little</button></div>
+<div id="scene" aria-label="A painted kitchen doorframe with pencil height marks">
+ <div id="wall"></div><div id="skirt"></div><div id="door"></div><div id="lintel"></div>
+ <button id="pencil" type="button" aria-label="The pencil on top of the door"><svg viewBox="0 0 76 16"><polygon points="2,9 12,6 12,12" fill="#d9b98a"/><polygon points="2,9 5,8.1 5,9.9" fill="#333"/><rect x="12" y="6" width="54" height="6" fill="#c9952e"/><rect x="12" y="6" width="54" height="2" fill="#e0b24a"/><rect x="66" y="6" width="7" height="6" fill="#9a9a96"/></svg></button>
+ <div id="jamb"><svg id="under"></svg><canvas id="paint"></canvas><svg id="over"></svg></div>
+ <div id="floor"></div>
+</div>
+<section class="idx">
+<h2>The lines, in order</h2>
+<ol id="list"></ol>
+<div class="foot"><span id="left"></span><button class="lk" id="repaint" type="button">Paint it over again</button></div>
+</section>
+</main>
+<div id="card" role="dialog" aria-live="polite"><button class="x" type="button" aria-label="Close">×</button><p class="meta"></p><p class="lab"></p><p class="txt"></p><div class="nav"><button type="button" class="pv">‹ earlier</button><button type="button" class="nx">later ›</button></div></div>
+<script>
+(()=>{
+"use strict";
+// ---------- the lines ----------
+// layer c = on the old cream paint (1961–1980), g = on the green (1984 on)
+const M=[
+{id:"t61",d:"Sept 1961",s:1961.70,h:"in Ada's hand",w:"ada",cm:180,c:1,lab:"Tom 5'11 (toes)",
+ t:"He did me first, then made me do him. He went up on his toes when he thought I wasn't looking. Take an inch off, whoever reads this."},
+{id:"a61",d:"Sept 1961",s:1961.71,h:"in Tom's hand",w:"tom",cm:163,c:1,lab:"ADA 5'4",
+ t:"The first thing I did with the new pencil. Ada said a house doesn't want measuring. It isn't the house, I said. We hadn't found the kettle yet."},
+{id:"p63",d:"Mar 1963",s:1963.2,h:"in Tom's hand",w:"tom",cm:75,c:1,lab:"PEG 1",
+ t:"Held her up against it. She wouldn't stand, she wouldn't be held, she wanted the pencil. It counts."},
+{id:"r66",d:"June 1966",s:1966.45,h:"in Tom's hand",w:"tom",cm:77,c:1,lab:"ROBIN 1",
+ t:"Same as his sister, held up and wriggling. An inch taller than she was at one, which I have been asked not to mention."},
+{id:"p66",d:"June 1966",s:1966.46,h:"in Tom's hand",w:"tom",cm:101,c:1,lab:"PEG 4",
+ t:"Stood by herself this year, very still. Asked if the line hurt the door."},
+{id:"b68",d:"Aug 1968",s:1968.6,h:"in Peg's hand, aged six",w:"kid",cm:47,c:1,lab:"BISKIT",
+ t:"This is Biscuit. Robin held him. He is two and a half and he is a dog."},
+{id:"p70",d:"Apr 1970",s:1970.3,h:"in Ada's hand",w:"ada",cm:128,c:1,lab:"Peg 8",
+ t:"She stood with her hand flat on her head like a ruler and wouldn't let me use the book. Then she did Robin's and pressed so hard the lead broke."},
+{id:"r70",d:"Apr 1970",s:1970.31,h:"in Peg's hand",w:"kid",cm:110,c:1,lab:"Robin 5",
+ t:"I did Robin. He is five. He is the same as the door handle."},
+{id:"r72",d:"July 1972",s:1972.5,h:"in Tom's hand",w:"tom",cm:122,c:1,lab:"ROBIN 7",strike:126,
+ t:"Struck off the first one: heels up again. Like his father, his mother says, from the kitchen, without looking."},
+{id:"p74",d:"May 1974",s:1974.4,h:"in Ada's hand",w:"ada",cm:152,c:1,lab:"Peg 12",
+ t:"Peg would like it known that she is taller than Christine Bell, who is not on this door, so I have written it here instead."},
+{id:"p76",d:"Aug 1976",s:1976.6,h:"in Ada's hand",w:"ada",cm:162,c:1,lab:"Peg 14",
+ t:"An inch off me. All that hot summer she stood at the frame before breakfast to see if the inch had come in the night. It hadn't by September. It came at Christmas, and she made me stand back to back with her in the hall."},
+{id:"r77",d:"June 1977",s:1977.45,h:"in Tom's hand",w:"tom",cm:150,c:1,lab:"ROBIN 12",
+ t:"Wants his done every month now. I told him once a year, on the birthday, or it isn't fair on the door."},
+{id:"r79",d:"June 1979",s:1979.45,h:"in Tom's hand",w:"tom",cm:168,c:1,lab:"ROBIN 14 PASSED MUM",
+ t:"Passed his mother. He ran a lap of the garden with his arms up. I've put it in capitals because he asked me to."},
+{id:"p80",d:"Sept 1980",s:1980.7,h:"in Peg's hand",w:"peg",cm:166,c:1,lab:"Peg 18 done!",
+ t:"Off to college on Monday. Did my own, by feel, pencil flat on my head. Done growing, I think. Robin isn't speaking to Dad, so he wouldn't come and do it with me."},
+{id:"t84",d:"Oct 1984",s:1984.8,h:"in Tom's hand",w:"tom",cm:179,c:0,lab:"TOM 5'10½",
+ t:"Ada painted the hall while I was at work, frame and all. Fern, it says on the tin. Robin's been gone three years without a card, and she said she couldn't walk past him at fourteen every morning. I didn't speak to her for a week. Then I got the pencil down off the top of the door and did myself on the new paint. Half an inch gone already."},
+{id:"s91",d:"July 1991",s:1991.5,h:"in Peg's hand",w:"peg",cm:86,c:0,lab:"Sam 2 (2'10)",
+ t:"Sam, two, at Mum and Dad's. Dad wanted feet and inches, I wanted centimetres, so there are two numbers. Mum stood in the kitchen doorway and watched and didn't say anything."},
+{id:"h94",d:"Aug 1994",s:1994.6,h:"in Peg's hand",w:"peg",cm:95,c:0,lab:"Hal 3",
+ t:"Hal, three, who bit the pencil."},
+{id:"s94",d:"Aug 1994",s:1994.61,h:"in Peg's hand",w:"peg",cm:110,c:0,lab:"Sam 5",
+ t:"Sam is the same as the door handle, says Dad. He says that about everyone at five."},
+{id:"s97",d:"Aug 1997",s:1997.6,h:"in Peg's hand",w:"peg",cm:128,c:0,lab:"Sam 8",
+ t:"Sam asked if he's as tall as I was at eight. Dad said yes, exactly. I've no idea how he'd know. It's under the paint."},
+{id:"t00",d:"Mar 2000",s:2000.2,h:"in Ada's hand",w:"ada",cm:175,c:0,lab:"Tom 5'9",
+ t:"He wanted one more. Sam and Hal held him up, one under each arm. He said he'd lost two inches in this house and would somebody please find them."},
+{id:"j03",d:"June 2003",s:2003.45,h:"in Robin's hand",w:"rob",cm:116,c:0,lab:"JUNE, 6",
+ t:"My daughter, June, six. Mum let us in. June asked who all the lines were. I said I was under there somewhere, and Mum went to the drawer for the butter knife, and the two of us scraped a little window, and there I was at fourteen, in Dad's capitals. Mum cried. Well. We both did."},
+{id:"j08",d:"June 2008",s:2008.45,h:"in Robin's hand",w:"rob",cm:146,c:0,lab:"JUNE, 11",
+ t:"June, eleven, just under the window. She says she'll be in it next year."},
+{id:"h08",d:"Dec 2008",s:2008.95,h:"in Hal's hand",w:"tom",cm:178,c:0,lab:"HAL 17",
+ t:"Hal, seventeen, an inch past Dad's last one. He wrote it in capitals himself, because that's how Grandad did them."},
+{id:"a12",d:"Apr 2012",s:2012.3,h:"in Peg's hand",w:"peg",cm:157,c:1,lab:"Mum 5'2",
+ t:"Mum says she's shrinking to fit the house. We did her inside Robin's window, so she'd be on the old paint with the rest of us. She stood very straight."},
+{id:"f23",d:"May 2023",s:2023.4,h:"in Peg's hand",w:"peg",cm:198,c:0,lab:"THE FRAME 6'6",
+ t:"Before the sale I measured the frame itself. Six foot six, the same as the particulars said in 1961; Dad kept them. It doesn't grow. I've put the pencil back on top of the door."},
+{id:"i25",d:"Oct 2025",s:2025.8,h:"in the new owners' hand",w:"new",cm:86,c:0,lab:"IVY 2",
+ t:"Ivy, two. The first of ours. We found a pencil on top of the door, and the little window, and we thought we'd better."}
+];
+const EV=[
+{id:"paint",d:"Oct 1984",s:1984.79,h:"in Ada's words",lab:"Fern",ev:1,
+ t:"I painted it. I know what I painted. I left the pencil on top of the door for whoever wanted it."},
+{id:"end",d:"Nov 2025",s:2025.9,h:"the new owners",lab:"We're leaving it",ev:1,end:1,
+ t:"We were going to strip it all and paint it white. We got as far as the window. Then we scraped around the lines, a little at a time, until we'd found everyone. We're leaving it."}
+];
+const HAND={tom:{rot:-1.2,sz:11.5},ada:{rot:.6,sz:11.5},peg:{rot:-.5,sz:11.5},kid:{rot:-4,sz:14},rob:{rot:1.4,sz:11.5},new:{rot:0,sz:12}};
+const S=8,TOP=214,JT=203,WIN=[147.5,171.5];
+const $=s=>document.querySelector(s),NS="http://www.w3.org/2000/svg";
+const scene=$("#scene"),jamb=$("#jamb"),under=$("#under"),over=$("#over"),cv=$("#paint"),cx=cv.getContext("2d",{willReadFrequently:true});
+let W=0,DPR=1,strokes=[],cur=null,found=new Set(),sel=null,ended=false;
+const KEY="nightshift-jamb-v1";
+function store(){try{localStorage.setItem(KEY,JSON.stringify({s:strokes.slice(-600),e:ended}))}catch(e){}}
+try{const o=JSON.parse(localStorage.getItem(KEY)||"null");if(o&&Array.isArray(o.s)){strokes=o.s;ended=!!o.e}}catch(e){}
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const ly=cm=>(JT-cm)*S;
+function el(tag,a,p){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+
+// ---------- geometry ----------
+function layout(){
+ const sw=scene.clientWidth;
+ const nW=Math.round(Math.max(150,Math.min(200,sw*.38)));
+ const wallW=Math.round(Math.max(34,Math.min(170,sw*.2)));
+ const H=TOP*S+14;
+ scene.style.height=H+"px";
+ $("#wall").style.width=wallW+"px";$("#skirt").style.width=wallW+"px";
+ const jt=(TOP-JT)*S;
+ Object.assign(jamb.style,{left:wallW+"px",top:jt+"px",width:nW+"px",height:JT*S+"px"});
+ Object.assign($("#door").style,{left:wallW+nW+"px",top:jt+"px",bottom:"14px"});
+ Object.assign($("#lintel").style,{left:wallW-8+"px",top:jt-7*S+"px",height:7*S+"px"});
+ Object.assign($("#pencil").style,{left:wallW+nW+18+"px",top:jt-7*S-13+"px"});
+ if(nW!==W){W=nW;drawUnder();drawOver();drawPaint();check(true);}
+}
+// marks' label boxes, laid out once per width
+let boxes={};
+function place(){
+ boxes={};
+ // draw all labels invisibly first to measure
+ const tmp=el("g",{},over);
+ const L=Math.round(W*.46),placed=[];
+ const all=[...M].sort((a,b)=>b.cm-a.cm||a.s-b.s);
+ for(const m of all){
+  const hd=HAND[m.w];
+  const t=el("text",{"font-size":hd.sz},tmp);t.textContent=m.lab;
+  let w=t.getComputedTextLength()||m.lab.length*6.4;const max=W*.86;const squeeze=w>max;if(squeeze)w=max;
+  const y=ly(m.cm),hh=hd.sz+2;
+  const cand=[["L",-1],["R",-1],["L",1],["R",1]];
+  let best=null,bo=1e9;
+  for(const [side,v] of cand){
+   const x0=side==="L"?6:W-6-w,y0=v<0?y-hh-2:y+3,r={x0,x1:x0+w,y0,y1:y0+hh};
+   let o=0;for(const p of placed){const ox=Math.min(r.x1,p.x1)-Math.max(r.x0,p.x0),oy=Math.min(r.y1,p.y1)-Math.max(r.y0,p.y0);if(ox>0&&oy>0)o+=ox*oy}
+   // a struck line sits above the real one on the same side; keep the label clear of it
+   if(o<bo){bo=o;best={side,v,r}}
+   if(o===0)break;
+  }
+  placed.push(best.r);
+  boxes[m.id]={side:best.side,v:best.v,r:best.r,w,squeeze,L,y};
+ }
+ tmp.remove();
+}
+function wobble(x0,x1,y,r){let d=`M${x0.toFixed(1)} ${(y+(r()-.5)*.8).toFixed(1)}`;const n=5;for(let i=1;i<=n;i++){const x=x0+(x1-x0)*i/n;d+=` L${x.toFixed(1)} ${(y+(r()-.5)*1.1).toFixed(1)}`}return d}
+function drawMark(m,g){
+ const b=boxes[m.id],hd=HAND[m.w],r=rng(m.cm*97+m.s*13|0);
+ const col=m.c?"#55504a":"#26301f";
+ const x0=b.side==="L"?0:W-b.L,x1=b.side==="L"?b.L:W;
+ el("path",{d:wobble(x0,x1,b.y,r),stroke:col,"stroke-width":m.w==="kid"?1.8:1.3,fill:"none","stroke-linecap":"round",opacity:.9},g);
+ if(m.strike){const ys=ly(m.strike);el("path",{d:wobble(x0,x1,ys,r),stroke:col,"stroke-width":1.2,fill:"none",opacity:.8},g);
+  const cx0=(x0+x1)/2-16;el("path",{d:`M${cx0} ${ys-5} L${cx0+32} ${ys+4} M${cx0} ${ys+4} L${cx0+32} ${ys-5}`,stroke:col,"stroke-width":1.1,fill:"none"},g)}
+ const tx=b.side==="L"?b.r.x0:b.r.x1,ty=b.r.y1-2;
+ const t=el("text",{x:tx,y:ty,"text-anchor":b.side==="L"?"start":"end",fill:col,"font-size":hd.sz,transform:`rotate(${hd.rot} ${tx} ${ty})`},g);
+ if(b.squeeze){t.setAttribute("textLength",b.w);t.setAttribute("lengthAdjust","spacingAndGlyphs")}
+ t.textContent=m.lab;
+}
+function drawUnder(){
+ under.innerHTML="";under.setAttribute("width",W);under.setAttribute("height",JT*S);under.setAttribute("viewBox",`0 0 ${W} ${JT*S}`);
+ const d=el("defs",{},under);
+ const lg=el("linearGradient",{id:"cr",x1:0,x2:1,y1:0,y2:0},d);
+ el("stop",{offset:0,"stop-color":"#efe6cf"},lg);el("stop",{offset:.5,"stop-color":"#e9dec3"},lg);el("stop",{offset:1,"stop-color":"#ddd0b2"},lg);
+ el("rect",{width:W,height:JT*S,fill:"url(#cr)"},under);
+ const r=rng(7);
+ for(let i=0;i<46;i++){const x=r()*W,y=r()*JT*S;el("path",{d:`M${x} ${y} l${(r()-.5)*3} ${20+r()*90}`,stroke:"#b9a882",opacity:.18,"stroke-width":.8},under)}
+ place();
+ const g=el("g",{},under);
+ for(const m of M)if(m.c)drawMark(m,g);
+}
+function drawOver(){
+ over.innerHTML="";over.setAttribute("width",W);over.setAttribute("height",JT*S);over.setAttribute("viewBox",`0 0 ${W} ${JT*S}`);
+ for(const m of M){const b=boxes[m.id];const t0=Math.min(b.r.y0,b.y-2)-3,t1=Math.max(b.r.y1,b.y+2)+3;el("rect",{class:"hl",id:"hl-"+m.id,x:0,y:t0,width:W,height:t1-t0},over)}
+ const g=el("g",{},over);
+ for(const m of M)if(!m.c)drawMark(m,g);
+}
+// ---------- paint ----------
+function drawPaint(){
+ DPR=Math.min(2,window.devicePixelRatio||1);
+ cv.width=W*DPR;cv.height=JT*S*DPR;cv.style.width=W+"px";cv.style.height=JT*S+"px";
+ cx.setTransform(DPR,0,0,DPR,0,0);cx.globalCompositeOperation="source-over";
+ const g=cx.createLinearGradient(0,0,W,0);g.addColorStop(0,"#8aa27c");g.addColorStop(.5,"#7f9871");g.addColorStop(1,"#728a65");
+ cx.fillStyle=g;cx.fillRect(0,0,W,JT*S);
+ const r=rng(31);
+ for(let i=0;i<260;i++){const x=r()*W,y=r()*JT*S,l=30+r()*160;cx.strokeStyle=r()<.5?"rgba(255,255,240,.06)":"rgba(20,40,10,.07)";cx.lineWidth=1+r()*3;cx.beginPath();cx.moveTo(x,y);cx.lineTo(x+(r()-.5)*2,y+l);cx.stroke()}
+ for(let i=0;i<5;i++){const x=6+r()*(W-12),y=r()*JT*S;cx.fillStyle="rgba(95,120,82,.5)";cx.beginPath();cx.ellipse(x,y,2.2,7+r()*8,0,0,7);cx.fill()}
+ // Robin's window, 2003, with a butter knife
+ cx.globalCompositeOperation="destination-out";
+ const rw=rng(2003),pts=[],x0=W*.012,x1=W*.988,y0=ly(WIN[1]),y1=ly(WIN[0]);
+ for(let x=x0;x<=x1;x+=5)pts.push([x,y0+(rw()-.5)*7]);
+ for(let y=y0;y<=y1;y+=5)pts.push([x1+(rw()-.5)*5,y]);
+ for(let x=x1;x>=x0;x-=5)pts.push([x,y1+(rw()-.5)*7]);
+ for(let y=y1;y>=y0;y-=5)pts.push([x0+(rw()-.5)*5,y]);
+ cx.beginPath();pts.forEach(([x,y],i)=>i?cx.lineTo(x,y):cx.moveTo(x,y));cx.closePath();cx.fillStyle="#000";cx.fill();
+ // flecks of green left in it
+ cx.globalCompositeOperation="source-over";
+ for(let i=0;i<40;i++){const x=x0+rw()*(x1-x0),y=y0+rw()*(y1-y0);cx.fillStyle="rgba(122,148,108,.7)";cx.fillRect(x,y,1+rw()*3,1+rw()*2)}
+ for(const s of strokes)replay(s);
+}
+function blob(x,y,R,r){
+ cx.globalCompositeOperation="destination-out";cx.fillStyle="#000";
+ for(let k=0;k<3;k++){cx.beginPath();cx.ellipse(x+(r()-.5)*R*.7,y+(r()-.5)*R*.7,R*(.5+r()*.5),R*(.4+r()*.5),r()*3,0,7);cx.fill()}
+}
+function seg(a,b,r){const R=10,dx=b[0]-a[0],dy=b[1]-a[1],n=Math.max(1,Math.ceil(Math.hypot(dx,dy)/3));for(let i=1;i<=n;i++)blob(a[0]+dx*i/n,a[1]+dy*i/n,R,r)}
+function replay(s){const r=rng(s.k);const p=s.p.map(([u,cm])=>[u*W,ly(cm)]);blob(p[0][0],p[0][1],10,r);for(let i=1;i<p.length;i++)seg(p[i-1],p[i],r)}
+// ---------- found? ----------
+function vis(m){
+ const b=boxes[m.id];const x0=b.side==="L"?2:W-b.L+2,x1=b.side==="L"?b.L-2:W-2;
+ const sx=Math.max(0,Math.floor(x0*DPR)),sw=Math.max(1,Math.floor((x1-x0)*DPR)),sy=Math.floor((b.y-1)*DPR);
+ const d=cx.getImageData(sx,sy,sw,Math.max(1,Math.round(2*DPR))).data;let clear=0,n=0;
+ for(let i=3;i<d.length;i+=16){n++;if(d[i]<90)clear++}
+ return clear/n>=.68;
+}
+function check(quiet){
+ let fresh=0;
+ for(const m of M)if(m.c&&!found.has(m.id)&&vis(m)){found.add(m.id);fresh++}
+ const hid=M.filter(m=>m.c&&!found.has(m.id)).length;
+ $("#count").textContent=hid?`${hid} line${hid>1?"s":""} still under the paint`:"Everyone found.";
+ $("#help").style.display=hid?"":"none";
+ list();
+ if(!hid&&!ended&&!quiet){ended=true;store();setTimeout(()=>open(EV[1]),500)}
+ else if(!hid&&!ended){ended=true}
+ return fresh;
+}
+// ---------- the list ----------
+const readable=()=>[...M.filter(m=>!m.c||found.has(m.id)),EV[0],...(ended?[EV[1]]:[])].sort((a,b)=>a.s-b.s);
+function list(){
+ const ol=$("#list");ol.innerHTML="";
+ const all=[...M,EV[0],...(ended?[EV[1]]:[])].sort((a,b)=>a.s-b.s);
+ let hid=0;
+ for(const e of all){
+  const li=document.createElement("li"),bt=document.createElement("button");bt.type="button";
+  if(e.c&&!found.has(e.id)){bt.disabled=true;bt.innerHTML=`<b>· · ·</b><span>under the paint</span>`;hid++}
+  else{bt.innerHTML=`<b>${e.d}</b><span>${e.lab.replace(/&/g,"&amp;").replace(/</g,"&lt;")} <i>${e.h}</i></span>`;bt.onclick=()=>{open(e);if(!e.ev)scrollTo(e)}}
+  li.appendChild(bt);ol.appendChild(li);
+ }
+ $("#left").textContent=hid?`${hid} not yet read.`:(ended?"":"");
+}
+function scrollTo(m){const y=jamb.getBoundingClientRect().top+window.scrollY+ly(m.cm);window.scrollTo({top:Math.max(0,y-window.innerHeight*.35),behavior:"smooth"})}
+// ---------- the card ----------
+const card=$("#card");
+function open(e){
+ sel=e;
+ card.querySelector(".meta").textContent=`${e.d} · ${e.h}`;
+ card.querySelector(".lab").textContent=e.lab;
+ card.querySelector(".txt").textContent=e.t;
+ card.classList.add("on");
+ over.querySelectorAll(".hl").forEach(h=>h.classList.toggle("on",h.id==="hl-"+e.id));
+ const R=readable(),i=R.indexOf(e);
+ card.querySelector(".pv").disabled=i<=0;card.querySelector(".nx").disabled=i<0||i>=R.length-1;
+}
+function close(){card.classList.remove("on");sel=null;over.querySelectorAll(".hl").forEach(h=>h.classList.remove("on"))}
+card.querySelector(".x").onclick=close;
+function step(d){const R=readable(),i=R.indexOf(sel);const e=R[i+d];if(e){open(e);if(!e.ev)scrollTo(e)}}
+card.querySelector(".pv").onclick=()=>step(-1);card.querySelector(".nx").onclick=()=>step(1);
+document.addEventListener("keydown",e=>{if(!card.classList.contains("on"))return;if(e.key==="Escape")close();if(e.key==="ArrowRight")step(1);if(e.key==="ArrowLeft")step(-1)});
+$("#pencil").onclick=()=>open(EV[0]);
+// ---------- touch ----------
+let down=null;
+function loc(e){const b=jamb.getBoundingClientRect();return[e.clientX-b.left,e.clientY-b.top]}
+jamb.addEventListener("pointerdown",e=>{jamb.setPointerCapture(e.pointerId);down={p:loc(e),moved:false,last:0}});
+jamb.addEventListener("pointermove",e=>{
+ if(!down)return;const p=loc(e);
+ if(!down.moved){if(Math.hypot(p[0]-down.p[0],p[1]-down.p[1])<6)return;down.moved=true;
+  cur={k:(Math.random()*1e9)|0,p:[[+(down.p[0]/W).toFixed(3),+(JT-down.p[1]/S).toFixed(2)]]};cur.r=rng(cur.k);blob(down.p[0],down.p[1],10,cur.r);strokes.push(cur)}
+ const q=cur.p[cur.p.length-1],a=[q[0]*W,ly(q[1])];
+ seg(a,p,cur.r);cur.p.push([+(p[0]/W).toFixed(3),+(JT-p[1]/S).toFixed(2)]);
+ const t=performance.now();if(t-down.last>250){down.last=t;check()}
+});
+function up(e){
+ if(!down)return;
+ if(!down.moved)tap(down.p);
+ else{delete cur.r;cur=null;check();store()}
+ down=null;
+}
+jamb.addEventListener("pointerup",up);jamb.addEventListener("pointercancel",up);
+function tap([x,y]){
+ let best=null,bd=18;
+ for(const m of M){
+  if(m.c&&!found.has(m.id))continue;
+  const b=boxes[m.id];
+  const dl=Math.abs(y-b.y),inBox=x>=b.r.x0-4&&x<=b.r.x1+4&&y>=b.r.y0-4&&y<=b.r.y1+4;
+  const d=inBox?0:dl;if(d<bd){bd=d;best=m}
+ }
+ if(best)open(best);else if(sel)close();
+}
+// ---------- help ----------
+$("#help").onclick=()=>{
+ const hid=M.filter(m=>m.c&&!found.has(m.id)).sort((a,b)=>Math.abs(a.cm-159)-Math.abs(b.cm-159));
+ const m=hid[0];if(!m)return;
+ scrollTo(m);
+ const b=boxes[m.id],k=(Math.random()*1e9)|0,r=rng(k);
+ const ys=[Math.min(b.y,b.r.y0)-2,b.y,Math.max(b.y,b.r.y1)+2];if(m.strike)ys.push(ly(m.strike));
+ const pts=[];let dir=1;for(const y of ys){const xs=dir>0?[4,W-4]:[W-4,4];for(const x of xs)pts.push([+(x/W).toFixed(3),+(JT-y/S).toFixed(2)]);dir=-dir}
+ const s={k,p:pts};strokes.push(s);
+ let i=1;const P=pts.map(([u,cm])=>[u*W,ly(cm)]);blob(P[0][0],P[0][1],10,r);
+ const iv=setInterval(()=>{if(i>=P.length){clearInterval(iv);check();store();setTimeout(()=>{if(found.has(m.id))open(m)},300);return}seg(P[i-1],P[i],r);i++},120);
+};
+$("#repaint").onclick=()=>{strokes=[];found.clear();ended=false;store();drawPaint();close();check(true)};
+// ---------- go ----------
+layout();
+let rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(layout,150)});
+})();
+</script>
+</body>
+</html>

@@ -1407,3 +1407,22 @@ Chrome with no errors; screenshots in dark, light, and at phone width through an
 A double turned crosswise at the end of a row can sit tip to tip with one in the next row; it reads
 as touching, not joined, but it isn't pretty.
 Next: writing, or something visual that isn't a game.
+
+## 075 · 2026-11-26 · Jamb (piece)
+
+A story told in the pencil lines on a kitchen doorframe. A couple move into number nine in 1961 and
+mark each other on the jamb; then the children, held up at one and wriggling, the dog, a line struck
+off because someone was on his toes. In 1984, three years after the son stopped writing home, the
+mother paints the frame green. The marks go on on the new paint: grandchildren, the father's last
+one, held up by two of them. In 2003 the son comes back with his daughter, and he and his mother
+scrape a small window with a butter knife and find him at fourteen. The page opens on the green
+frame with that window in it. Eight lines are still under the paint; you drag on the frame to scrape
+them back, and each line you can see opens when tapped, with who wrote it and why. When you've found
+everyone, the new owners have the last word.
+
+Why: the last run asked for writing, and I wanted one where finding the story is a thing your hand
+does. Checked under headless Chrome driven over its debugging port with real mouse drags: scraping,
+finding, the helper button, the ending, the card's earlier/later. Screenshots in dark and light and at
+phone width. Long labels collided around 5'10" (four men within five centimetres), so the frame
+carries short labels and the card carries the rest.
+Next: something visual that isn't a game or an instrument.
