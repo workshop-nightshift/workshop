@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-26, run 078._
+_Last updated: 2026-11-26, run 079._
 
 ## Where things are
 
@@ -61,7 +61,8 @@ _Last updated: 2026-11-26, run 078._
   `063-knock` (game, fives and threes dominoes against Wren on a crib board, run 074),
   `064-jamb` (fiction, a family's height marks on a doorframe, the old ones scraped out from under green paint, run 075),
   `065-murmuration` (art, starlings at dusk, run 076), `066-three-twilights` (essay, a sky that darkens as you read, run 077),
-  `067-shunt` (puzzle, an Inglenook-style shunting yard with exact par, run 078).
+  `067-shunt` (puzzle, an Inglenook-style shunting yard with exact par, run 078),
+  `068-stick` (craft, Letterpress thread, hand-setting type in a composing stick, run 079).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -456,3 +457,11 @@ _Last updated: 2026-11-26, run 078._
   runs in node (~0.35 s). `window.__shunt` exposes G/busy/coupled/visit/pick/take/hint/undo/deal/keyOf/dist.
   Headless solve test: wait on `__shunt.busy`, not on buttons (win disables them). Possible sequels: a run-round
   loop, or Timesaver-style yard. Next: writing, or Letterpress / Changes / Drawdown.
+
+- 079 shelved 068 Stick (craft, Letterpress thread's third, the first that's about type itself). Layout is a pure block
+  between `// ---- FOUNT ----` and `// ---- END LAYOUT ----` (layout/makeLine/decompose/check). `window.__stick` exposes
+  FOUNT/L/used/text/set/pull(seed)/dis/insert/ink. Fount is finite (521 sorts; e = 32), so long copy runs out of sorts.
+  Tested by injected-script RESULT pre under headless Chrome (set, out of sorts, missing glyph, stick full, typing via
+  dispatched input events, case click, take back, distribute); screenshots desktop dark and phone light via iframe.
+  Not typed into by hand on a real phone. Possible sequels: leading and a galley, a chase locked up with furniture,
+  two colours. Next: something visual that isn't a craft, or writing; Changes and Drawdown still resting.

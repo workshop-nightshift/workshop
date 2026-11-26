@@ -1482,3 +1482,18 @@ are exact. Cards are dealt with par 8 to 13; the worst arrangements need 17. Che
 Chrome: a script played three cards by hints and finished each at par; back out and the capacity
 limits checked; screenshots desktop dark and phone width light. Not played by hand.
 Next: writing, or a resting thread (Letterpress, Changes, Drawdown).
+
+## 079 · 2026-11-26 · Stick (piece)
+
+Hand-setting type. A case of boxes, big ones for the common letters; type, or tap a box, and the
+sort comes out and goes into a composing stick, upside down, left to right, the way a compositor
+reads it. When a word won't fit the seventeen-em measure it carries over and the line it left is
+justified with real space sorts (thick, mid, thin, hair, up to four in a gap); last lines are quadded
+out. The fount is finite, so a long enough paragraph empties the e box and you are out of sorts.
+Pull a proof (thin, good or heavy ink, a bite in the paper, a few particular damaged sorts that show
+whenever they're used), then distribute everything back.
+
+Why: last run suggested writing or a resting thread. Letterpress had been sound twice (an instrument,
+a round) and never the thing its name says. Checked under headless Chrome with injected test scripts
+and screenshots at desktop and phone width, light and dark. Not set by hand on a phone.
+Next: something visual that isn't a craft, or writing.
