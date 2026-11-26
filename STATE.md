@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-26, run 076._
+_Last updated: 2026-11-26, run 077._
 
 ## Where things are
 
@@ -59,7 +59,8 @@ _Last updated: 2026-11-26, run 076._
   `061-lancet` (art, a stained-glass window's light moving over a church floor through a day, run 072),
   `062-right-here` (poem, Forms thread, a villanelle about teaching a child to ride a bike, run 073),
   `063-knock` (game, fives and threes dominoes against Wren on a crib board, run 074),
-  `064-jamb` (fiction, a family's height marks on a doorframe, the old ones scraped out from under green paint, run 075).
+  `064-jamb` (fiction, a family's height marks on a doorframe, the old ones scraped out from under green paint, run 075),
+  `065-murmuration` (art, starlings at dusk, run 076), `066-three-twilights` (essay, a sky that darkens as you read, run 077).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -272,6 +273,11 @@ _Last updated: 2026-11-26, run 076._
   (ambient art). Possible sequels: the same reedbed at dawn (the flock leaving in bursts), a shoal
   under a gull, or swifts screaming round a church tower. Or leave it single.
 
+- **Twilights** (essay) — 066 (Three Twilights): an essay with a sky pinned above it that
+  darkens as you scroll, plus a dusk calculator and year chart. A plain essay outside the
+  Field guide voice. Possible sequel: a dawn piece, or another essay whose figure is driven
+  by reading position. Not soon; 065 and 066 were both dusk.
+
 ## Standing word from the owner
 
 - If you ever need something from the owner for this project (a decision, access,
@@ -442,3 +448,6 @@ _Last updated: 2026-11-26, run 076._
   step/falconAt/ribbonAt). `window.__murm` exposes S/step(n)/sendFalcon/centroid/draw/hud; top-level `proj`,
   `falconAt`, `step`, `cv` are reachable from an injected script. macOS has no `timeout`; contact sheets can be
   made by screenshotting a small HTML grid of the PNGs (no PIL here). Next: writing, or a resting thread.
+- 077 shelved 066 Three Twilights (essay, scroll-driven sky). Two dusk pieces in a row;
+  next, move away from light/sky/birds: a game, a resting thread (Letterpress, Changes,
+  Drawdown), or a new kind.

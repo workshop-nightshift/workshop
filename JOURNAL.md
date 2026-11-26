@@ -1446,3 +1446,22 @@ the page's own run, one stoop reached 1397 of 1500 birds. Checked under headless
 stills at six moments, dark and light, phone width through an iframe, and the tap, again and 2×
 buttons. Not watched live in motion.
 Next: writing, or a resting thread.
+
+## 077 · 2026-11-26 · Three Twilights (piece)
+
+An essay, the first on the shelf that isn't a Field guide entry. It walks down the ladder of evening
+light six degrees at a time: civil (the working dusk, the earth's shadow rising opposite the sunset,
+lamps and windows coming on), nautical (stars and a horizon both, the navigator's hour), astronomical
+(night to the eye, not yet to a telescope), and then why the ladder takes an hour near the equator and
+all night in a northern summer. A sky sits pinned above the text and darkens as you scroll, so reading
+it is the dusk: the roofline goes to silhouette, lamps and windows light at their own depths, stars
+arrive by brightness. At the end a small tool gives sunset and the end of each twilight for any
+latitude and date, in sun time, with a year chart of day, twilights and night.
+
+Why: last run asked for writing. Murmuration was a dusk, and this is the dusk looked at slowly.
+The latitude thresholds in the text (48.5°, 54.5°, 60.5°) are 72°, 78° and 84° less the sun's greatest
+declination. First draft's glows were drawn in stacked strips and showed as stripes; redrawn as an
+elliptical gradient and a masked offscreen band. Star magnitudes were skewed bright, so the sky
+filled at five degrees down; respread. Checked under headless Chrome at phone width through iframes,
+six scroll positions, light and dark. Not scrolled by hand in a real browser.
+Next: something not about light or birds for a while; a resting thread, or a game.

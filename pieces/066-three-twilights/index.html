@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three Twilights</title>
+<style>
+:root{
+  --bg:#f5f1e8; --ink:#25231f; --soft:#6d675c; --rule:#d8d0c0; --accent:#9a4f3a;
+  --card:#fbf8f1;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#121319; --ink:#e3ddd0; --soft:#9a9384; --rule:#2c2d36; --accent:#e09a7e; --card:#181a22; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:18px/1.62 Georgia,"Iowan Old Style","Palatino Linotype",serif;}
+#skywrap{position:sticky;top:0;z-index:2;height:min(34vh,230px);background:#04060f}
+#sky{display:block;width:100%;height:100%}
+#gauge{position:absolute;right:12px;bottom:8px;font:13px/1.2 ui-monospace,Menlo,monospace;color:#f3eadc;
+  text-shadow:0 1px 3px #000;text-align:right;pointer-events:none;background:rgba(4,6,15,.55);padding:4px 7px;border-radius:6px}
+#gauge b{font-weight:600;font-size:15px}
+main{max-width:36rem;margin:0 auto;padding:0 16px 4rem}
+h1{font-weight:normal;font-size:2.1rem;letter-spacing:.01em;margin:2.2rem 0 .2rem}
+.sub{color:var(--soft);font-style:italic;margin:0 0 2rem}
+h2{font-weight:normal;font-size:1.05rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+  margin:3.2rem 0 .6rem}
+h2 span{letter-spacing:0;text-transform:none;color:var(--soft);font-style:italic;font-size:.95rem;margin-left:.4em}
+p{margin:0 0 1.05rem}
+.sec{min-height:70vh}
+.sec.last{min-height:40vh}
+hr{border:0;border-top:1px solid var(--rule);margin:3rem 0}
+#tool{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:16px;margin-top:1rem}
+#tool label{display:block;font-size:.9rem;color:var(--soft);margin:.2rem 0}
+#tool .row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+#tool .row>div{flex:1 1 12rem}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=date]{font:inherit;font-size:.95rem;padding:4px 6px;background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:6px}
+#latv{font-variant-numeric:tabular-nums;color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+td{padding:5px 4px;border-bottom:1px solid var(--rule)}
+td:nth-child(2),td:nth-child(3){text-align:right}
+td i{color:var(--soft)}
+.sw{display:inline-block;width:.8em;height:.8em;border-radius:2px;margin-right:.45em;vertical-align:-.05em;border:1px solid rgba(128,128,128,.35)}
+#year{display:block;width:100%;height:auto;margin-top:14px;border-radius:6px;touch-action:pan-y;cursor:crosshair}
+.note{font-size:.85rem;color:var(--soft);margin-top:.6rem}
+.legend{font-size:.85rem;color:var(--soft);display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="skywrap"><canvas id="sky"></canvas><div id="gauge"></div></div>
+<main>
+<h1>Three Twilights</h1>
+<p class="sub">An essay in degrees. The sky above darkens as you read.</p>
+
+<section class="sec" data-alt="1.5">
+<p>Sunset is a moment. Dusk is a distance.</p>
+<p>The sun's lower edge touches the roofline, flattens a little in the thick air near the ground, and goes. People mark that as the end of the day, and it is a fine thing to mark, but nothing much changes when it happens. You can still read the paper on the step. The birds are still about. The light has lost its source and kept most of its strength, because the air above you is still in sunshine, and the air is lit from underneath and passes the light down to you.</p>
+<p>What follows is measured not in minutes but in how far below the horizon the sun has gone. Minutes depend on where you are and what time of year it is. The degrees are the same everywhere, and over the years people who needed to agree on when it gets dark have cut them into three lengths of six.</p>
+</section>
+
+<section class="sec" data-alt="-3">
+<h2>Civil <span>0° to 6° below</span></h2>
+<p>The first six degrees are the working dusk. There is enough light to do outdoor things without a lamp: to finish a row in the garden, walk a lane without stumbling, see a face across the street. Some places have written this band into their rules for when lights must be on, because it is the stretch in which people go on as if it were day and are slightly wrong to.</p>
+<p>Look away from where the sun went down. Low in the opposite sky a band of slate blue lifts off the horizon. It is the shadow of the earth itself, cast up onto the far side of the air, and above it there is a strip of dusty pink where the air is still catching the last red light. The blue band climbs and the pink thins and lifts with it, and by the end of civil twilight they have both faded into the general dark of that side.</p>
+<p>The brightest planet, if one is up, has been there a while. Now it is obvious. The streetlamps come on, a little before they seem needed, and the windows of the houses turn from dark squares into lit ones, which is the surest sign of all: indoors has become brighter than out.</p>
+</section>
+
+<section class="sec" data-alt="-9">
+<h2>Nautical <span>6° to 12° below</span></h2>
+<p>The second band is named for the sea, because it is the one a navigator wanted. To find a ship's place by the stars, you measure a star's height above the horizon, and for that you need both: the star, and the horizon. In the full day there are no stars. In the full night there is no horizon, only black on black. In nautical twilight the brighter stars are out and the line where the sea meets the sky can still be told, and a sextant can be put to work.</p>
+<p>On land it is the hour of outlines. The trees are no longer green or brown, only shapes; a chimney is a notch in the sky, not a thing made of brick. Colours go before shapes do. Most of what is left of the sunset is a low glow on one side, orange going to a dull rose and then to no colour at all.</p>
+<p>Here the familiar groups of stars assemble. Not all of them; the faint fill between the bright ones is still missing, so the patterns look clearer than they will later, the way a drawing is clearer before it is shaded.</p>
+</section>
+
+<section class="sec" data-alt="-15">
+<h2>Astronomical <span>12° to 18° below</span></h2>
+<p>To the eye, this is already night. Anyone not looking for it would say the day was long over. But the sky overhead is not yet as dark as it will get, and the difference matters to anyone trying to see something faint: a smudge of a far galaxy, a comet's tail, the soft spread of the Milky Way. Astronomers wait out these last six degrees.</p>
+<p>The glow on the sunset side is barely there, a lightness you notice only by comparing it with the other side of the sky. Stars keep arriving, smaller ones, until you stop being able to count the new ones as new.</p>
+<p>At eighteen degrees the last sunlight scattered through the high air is gone from overhead. That is the end of twilight. Whatever light is left is starlight, and the glow of towns, and whatever the moon is doing.</p>
+</section>
+
+<section class="sec" data-alt="-19.5">
+<h2>And then <span>night</span></h2>
+<p>The three bands are the same width wherever you stand, but the sun does not cross them at the same speed. Near the equator it goes straight down, like a stone into water, and the whole ladder can be over in little more than an hour. Far from the equator it slides down at a slant, and slower; the further you go, the more it travels sideways along the horizon instead of under it, and the longer dusk lasts.</p>
+<p>Go far enough and in summer it never finishes. North of about forty-eight and a half degrees there are weeks around midsummer when the sun never gets eighteen below, and the astronomer's night does not come at all. North of about fifty-four and a half, nautical twilight lasts from sunset to sunrise. Past sixty and a half, even civil twilight does not end, and people read outdoors at midnight. Those are the white nights, and they are not a kind of day: they are one long dusk that turns, at some point no one sees, into a dawn.</p>
+<p>Because dawn is the same ladder climbed the other way. Eighteen degrees, twelve, six, the earth's shadow sinking in the west with the pink band over it, the lamps going off a little after they stop being needed. Every evening is a morning somewhere else, a quarter of the way round, being climbed by someone just getting up.</p>
+</section>
+
+<section class="sec last" data-alt="-19.5">
+<hr>
+<h2>Your dusk <span>any place, any day</span></h2>
+<p>Choose a latitude and a date. Times are in sun time, where noon is when the sun is highest; your clock may be an hour or so either side.</p>
+<div id="tool">
+  <div class="row">
+    <div><label for="lat">Latitude <span id="latv"></span></label><input id="lat" type="range" min="-75" max="75" step="0.5" value="52"></div>
+    <div style="flex:0 0 auto"><label for="date">Date</label><input id="date" type="date"></div>
+  </div>
+  <table id="tab"></table>
+  <canvas id="year" width="730" height="300" aria-label="Chart of daylight, twilight and night through the year at the chosen latitude"></canvas>
+  <div class="legend" id="legend"></div>
+  <p class="note">Across: the year, January to December. Down: the day, midnight at top and bottom, noon in the middle. Tap the chart to pick a date.</p>
+</div>
+</section>
+</main>
+
+<script>
+(function(){
+"use strict";
+var D=Math.PI/180;
+
+/* ---------- sky ---------- */
+var sky=document.getElementById('sky'), sx=sky.getContext('2d'), gauge=document.getElementById('gauge');
+var W=0,H=0,DPR=1,off=null,ox=null;
+function rng(s){return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+var R=rng(66);
+var stars=[];
+for(var i=0;i<420;i++){
+  var m=5.6-Math.pow(R(),2.6)*6.4;
+  stars.push({x:R(),y:Math.pow(R(),1.15)*0.78,m:m,t:R()*6.28});
+}
+stars.push({x:0.22,y:0.52,m:-4.2,t:0,planet:true}); /* evening planet, low on the sunset side */
+/* roofline */
+var roof=[];(function(){
+  var r=rng(9),x=0;
+  while(x<1.02){
+    var w=0.05+r()*0.09,h=0.07+r()*0.07,kind=r();
+    roof.push({x:x,w:w,h:h,pitch:kind<0.6,chim:r()<0.55,cx:r(),wins:[]});
+    var n=1+Math.floor(r()*3);
+    for(var k=0;k<n;k++)roof[roof.length-1].wins.push({u:(k+0.5)/n,th:-0.5-r()*7.5});
+    x+=w+r()*0.02;
+  }
+})();
+var lamps=[{x:0.36,th:-2.2},{x:0.78,th:-3.1}];
+
+function lerp(a,b,t){return a+(b-a)*t;}
+function mix(c1,c2,t){return [lerp(c1[0],c2[0],t),lerp(c1[1],c2[1],t),lerp(c1[2],c2[2],t)];}
+function hex(h){return [parseInt(h.substr(1,2),16),parseInt(h.substr(3,2),16),parseInt(h.substr(5,2),16)];}
+function rgb(c,a){return 'rgba('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+','+(a==null?1:a)+')';}
+var KEYS=[ /* alt, zenith, horizon (sunward), horizon (anti) */
+ [ 3,'#6f9fd0','#f2c992','#a9bdd3'],
+ [ 0,'#557fb6','#ef9f6c','#8ea4c4'],
+ [-2,'#3c629d','#e0835f','#6a7fa8'],
+ [-4,'#2a4882','#c26a5c','#40508a'],
+ [-6,'#1b2f60','#93565c','#25305f'],
+ [-8,'#142347','#64435a','#18224a'],
+ [-10,'#0e1835','#3d3350','#111938'],
+ [-12,'#0a1128','#26253f','#0c1229'],
+ [-15,'#070b1b','#13152a','#080c1c'],
+ [-18,'#04060f','#090b17','#05070f'],
+ [-25,'#04060f','#070912','#05070f']
+].map(function(k){return [k[0],hex(k[1]),hex(k[2]),hex(k[3])];});
+function skyAt(a){
+  if(a>=KEYS[0][0])return KEYS[0];
+  for(var i=0;i<KEYS.length-1;i++){
+    var A=KEYS[i],B=KEYS[i+1];
+    if(a<=A[0]&&a>=B[0]){var t=(A[0]-a)/(A[0]-B[0]);return [a,mix(A[1],B[1],t),mix(A[2],B[2],t),mix(A[3],B[3],t)];}
+  }
+  return KEYS[KEYS.length-1];
+}
+function smooth(e0,e1,x){var t=Math.max(0,Math.min(1,(x-e0)/(e1-e0)));return t*t*(3-2*t);}
+function starVis(m,a){ /* altitude at which a star of magnitude m appears */
+  var th = m<-3 ? -0.8 : (-4.5 - m*2.3);
+  return smooth(th+1.2, th-1.2, a);
+}
+
+function resize(){
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  W=sky.clientWidth;H=sky.clientHeight;
+  sky.width=Math.round(W*DPR);sky.height=Math.round(H*DPR);
+  sx.setTransform(DPR,0,0,DPR,0,0);
+  draw(curAlt);
+}
+
+var curAlt=1.5, shown=null, tick=0;
+function draw(a){
+  var k=skyAt(a), hz=H*0.84;
+  var g=sx.createLinearGradient(0,0,0,hz);
+  g.addColorStop(0,rgb(k[1]));
+  g.addColorStop(1,rgb(mix(k[1],k[3],0.85)));
+  sx.fillStyle=g;sx.fillRect(0,0,W,H);
+  /* sunward glow, low left */
+  var strength=smooth(-17,-1,a)*0.95+0.05;
+  var gx=W*0.12, sc=Math.max(1,W/hz)*0.9;
+  sx.save();
+  sx.translate(gx,hz);sx.scale(sc,1);
+  var gl=sx.createRadialGradient(0,0,0,0,0,hz*0.95);
+  gl.addColorStop(0,rgb(k[2],strength));
+  gl.addColorStop(0.4,rgb(k[2],strength*0.55));
+  gl.addColorStop(1,rgb(k[2],0));
+  sx.fillStyle=gl;
+  sx.fillRect(-gx/sc-1,-hz,W/sc+2,hz+1);
+  sx.restore();
+  /* earth's shadow and belt of pink, on the anti-sun (right) side, civil twilight */
+  var belt=smooth(1.5,-0.5,a)*smooth(-6.5,-3,a);
+  if(belt>0.01){
+    var rise=smooth(0,-6,a); /* shadow top climbs */
+    var top=hz*(0.95-0.55*rise);
+    var bs=sx.createLinearGradient(0,top-hz*0.18,0,hz);
+    bs.addColorStop(0,'rgba(210,140,150,0)');
+    bs.addColorStop(0.35,'rgba(205,135,150,'+(0.42*belt)+')');
+    bs.addColorStop(0.55,'rgba(70,82,130,'+(0.55*belt)+')');
+    bs.addColorStop(1,'rgba(45,55,100,'+(0.65*belt)+')');
+    if(!off){off=document.createElement('canvas');ox=off.getContext('2d');}
+    if(off.width!==sky.width||off.height!==sky.height){off.width=sky.width;off.height=sky.height;}
+    ox.setTransform(DPR,0,0,DPR,0,0);
+    ox.globalCompositeOperation='source-over';
+    ox.clearRect(0,0,W,H);
+    ox.fillStyle=bs;ox.fillRect(0,top-hz*0.18,W,hz-(top-hz*0.18));
+    var hm=ox.createLinearGradient(W*0.15,0,W*0.8,0);
+    hm.addColorStop(0,'rgba(0,0,0,0)');hm.addColorStop(1,'rgba(0,0,0,1)');
+    ox.globalCompositeOperation='destination-in';
+    ox.fillStyle=hm;ox.fillRect(0,0,W,H);
+    sx.save();sx.setTransform(1,0,0,1,0,0);sx.drawImage(off,0,0);sx.restore();
+  }
+  /* stars */
+  for(var i=0;i<stars.length;i++){
+    var st=stars[i],v=starVis(st.m,a);
+    if(v<=0.003)continue;
+    var y=st.y*hz;
+    /* extinction near horizon */
+    var ext=st.planet?1:smooth(hz*0.98,hz*0.55,y);
+    var tw=st.planet?1:(0.85+0.15*Math.sin(tick*0.05+st.t*7));
+    var br=Math.min(1,Math.pow(2.512,(2-st.m))/6.3);
+    var al=v*ext*tw*(0.35+0.65*br);
+    var r=st.planet?1.9:Math.max(0.5,1.5-st.m*0.18);
+    sx.fillStyle='rgba(255,250,235,'+al.toFixed(3)+')';
+    sx.beginPath();sx.arc(st.x*W,y,r,0,6.283);sx.fill();
+    if(st.planet&&al>0.2){
+      var hg=sx.createRadialGradient(st.x*W,y,0,st.x*W,y,9);
+      hg.addColorStop(0,'rgba(255,248,225,'+(al*0.35)+')');hg.addColorStop(1,'rgba(255,248,225,0)');
+      sx.fillStyle=hg;sx.beginPath();sx.arc(st.x*W,y,9,0,6.283);sx.fill();
+    }
+  }
+  /* roofline silhouette */
+  var sil=rgb(mix([40,38,48],[3,4,8],smooth(1,-8,a)));
+  sx.fillStyle=sil;
+  var base=H;
+  sx.beginPath();sx.moveTo(0,base);
+  roof.forEach(function(b){
+    var x0=b.x*W,x1=(b.x+b.w)*W,top=hz-b.h*H*1.1+H*0.06;
+    sx.lineTo(x0,top);
+    if(b.pitch){sx.lineTo((x0+x1)/2,top-b.w*W*0.28);}
+    sx.lineTo(x1,top);
+  });
+  sx.lineTo(W,base);sx.closePath();sx.fill();
+  roof.forEach(function(b){
+    var x0=b.x*W,x1=(b.x+b.w)*W,top=hz-b.h*H*1.1+H*0.06;
+    if(b.chim){var cx=x0+(x1-x0)*(0.2+b.cx*0.5),cw=Math.max(4,W*0.008);
+      var ct=b.pitch?top-b.w*W*0.28*(1-Math.abs((cx-(x0+x1)/2)/((x1-x0)/2)))-H*0.05:top-H*0.04;
+      sx.fillRect(cx,ct,cw,top-ct+2);}
+    b.wins.forEach(function(w){
+      var on=smooth(w.th+0.6,w.th-0.6,a);
+      if(on<=0.01)return;
+      var wx=x0+(x1-x0)*w.u-4,wy=top+H*0.035;
+      sx.fillStyle='rgba(255,205,120,'+(on*0.9)+')';
+      sx.fillRect(wx,wy,8,Math.min(10,H-wy-3));
+    });
+    sx.fillStyle=sil;
+  });
+  /* lamps */
+  lamps.forEach(function(l){
+    var x=l.x*W,top=H*0.62,on=smooth(l.th+0.4,l.th-0.4,a);
+    sx.fillStyle=sil;sx.fillRect(x-1.2,top,2.4,H-top);
+    sx.fillRect(x-1.2,top-1,9,2.2);
+    if(on>0.01){
+      var lg=sx.createRadialGradient(x+8,top+3,0,x+8,top+3,30);
+      lg.addColorStop(0,'rgba(255,190,110,'+(on*0.75)+')');lg.addColorStop(1,'rgba(255,190,110,0)');
+      sx.fillStyle=lg;sx.beginPath();sx.arc(x+8,top+3,30,0,6.283);sx.fill();
+      sx.fillStyle='rgba(255,225,170,'+on+')';sx.beginPath();sx.arc(x+8,top+3,2.2,0,6.283);sx.fill();
+    }
+  });
+  var band = a>-0.83?'sunset':a>-6?'civil twilight':a>-12?'nautical twilight':a>-18?'astronomical twilight':'night';
+  var deg = a>0 ? ('sun '+a.toFixed(1)+'° up') : ('sun '+(-a).toFixed(1)+'° below');
+  gauge.innerHTML='<b>'+band+'</b><br>'+deg;
+}
+
+/* scroll → altitude */
+var secs=[].slice.call(document.querySelectorAll('.sec'));
+function altFromScroll(){
+  var mid=window.innerHeight*0.55, pts=[];
+  secs.forEach(function(s){var r=s.getBoundingClientRect();pts.push([r.top+r.height*0.35,+s.dataset.alt]);});
+  if(mid<=pts[0][0])return pts[0][1];
+  for(var i=0;i<pts.length-1;i++){
+    if(mid>=pts[i][0]&&mid<=pts[i+1][0]){
+      var t=(mid-pts[i][0])/(pts[i+1][0]-pts[i][0]);
+      return lerp(pts[i][1],pts[i+1][1],t);
+    }
+  }
+  return pts[pts.length-1][1];
+}
+var target=curAlt;
+function frame(){
+  tick++;
+  target=altFromScroll();
+  curAlt+= tick<4 ? (target-curAlt) : (target-curAlt)*0.12;
+  if(Math.abs(target-curAlt)<0.005)curAlt=target;
+  if(shown===null||Math.abs(shown-curAlt)>0.002||tick%4===0){draw(curAlt);shown=curAlt;}
+  requestAnimationFrame(frame);
+}
+window.addEventListener('resize',resize);
+resize();
+requestAnimationFrame(frame);
+
+/* ---------- the tool ---------- */
+var lat=document.getElementById('lat'),latv=document.getElementById('latv'),dateI=document.getElementById('date'),
+    tab=document.getElementById('tab'),yc=document.getElementById('year'),yx=yc.getContext('2d'),legend=document.getElementById('legend');
+var today=new Date();
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+dateI.value=iso(today);
+function doy(d){var s=new Date(d.getFullYear(),0,1);return Math.round((d-s)/864e5)+1;}
+function decl(n){ /* degrees */
+  var g=2*Math.PI/365*(n-1);
+  return (0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g))/D;
+}
+/* hours after noon at which the sun reaches altitude h (deg); null = never that low; 'up' never that high */
+function hoursTo(phi,dec,h){
+  var c=(Math.sin(h*D)-Math.sin(phi*D)*Math.sin(dec*D))/(Math.cos(phi*D)*Math.cos(dec*D));
+  if(c<-1)return 'never';   /* sun never gets that low: always above */
+  if(c>1)return 'up';       /* sun never gets that high */
+  return Math.acos(c)/D/15;
+}
+function clock(hh){var t=12+hh;t=((t%24)+24)%24;var h=Math.floor(t),m=Math.round((t-h)*60);if(m===60){h=(h+1)%24;m=0;}return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
+function dur(h){var m=Math.round(h*60);return m>=60?(Math.floor(m/60)+' h '+(m%60)+' min'):(m+' min');}
+var BANDS=[ /* name, alt edge, colour */
+  ['Day',-0.833,'#e9cf8f'],['Civil twilight',-6,'#c4775f'],['Nautical twilight',-12,'#5b4e7c'],['Astronomical twilight',-18,'#2a2f57'],['Night',-90,'#0c0f1f']];
+legend.innerHTML=BANDS.map(function(b){return '<span><i class="sw" style="background:'+b[2]+'"></i>'+b[0]+'</span>';}).join('');
+var COL=BANDS.map(function(b){return hex(b[2]);});
+function bandOf(alt){for(var i=0;i<BANDS.length;i++)if(alt>BANDS[i][1])return i;return 4;}
+
+function table(){
+  var phi=+lat.value, d=new Date(dateI.value+'T12:00:00');
+  if(isNaN(d))d=today;
+  var dec=decl(doy(d));
+  var names=['Sunset','End of civil twilight','End of nautical twilight','End of astronomical twilight'];
+  var edges=[-0.833,-6,-12,-18], prev=null, rows='';
+  for(var i=0;i<4;i++){
+    var t=hoursTo(phi,dec,edges[i]), cell, len='';
+    if(t==='never'){cell='<i>doesn’t happen</i>';
+      if(i===0)len='<i>sun up all night</i>';else if(prev!=='never'&&prev!=='up')len='<i>lasts all night</i>';
+    } else if(t==='up'){cell='<i>—</i>';
+      if(i===0)len='<i>sun doesn’t rise</i>';
+    } else {
+      cell=clock(t);
+      if(i>0&&typeof prev==='number')len=dur(t-prev);
+    }
+    rows+='<tr><td><i class="sw" style="background:'+BANDS[i][2]+'"></i>'+names[i]+'</td><td>'+cell+'</td><td>'+len+'</td></tr>';
+    prev=t;
+  }
+  var ts=hoursTo(phi,dec,-0.833),ta=hoursTo(phi,dec,-18);
+  if(typeof ts==='number'&&typeof ta==='number')rows+='<tr><td><i>Sunset to full dark</i></td><td></td><td>'+dur(ta-ts)+'</td></tr>';
+  tab.innerHTML=rows;
+  latv.textContent=Math.abs(phi).toFixed(1)+'° '+(phi>=0?'N':'S');
+}
+var yearImg=null, yearLat=null;
+function yearChart(){
+  var phi=+lat.value, w=yc.width, h=yc.height, padT=0;
+  if(yearLat!==phi){
+    var img=yx.createImageData(w,h),dt=img.data;
+    for(var x=0;x<w;x++){
+      var n=1+Math.floor(x/w*365), dec=decl(n)*D, sp=Math.sin(phi*D)*Math.sin(dec), cp=Math.cos(phi*D)*Math.cos(dec);
+      for(var y=0;y<h;y++){
+        var hr=(y+0.5)/h*24, H=(hr-12)*15*D;
+        var alt=Math.asin(sp+cp*Math.cos(H))/D, c=COL[bandOf(alt)], o=(y*w+x)*4;
+        dt[o]=c[0];dt[o+1]=c[1];dt[o+2]=c[2];dt[o+3]=255;
+      }
+    }
+    yearImg=img;yearLat=phi;
+  }
+  yx.putImageData(yearImg,0,0);
+  /* month ticks */
+  yx.strokeStyle='rgba(255,255,255,.18)';yx.lineWidth=1;
+  var mdays=[0,31,59,90,120,151,181,212,243,273,304,334];
+  var ml='JFMAMJJASOND';
+  yx.font='16px Georgia,serif';yx.textAlign='center';
+  for(var m=0;m<12;m++){
+    var mx=Math.round(mdays[m]/365*w)+0.5;
+    yx.beginPath();yx.moveTo(mx,0);yx.lineTo(mx,h);yx.stroke();
+    yx.fillStyle='rgba(255,255,255,.55)';
+    yx.fillText(ml[m],(mdays[m]+15)/365*w,h/2+6);
+  }
+  /* hour ticks */
+  yx.fillStyle='rgba(255,255,255,.4)';yx.textAlign='left';yx.font='13px ui-monospace,Menlo,monospace';
+  [6,12,18].forEach(function(hh){var y=hh/24*h;yx.fillRect(0,y,8,1);});
+  yx.fillText('06',10,6/24*h+4);yx.fillText('18',10,18/24*h+4);
+  /* chosen date */
+  var d=new Date(dateI.value+'T12:00:00');
+  if(!isNaN(d)){
+    var x=(doy(d)-0.5)/365*w;
+    yx.fillStyle='rgba(255,255,255,.9)';yx.fillRect(Math.round(x)-1,0,2,h);
+  }
+}
+function update(){table();yearChart();}
+lat.addEventListener('input',update);
+dateI.addEventListener('input',update);
+yc.addEventListener('click',function(e){
+  var r=yc.getBoundingClientRect(),f=(e.clientX-r.left)/r.width;
+  var y=(new Date(dateI.value+'T12:00:00')).getFullYear(); if(isNaN(y))y=today.getFullYear();
+  var d=new Date(y,0,1+Math.max(0,Math.min(364,Math.floor(f*365))));
+  dateI.value=iso(d);update();
+});
+update();
+})();
+</script>
+</body>
+</html>
