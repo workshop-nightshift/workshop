@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shunt</title>
+<style>
+:root{--bg:#ece7dc;--fg:#1f1c17;--mute:#706756;--line:#cfc6b4;--ground:#d9d1bf;--ballast:#bfb5a1;--sleeper:#7d6a52;--rail:#55524c;
+  --stop:#b8412b;--loco:#2f4a3a;--loco2:#1f3328;--hi:#d99a1f;--card:#f6f1e6;--ok:#3f7a4a}
+@media (prefers-color-scheme:dark){:root{--bg:#13120f;--fg:#e7e1d4;--mute:#9a907f;--line:#2f2b25;--ground:#1d1b17;--ballast:#2c2924;--sleeper:#4a3d2e;--rail:#8f8a80;
+  --stop:#d65a40;--loco:#4d7a5f;--loco2:#2f4d3b;--hi:#e8b44a;--card:#1e1c18;--ok:#6fae78}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 64px}
+main{width:100%;max-width:680px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+#card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:8px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#card .lab{color:var(--mute);font-size:13px;flex-basis:100%;margin-bottom:-4px}
+#want{display:flex;gap:4px;align-items:center}
+.chip{width:30px;height:20px;border-radius:3px;font:bold 12px/20px system-ui,sans-serif;text-align:center;border:1px solid #0003}
+.chip.got{outline:2px solid var(--ok);outline-offset:1px}
+.eng{width:34px;height:20px;border-radius:3px 8px 8px 3px;background:var(--loco);border:1px solid #0004}
+#par{margin-left:auto;color:var(--mute);font-size:14px;text-align:right}
+#yard{display:block;width:100%;height:auto;margin:10px 0 2px;background:var(--ground);border-radius:6px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#yard .ballast{fill:none;stroke:var(--ballast);stroke-linecap:round}
+#yard .sleeper{stroke:var(--sleeper)}
+#yard .rail{fill:none;stroke:var(--rail)}
+#yard .stop{fill:var(--stop)}
+#yard .blade{stroke:var(--hi);stroke-linecap:round}
+#yard .lbl{fill:var(--mute);font:0.36px system-ui,sans-serif}
+#yard .cap{fill:var(--mute);font:0.3px system-ui,sans-serif}
+#yard .hit{fill:transparent;cursor:pointer}
+#yard .hit.hint{fill:var(--hi);fill-opacity:.18}
+#yard .body{stroke:#0005;stroke-width:.03}
+#yard .num{font:bold .4px system-ui,sans-serif;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#yard .loco{fill:var(--loco);stroke:#0006;stroke-width:.03}
+#yard .cab{fill:var(--loco2)}
+#yard .chim{fill:#222}
+#yard g.veh.pick{cursor:pointer}
+#yard g.veh .ring{fill:none;stroke:var(--hi);stroke-width:.07;opacity:0}
+#yard g.veh.pick .ring{opacity:.9}
+#yard g.veh.hint .ring{opacity:1;stroke-dasharray:.12 .08;animation:dash 1s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-.4}}
+#yard g.veh.dim{opacity:.55}
+#log{min-height:3em;margin:6px 0 0}
+#log p{margin:0}
+#log p+p{color:var(--mute);font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.row .sp{flex:1}
+button.b{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:4px 11px;cursor:pointer}
+button.b.go{border-color:var(--fg)}
+button.b.hint{border-color:var(--hi)}
+button.b:disabled{opacity:.4;cursor:default}
+#moves{font-size:14px;color:var(--mute)}
+.prose{margin-top:20px;max-width:600px}
+.prose p{margin:0 0 .8em}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+@media (max-width:460px){.chip{width:26px}#par{margin-left:0;text-align:left;flex-basis:100%}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Shunt</h1>
+  <p class="sub">Three sidings, a headshunt, a little engine that can only push and pull.</p>
+
+  <div id="card" aria-live="polite">
+    <span class="lab">Make up this train in siding 1, in this order from the points:</span>
+    <span class="eng" aria-hidden="true"></span>
+    <span id="want"></span>
+    <span id="par">working out par…</span>
+  </div>
+
+  <svg id="yard" viewBox="-5.1 -1.05 12.95 4.55" role="img" aria-label="A small goods yard seen from above: a headshunt on the left with the engine, a set of points, and three sidings to the right holding numbered wagons."></svg>
+
+  <div class="row">
+    <button class="b go" data-s="1">Siding 1</button>
+    <button class="b go" data-s="2">Siding 2</button>
+    <button class="b go" data-s="3">Siding 3</button>
+    <span class="sp"></span>
+    <span id="moves">0 moves</span>
+  </div>
+  <div id="log" aria-live="polite"></div>
+  <div class="row">
+    <button class="b" id="out" disabled>Back out</button>
+    <button class="b hint" id="hint">Hint</button>
+    <button class="b" id="undo" disabled>Undo</button>
+    <span class="sp"></span>
+    <button class="b" id="again">New card</button>
+  </div>
+
+  <div class="prose">
+    <p>Model railway people have built this yard on a shelf for decades: a short headshunt, one set of points, three sidings. Siding 1 holds five wagons, sidings 2 and 3 hold three, and the headshunt has room for the engine and three more. Eight wagons, shuffled. A card names five of them. The job is to leave those five standing in siding 1, in the card's order, with the engine gone.</p>
+    <p>The engine never runs round anything. Tap a siding and it sets the points, drives in and couples to whatever is standing there, its own wagons in front of it. Then tap the last wagon you want to take back out — or the engine, to take none. Whatever you don't take stays behind, and it must fit. One trip in and out is one move. Par is the fewest moves it can be done in, worked out for this card when it was dealt.</p>
+    <p>It is harder than it looks because nothing can overtake. Two wagons coupled together keep their order wherever they go together; the only way to swap them is to part them, leave one somewhere, and come back for it in different company. The headshunt's three places are the whole of your thinking room.</p>
+  </div>
+  <details>
+    <summary>Notes</summary>
+    <p>Every arrangement of the eight wagons that the yard can hold is a point in a space of a little under four hundred thousand. When the page opens it walks that space once, outward from every finished arrangement, and writes down how far each point is from done. Par is that number for the card you were dealt; the hint is any move that makes it one smaller. The three spare wagons are treated as interchangeable, since the card doesn't care where they end up. Cards are dealt with par between eight and thirteen; the hardest arrangements of this yard need seventeen.</p>
+    <p>Undo is free and doesn't take a move back off the count. A trip that changes nothing isn't counted.</p>
+  </details>
+</main>
+<script>
+// ---- ENGINE ----
+const CAP = [3, 5, 3, 3]; // headshunt rake, siding 1, 2, 3
+function movesFrom(key) {
+  const p = key.split('|'), out = [];
+  for (let s = 1; s <= 3; s++) {
+    const L = p[0] + p[s];
+    const lo = Math.max(0, L.length - CAP[s]), hi = Math.min(3, L.length);
+    for (let k = lo; k <= hi; k++) {
+      if (k === p[0].length) continue;
+      const q = p.slice(); q[0] = L.slice(0, k); q[s] = L.slice(k);
+      out.push({ s, k, key: q.join('|') });
+    }
+  }
+  return out;
+}
+function goalKeys() {
+  const g = [];
+  for (let a = 0; a <= 3; a++) for (let c = 0; c <= 3 - a; c++) {
+    const d = 3 - a - c;
+    g.push(['0'.repeat(a), '12345', '0'.repeat(c), '0'.repeat(d)].join('|'));
+  }
+  return g;
+}
+function buildDist() {
+  const dist = new Map(), q = goalKeys();
+  for (const k of q) dist.set(k, 0);
+  for (let i = 0; i < q.length; i++) {
+    const k = q[i], d = dist.get(k);
+    for (const m of movesFrom(k)) if (!dist.has(m.key)) { dist.set(m.key, d + 1); q.push(m.key); }
+  }
+  return dist;
+}
+// ---- END ENGINE ----
+
+const WAG = [ // paint is paint: same in both schemes
+  { bg: '#9b3b2a', fg: '#f7ecdf' }, { bg: '#7e858c', fg: '#141414' }, { bg: '#c49a2c', fg: '#1b160c' }, { bg: '#4f6f4a', fg: '#f2f0e6' },
+  { bg: '#3d5a80', fg: '#eef2f7' }, { bg: '#d8c79a', fg: '#2a2214' }, { bg: '#3b3936', fg: '#e8e4da' }, { bg: '#8a5a3b', fg: '#f5ead9' }];
+const Y = [0, 0, 1.3, 2.6], B = [0, 7.15, 5.15, 5.15];
+const LOCO_L = 1.3, PARK = -3.35; // loco occupies [PARK-1.3, PARK]
+const svg = document.getElementById('yard'), NS = 'http://www.w3.org/2000/svg';
+const RM = matchMedia('(prefers-reduced-motion: reduce)');
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || svg).appendChild(e); return e; };
+
+function pos(route, x) {
+  if (x <= 0 || route === 1) return { X: x, Y: 0, a: 0 };
+  const h = Y[route], t = Math.min(1, x / 2), y = h * (3 * t * t - 2 * t * t * t);
+  const dy = x < 2 ? h * (6 * t - 6 * t * t) / 2 : 0;
+  return { X: x, Y: y, a: Math.atan(dy) * 180 / Math.PI };
+}
+
+// --- draw the yard
+function drawTrack() {
+  const routes = [[0, -4.95, 0]];
+  const pathFor = (r, x0, x1) => { let d = ''; for (let x = x0; x <= x1 + 1e-9; x += 0.1) { const p = pos(r, x); d += (d ? 'L' : 'M') + p.X.toFixed(3) + ' ' + p.Y.toFixed(3); } return d; };
+  const head = 'M-4.95 0L0 0';
+  const g = el('g');
+  el('path', { d: head, class: 'ballast', 'stroke-width': .95 }, g);
+  for (let s = 1; s <= 3; s++) el('path', { d: pathFor(s, 0, B[s] + .1), class: 'ballast', 'stroke-width': .95 }, g);
+  const sl = (r, x0, x1) => { for (let x = x0; x <= x1; x += 0.33) { const p = pos(r, x), a = p.a * Math.PI / 180, nx = -Math.sin(a) * .36, ny = Math.cos(a) * .36; el('line', { x1: p.X - nx, y1: p.Y - ny, x2: p.X + nx, y2: p.Y + ny, class: 'sleeper', 'stroke-width': .1 }, g); } };
+  sl(1, -4.85, -0.05); for (let s = 1; s <= 3; s++) sl(s, s === 1 ? 0.1 : 0.45, B[s]);
+  const rails = (r, x0, x1) => { for (const o of [-.22, .22]) { let d = ''; for (let x = x0; x <= x1 + 1e-9; x += 0.1) { const p = pos(r, x), a = p.a * Math.PI / 180; d += (d ? 'L' : 'M') + (p.X - Math.sin(a) * o).toFixed(3) + ' ' + (p.Y + Math.cos(a) * o).toFixed(3); } el('path', { d, class: 'rail', 'stroke-width': .055 }, g); } };
+  rails(1, -4.95, 0); for (let s = 1; s <= 3; s++) rails(s, 0, B[s] + .05);
+  // stops
+  el('rect', { x: -5.02, y: -.36, width: .14, height: .72, class: 'stop' }, g);
+  for (let s = 1; s <= 3; s++) el('rect', { x: B[s] + .03, y: Y[s] - .36, width: .14, height: .72, class: 'stop' }, g);
+  // labels
+  for (let s = 1; s <= 3; s++) {
+    const t = el('text', { x: B[s] + .3, y: Y[s] + .13, class: 'lbl' }, g); t.textContent = s;
+  }
+  const t2 = el('text', { x: -4.9, y: -.62, class: 'cap' }, g); t2.textContent = 'headshunt · engine + 3';
+  const t3 = el('text', { x: 2.15, y: -.62, class: 'cap' }, g); t3.textContent = 'siding 1 · 5 wagons';
+  const t4 = el('text', { x: 2.15, y: 3.34, class: 'cap' }, g); t4.textContent = 'sidings 2 and 3 · 3 each';
+  blade = el('line', { x1: -.05, y1: 0, x2: .9, y2: 0, class: 'blade', 'stroke-width': .09 }, g);
+  // hit areas for sidings
+  for (let s = 1; s <= 3; s++) {
+    const x0 = 2.1, w = B[s] - x0 + .2;
+    const h = el('rect', { x: x0, y: Y[s] - .6, width: w, height: 1.2, rx: .15, class: 'hit', 'data-s': s });
+    h.addEventListener('click', () => visit(s)); hits[s] = h;
+  }
+}
+let blade; const hits = [];
+function setBlade(s) {
+  const p = pos(s, .9); blade.setAttribute('x2', p.X); blade.setAttribute('y2', p.Y);
+}
+
+// vehicles: index 0..7 wagons, 8 = loco
+const veh = [];
+function makeVehicles() {
+  for (let i = 0; i < 8; i++) {
+    const g = el('g', { class: 'veh' });
+    el('rect', { x: -.43, y: -.31, width: .86, height: .62, rx: .05, class: 'body', style: 'fill:' + WAG[i].bg }, g);
+    el('rect', { x: -.47, y: -.35, width: .94, height: .7, rx: .09, class: 'ring' }, g);
+    const t = el('text', { x: 0, y: .01, class: 'num', style: 'fill:' + WAG[i].fg }, g); t.textContent = i + 1;
+    g.addEventListener('click', () => pick(i));
+    veh.push({ g, route: 1, x: 0 });
+  }
+  const g = el('g', { class: 'veh' });
+  el('rect', { x: -.67, y: -.36, width: 1.34, height: .72, rx: .1, class: 'ring' }, g);
+  el('rect', { x: -.62, y: -.3, width: 1.24, height: .6, rx: .12, class: 'loco' }, g);
+  el('rect', { x: -.6, y: -.27, width: .42, height: .54, rx: .06, class: 'cab' }, g);
+  el('circle', { cx: .35, cy: 0, r: .09, class: 'chim' }, g);
+  g.addEventListener('click', () => pick(8));
+  veh.push({ g, route: 1, x: PARK - LOCO_L / 2 });
+}
+function place(v) {
+  const p = pos(v.route, v.x);
+  v.g.setAttribute('transform', `translate(${p.X.toFixed(3)} ${p.Y.toFixed(3)}) rotate(${p.a.toFixed(2)})`);
+}
+
+// --- game state
+let G, dist = null, busy = false, coupled = null, hist = [];
+const want = document.getElementById('want'), logEl = document.getElementById('log');
+function roleOf(i) { const j = G.target.indexOf(i); return j < 0 ? '0' : String(j + 1); }
+function keyOf(st) { return [st.R, st.S[1], st.S[2], st.S[3]].map(a => a.map(roleOf).join('')).join('|'); }
+function clone(st) { return { R: st.R.slice(), S: [null, st.S[1].slice(), st.S[2].slice(), st.S[3].slice()] }; }
+
+function deal() {
+  for (let tries = 0; tries < 200; tries++) {
+    const ids = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - .5);
+    const target = [0, 1, 2, 3, 4, 5, 6, 7].sort(() => Math.random() - .5).slice(0, 5);
+    let n1 = 3 + Math.floor(Math.random() * 3), rest = 8 - n1;
+    let n2 = Math.max(rest - 3, 0) + Math.floor(Math.random() * (Math.min(3, rest) - Math.max(rest - 3, 0) + 1));
+    const st = { R: [], S: [null, ids.slice(0, n1), ids.slice(n1, n1 + n2), ids.slice(n1 + n2)] };
+    G = { target, st, moves: 0, start: null, par: null, won: false };
+    if (!dist) break;
+    const d = dist.get(keyOf(st));
+    if (d >= 8 && d <= 13) { G.par = d; break; }
+  }
+  G.start = clone(G.st);
+  hist = []; coupled = null; busy = false;
+  renderCard(); parkAll(); setBlade(1); refresh();
+  say('The engine is in the headshunt. Tap a siding to drive in.', '');
+}
+function parkAll() {
+  const st = G.st;
+  veh[8].route = 1; veh[8].x = PARK - LOCO_L / 2;
+  st.R.forEach((w, j) => { veh[w].route = 1; veh[w].x = PARK + j + .5; });
+  for (let s = 1; s <= 3; s++) { const n = st.S[s].length; st.S[s].forEach((w, j) => { veh[w].route = s; veh[w].x = B[s] - (n - j - .5); }); }
+  veh.forEach(place);
+}
+function renderCard() {
+  want.innerHTML = '';
+  G.target.forEach(i => { const c = document.createElement('span'); c.className = 'chip'; c.style.background = WAG[i].bg; c.style.color = WAG[i].fg; c.textContent = i + 1; want.appendChild(c); });
+  showPar();
+}
+function showPar() {
+  const p = document.getElementById('par');
+  if (!dist) { p.textContent = 'working out par…'; return; }
+  if (G.par == null) G.par = dist.get(keyOf(G.start));
+  p.textContent = `par ${G.par}`;
+}
+function say(a, b) { logEl.innerHTML = `<p>${a}</p>` + (b ? `<p>${b}</p>` : ''); }
+function refresh() {
+  document.getElementById('moves').textContent = G.moves + (G.moves === 1 ? ' move' : ' moves');
+  document.querySelectorAll('button.go').forEach(b => b.disabled = busy || !!coupled || G.won);
+  document.getElementById('out').disabled = !coupled || busy;
+  document.getElementById('undo').disabled = busy || !!coupled || !hist.length;
+  document.getElementById('hint').disabled = busy || !dist || G.won;
+  hits.forEach(h => h && h.classList.remove('hint'));
+  veh.forEach(v => v.g.classList.remove('pick', 'dim', 'hint'));
+  if (coupled) {
+    const { L, lo, hi } = coupled;
+    if (lo === 0) veh[8].g.classList.add('pick');
+    L.forEach((w, j) => { if (j + 1 >= lo && j + 1 <= hi) veh[w].g.classList.add('pick'); else if (j + 1 > hi) veh[w].g.classList.add('dim'); });
+  }
+  // progress chips
+  const s1 = G.st.S[1];
+  [...want.children].forEach((c, j) => c.classList.toggle('got', s1[j] === G.target[j] && !coupled));
+}
+
+// --- motion
+function tween(list, dx, done) {
+  const x0 = list.map(v => v.x), dur = RM.matches ? 0 : 380 + 330 * Math.sqrt(Math.abs(dx));
+  const t0 = performance.now();
+  const f = now => {
+    let t = dur ? Math.min(1, (now - t0) / dur) : 1;
+    const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    list.forEach((v, i) => { v.x = x0[i] + dx * e; place(v); });
+    if (t < 1) requestAnimationFrame(f); else done();
+  };
+  requestAnimationFrame(f);
+}
+
+function visit(s) {
+  if (busy || coupled || G.won) return;
+  const st = G.st, R = st.R, S = st.S[s], L = R.concat(S);
+  const d = (B[s] - S.length) - (PARK + R.length);
+  busy = true; setBlade(s); refresh();
+  const train = [veh[8]].concat(R.map(w => veh[w]));
+  train.forEach(v => v.route = s);
+  say(`Points set for siding ${s}. Driving in…`, '');
+  tween(train, d, () => {
+    busy = false;
+    coupled = { s, L, d, lo: Math.max(0, L.length - CAP[s]), hi: Math.min(3, L.length), was: R.length };
+    refresh();
+    const { lo, hi } = coupled;
+    let what = !L.length ? 'Nothing here.' : `Coupled to ${L.length} wagon${L.length > 1 ? 's' : ''}.`;
+    let how = lo === hi ? (lo === 0 ? 'Tap the engine to come out alone.' : `Exactly ${lo} must come out: tap wagon ${L[lo - 1] + 1}.`)
+      : `Tap the last wagon to take out (up to ${hi})` + (lo === 0 ? ', or the engine to take none.' : `; at least ${lo} must come out, siding ${s} holds ${CAP[s]}.`);
+    say(what, how);
+  });
+}
+function pick(i) {
+  if (!coupled || busy) return;
+  const { L, lo, hi } = coupled;
+  const k = i === 8 ? 0 : L.indexOf(i) + 1;
+  if (i !== 8 && k === 0) return;
+  if (k < lo || k > hi) {
+    say(k > hi ? 'The headshunt only holds three behind the engine.' : `Siding ${coupled.s} can't hold that many.`, `Take between ${lo} and ${hi}.`);
+    return;
+  }
+  take(k);
+}
+function take(k) {
+  const { s, L, d, was } = coupled;
+  const before = clone(G.st);
+  busy = true; coupled = null; refresh();
+  const train = [veh[8]].concat(L.slice(0, k).map(w => veh[w]));
+  train.forEach(v => v.route = s);
+  say(k ? `Pulling out with ${k}.` : 'Pulling out light.', '');
+  tween(train, -d, () => {
+    G.st.R = L.slice(0, k); G.st.S[s] = L.slice(k);
+    if (k !== was) { hist.push({ st: before, moves: G.moves }); G.moves++; }
+    busy = false; parkAll(); refresh(); checkWin();
+  });
+}
+function checkWin() {
+  const s1 = G.st.S[1];
+  if (s1.length === 5 && s1.every((w, j) => w === G.target[j])) {
+    G.won = true; refresh();
+    const p = G.par, m = G.moves;
+    say(`Train made up in ${m} moves.`, p == null ? '' : m === p ? 'That is par: it can’t be done in fewer.' : m < p ? '' : `Par was ${p}. Undo, or a new card.`);
+    document.getElementById('undo').disabled = !hist.length;
+    return;
+  }
+  const lead = (() => { let j = 0; while (j < s1.length && s1[j] === G.target[j]) j++; return j; })();
+  say('Back in the headshunt' + (G.st.R.length ? ` with ${G.st.R.map(w => w + 1).join(', ')}.` : ', light engine.'),
+    dist ? `${dist.get(keyOf(G.st))} moves from done, at best.` : '');
+}
+function hint() {
+  if (!dist || busy || G.won) return;
+  const cur = coupled ? null : keyOf(G.st);
+  if (coupled) {
+    const { s, L, lo, hi } = coupled;
+    let best = null;
+    for (let k = lo; k <= hi; k++) {
+      const q = clone(G.st); q.R = L.slice(0, k); q.S[s] = L.slice(k);
+      const d = dist.get(keyOf(q)); if (!best || d < best.d) best = { k, d };
+    }
+    refresh();
+    (best.k === 0 ? veh[8] : veh[L[best.k - 1]]).g.classList.add('hint');
+    say(best.k === 0 ? 'Come out alone.' : `Take out ${best.k}, as far as wagon ${L[best.k - 1] + 1}.`, `${best.d} from done after that.`);
+    return;
+  }
+  const d0 = dist.get(cur);
+  const ms = movesFrom(cur).filter(m => dist.get(m.key) === d0 - 1);
+  const m = ms[Math.floor(Math.random() * ms.length)];
+  refresh(); hits[m.s].classList.add('hint');
+  say(`Try siding ${m.s}.`, `${d0} moves from done.`);
+}
+function undo() {
+  if (busy || coupled || !hist.length) return;
+  const h = hist.pop(); G.st = h.st; G.moves = h.moves; G.won = false;
+  parkAll(); refresh(); say('Undone.', dist ? `${dist.get(keyOf(G.st))} moves from done, at best.` : '');
+}
+
+drawTrack(); makeVehicles();
+document.querySelectorAll('button.go').forEach(b => b.addEventListener('click', () => visit(+b.dataset.s)));
+document.getElementById('out').addEventListener('click', () => { if (coupled && !busy) take(coupled.was); });
+document.getElementById('hint').addEventListener('click', hint);
+document.getElementById('undo').addEventListener('click', undo);
+document.getElementById('again').addEventListener('click', () => { if (!busy) deal(); });
+deal();
+setTimeout(() => {
+  dist = buildDist();
+  const d0 = dist.get(keyOf(G.start)); if ((d0 < 8 || d0 > 13) && !G.moves && !coupled && !busy) deal(); else showPar();
+  refresh();
+  window.__shunt.dist = dist;
+}, 60);
+window.__shunt = { get G() { return G; }, get busy() { return busy; }, get coupled() { return coupled; }, visit, pick, take, hint, undo, deal, keyOf, movesFrom, buildDist };
+</script>
+</body>
+</html>

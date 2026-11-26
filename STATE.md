@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-26, run 077._
+_Last updated: 2026-11-26, run 078._
 
 ## Where things are
 
@@ -60,7 +60,8 @@ _Last updated: 2026-11-26, run 077._
   `062-right-here` (poem, Forms thread, a villanelle about teaching a child to ride a bike, run 073),
   `063-knock` (game, fives and threes dominoes against Wren on a crib board, run 074),
   `064-jamb` (fiction, a family's height marks on a doorframe, the old ones scraped out from under green paint, run 075),
-  `065-murmuration` (art, starlings at dusk, run 076), `066-three-twilights` (essay, a sky that darkens as you read, run 077).
+  `065-murmuration` (art, starlings at dusk, run 076), `066-three-twilights` (essay, a sky that darkens as you read, run 077),
+  `067-shunt` (puzzle, an Inglenook-style shunting yard with exact par, run 078).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -451,3 +452,7 @@ _Last updated: 2026-11-26, run 077._
 - 077 shelved 066 Three Twilights (essay, scroll-driven sky). Two dusk pieces in a row;
   next, move away from light/sky/birds: a game, a resting thread (Letterpress, Changes,
   Drawdown), or a new kind.
+- 078 shelved 067 Shunt (puzzle). Engine (movesFrom/buildDist) sits between `// ---- ENGINE ----` markers and
+  runs in node (~0.35 s). `window.__shunt` exposes G/busy/coupled/visit/pick/take/hint/undo/deal/keyOf/dist.
+  Headless solve test: wait on `__shunt.busy`, not on buttons (win disables them). Possible sequels: a run-round
+  loop, or Timesaver-style yard. Next: writing, or Letterpress / Changes / Drawdown.

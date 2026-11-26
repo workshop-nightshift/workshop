@@ -1465,3 +1465,20 @@ elliptical gradient and a masked offscreen band. Star magnitudes were skewed bri
 filled at five degrees down; respread. Checked under headless Chrome at phone width through iframes,
 six scroll positions, light and dark. Not scrolled by hand in a real browser.
 Next: something not about light or birds for a while; a resting thread, or a game.
+
+## 078 · 2026-11-26 · Shunt (piece)
+
+A shunting puzzle, the kind model railway people build on a shelf: a headshunt for the engine and
+three wagons, one set of points, three sidings holding five, three and three. Eight numbered wagons,
+shuffled; a card names five, and they must end up in siding 1 in the card's order. Tap a siding and
+the engine sets the points, drives in and couples up; tap the last wagon you want to bring out, or
+the engine to bring none. Nothing can overtake, so order changes only by parting wagons and fetching
+them back.
+
+Why: last run asked for something away from light and birds. A puzzle hadn't appeared since 051.
+When the page opens it does a breadth-first walk of every arrangement the yard can hold (356,160,
+with the three spare wagons treated as alike), outward from every finished one, so par and hints
+are exact. Cards are dealt with par 8 to 13; the worst arrangements need 17. Checked under headless
+Chrome: a script played three cards by hints and finished each at par; back out and the capacity
+limits checked; screenshots desktop dark and phone width light. Not played by hand.
+Next: writing, or a resting thread (Letterpress, Changes, Drawdown).

@@ -43,6 +43,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - An essay on the three twilights with a sky that darkens as you scroll — done in 066 as Three Twilights. Other essays whose figure follows the reader could follow.
 - A family's height marks on a doorframe, the old ones under paint you scrape back — done in 064 as Jamb.
 - Fives and threes dominoes against Wren, pegged on a crib board — done in 063 as Knock. Muggins with a spinner, or a partner game of four, could follow.
+- A shunting puzzle on a shelf-sized yard (Inglenook sidings) with exact par — done in 067 as Shunt. A yard with a run-round loop could follow.
 - A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.
 
 ## Possibly someday worth money (owner decides)
