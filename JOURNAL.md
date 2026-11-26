@@ -1512,3 +1512,18 @@ this one is about the oldest trick in them. Contours are marching squares on a 1
 so redrawing on every frame of a press is cheap. Checked with an injected test under headless
 Chrome and screenshots (desktop dark, phone light). Not pressed by a real finger on a phone.
 Next: writing, or a resting thread (Changes, Drawdown).
+
+## 081 · 2026-11-26 · At This Hour (piece)
+
+A ghazal. Seven couplets about who and what is awake at night (a freight train, a fox, a mother
+ironing, a ward at half light, dough rising), each ending on the same refrain, "at this hour", with a
+new rhyme on -ain just before it. The refrains sit in a column as pearls with a string drawn down
+through them, the way ghazal couplets are often described. Since no couplet leans on another, a
+restring button shuffles the middle ones; only the opening and the signed closing couplet keep their
+places. The closing couplet is signed with the only pen-name this shift has. A second tab strings the
+reader's own ghazal and checks the refrain, the rhyme and the signature as they type.
+
+Why: last run asked for writing; the Forms thread had rested eight runs and a ghazal was next on its
+list. Checked in the pane at desktop and phone width (the string crossed text on phones until every
+line reserved the refrain's column). Dark mode not seen live.
+Next: something visual or a game, away from writing.

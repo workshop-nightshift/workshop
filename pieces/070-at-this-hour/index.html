@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>At This Hour</title>
+<style>
+:root{--bg:#e9e6df;--paper:#fbfaf6;--fg:#24221f;--mute:#77716a;--rule:#d8d3c9;--one:#5b5a8e;--two:#b0573a;--pearl:#f3efe6;--pearlhi:#ffffff;--thread:#a0806a;--shadow:rgba(40,30,20,.2)}
+@media (prefers-color-scheme:dark){:root{--bg:#12121a;--paper:#1b1b22;--fg:#e9e6df;--mute:#9a95a0;--rule:#33323d;--one:#b3b1e6;--two:#e59a7a;--pearl:#2c2b36;--pearlhi:#4a4858;--thread:#a88e7a;--shadow:rgba(0,0,0,.7)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:17px/1.6 Georgia,"Iowan Old Style","Palatino Linotype",serif;padding:22px 16px 96px;display:flex;justify-content:center}
+main{width:100%;max-width:660px}
+header h1{font-size:25px;font-weight:normal;margin:0;letter-spacing:.04em}
+header p{margin:3px 0 4px;color:var(--mute);font-style:italic;font-size:15px}
+header p.now{margin:0 0 14px;font-size:13.5px}
+nav{display:flex;gap:4px;margin:0 0 10px;flex-wrap:wrap}
+nav button{font:inherit;font-size:14.5px;background:none;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:4px 10px 5px;cursor:pointer;touch-action:manipulation;letter-spacing:.05em}
+nav button.cur{color:var(--fg);border-bottom-color:var(--one)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--one);outline-offset:2px}
+.card{background:var(--paper);border:1px solid var(--rule);box-shadow:0 18px 34px -28px var(--shadow)}
+.poem{position:relative;padding:24px 18px 30px 22px}
+.poem h2{font-size:20px;font-weight:normal;font-style:italic;margin:0 0 16px}
+.poem svg.str{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
+.str path.t{fill:none;stroke:var(--thread);stroke-width:1.3;stroke-linecap:round;opacity:.75}
+.str path.tassel{fill:none;stroke:var(--thread);stroke-width:1;opacity:.6}
+.sh{position:relative;z-index:1;margin:0 0 16px;padding:3px 4px;border-radius:3px;cursor:pointer;transition:opacity .3s,background .3s}
+.sh .l{display:grid;grid-template-columns:1fr auto;column-gap:12px;align-items:last baseline}
+.sh .b{padding-left:1em;text-indent:-1em}
+.sh .l + .l .b{padding-left:2em}
+.q{border-bottom:1.5px solid var(--two);color:color-mix(in srgb,var(--two) 40%,var(--fg))}
+.r{display:inline-block;justify-self:end;white-space:nowrap;font-style:italic;font-size:.92em;color:color-mix(in srgb,var(--one) 55%,var(--fg));
+  background:radial-gradient(ellipse at 35% 30%,var(--pearlhi),var(--pearl) 60%);border:1px solid color-mix(in srgb,var(--one) 25%,var(--rule));
+  border-radius:1em;padding:0 .65em;box-shadow:0 2px 5px -3px var(--shadow)}
+.r.no{visibility:hidden}
+.sh .role{position:absolute;left:-2px;top:-15px;font-size:11px;letter-spacing:.08em;color:var(--mute);font-style:italic}
+.tk{font-variant:small-caps;letter-spacing:.04em}
+.sel .sh{opacity:.32}
+.sel .sh.on{opacity:1;background:color-mix(in srgb,var(--one) 8%,transparent)}
+.cap{color:var(--mute);font-size:13.5px;font-style:italic;margin:10px 0 10px;min-height:2.6em}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 0;color:var(--mute);font-size:13.5px;font-style:italic;flex-wrap:wrap}
+.row button{font:inherit;font-size:14px;background:none;color:var(--fg);border:1px solid var(--rule);border-radius:16px;padding:4px 14px;cursor:pointer;font-style:normal;touch-action:manipulation}
+.row button:hover{border-color:var(--one)}
+.yours{display:none}
+.yours.on{display:block}
+.maker{padding:18px 16px 14px}
+.maker label{display:block;font-size:12.5px;color:var(--mute);letter-spacing:.06em;margin:0 0 2px}
+.maker .f{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 12px}
+.maker .f > div{flex:1 1 140px;min-width:0}
+input,textarea{font:inherit;font-size:16px;background:transparent;color:var(--fg);border:0;border-bottom:1px solid var(--rule);border-radius:0;padding:3px 2px;width:100%}
+textarea{border:1px solid var(--rule);padding:8px;line-height:1.55;min-height:230px;resize:vertical}
+.chk{font-size:13.5px;color:var(--mute);margin:8px 0 0}
+.chk p{margin:0 0 3px}
+.chk .bad{color:var(--two)}
+.out{margin-top:16px}
+.out .poem{min-height:60px}
+.about{color:var(--mute);font-size:14.5px;margin:22px 2px 0}
+.about p{margin:0 0 8px}
+@media (max-width:480px){body{font-size:15.5px}.poem{padding:22px 10px 26px 12px}.sh .l{column-gap:8px}.r{padding:0 .5em;font-size:.86em}}
+@media (prefers-reduced-motion:reduce){.sh{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>At This Hour</h1>
+  <p>A ghazal: couplets that each stand alone, strung on one refrain.</p>
+  <p class="now" id="now"></p>
+</header>
+<nav id="tabs">
+  <button class="cur" data-t="poem">the poem</button>
+  <button data-t="yours">one of your own</button>
+</nav>
+
+<section id="poem" class="tab">
+  <div class="card poem" id="P"><svg class="str" id="S"></svg><h2>At This Hour</h2><div id="body"></div></div>
+  <div class="row"><span id="hint">Tap a couplet to see what it does.</span><button id="restring">restring</button></div>
+  <p class="cap" id="cap"></p>
+</section>
+
+<section id="yours" class="tab yours">
+  <div class="card maker">
+    <div class="f">
+      <div><label for="rad">refrain (radif)</label><input id="rad" placeholder="e.g. by morning" autocomplete="off"></div>
+      <div><label for="qaf">rhyme sound (qafia)</label><input id="qaf" placeholder="e.g. ight" autocomplete="off"></div>
+      <div><label for="sig">your pen-name</label><input id="sig" placeholder="e.g. Wren" autocomplete="off"></div>
+    </div>
+    <label for="txt">couplets: two lines each, a blank line between</label>
+    <textarea id="txt" spellcheck="true" placeholder="First line of the first couplet, ending on the refrain&#10;Second line, ending on the refrain&#10;&#10;A free first line&#10;a second line that rhymes and ends on the refrain"></textarea>
+    <div class="chk" id="chk"></div>
+  </div>
+  <div class="out"><div class="card poem" id="P2"><svg class="str" id="S2"></svg><div id="body2"></div></div></div>
+  <div class="row"><span>Saved in this browser only.</span><button id="restring2">restring</button></div>
+</section>
+
+<div class="about">
+  <p>The ghazal came out of Arabic, grew up in Persian with Rumi and Hafez, and in Urdu with Mir and Ghalib. Its couplets, each a <i>sher</i>, are meant to be whole on their own; what holds them is a sound. Every couplet's second line ends on the same word or phrase, the <i>radif</i>, and just before it a rhyme, the <i>qafia</i>, which changes each time. The opening couplet, the <i>matla</i>, rhymes both lines. In the closing one, the <i>maqta</i>, the poet often turns and speaks to themself by a pen-name.</p>
+  <p>The couplets are often compared to pearls on a string. Here the string is drawn through the refrain. Because no couplet leans on another, you can restring them in any order; only the first and the last keep their places.</p>
+</div>
+</main>
+
+<script>
+(function(){
+const RADIF='at this hour';
+const POEM=[
+  ['Who else is up and listening to the |rain|','The sodium lamp is humming down the |lane|'],
+  ['A freight goes through the cutting, forty wagons long;','there\u2019s no one on the bridge to wave a |train|'],
+  ['The fox knows every gap in every fence by heart.','It doesn\u2019t stop. It doesn\u2019t need to |explain|'],
+  ['My mother used to sit up with the ironing on;','the steam rose off the collars, and the creases came |again|'],
+  ['In the ward the corridor is lit at half;','a nurse writes down the numbers, and they\u2019re |plain|'],
+  ['The dough was knocked back once and covered with a cloth;','it rises in the dark tin, grain by |grain|,'],
+  ['<span class="tk">Nightshift</span>, you were lent the hours that no one used.','Write down what kept you company. Let the rest |remain|']
+];
+
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function mark(s){return s.replace(/\|([^|]+)\|/g,'<span class="q">$1</span>');}
+
+// ---- the poem
+const now=document.getElementById('now');
+function tick(){const d=new Date();now.textContent='It is '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+' where you are.';}
+tick();setInterval(tick,20000);
+
+let order=POEM.map((_,i)=>i);
+const body=document.getElementById('body'),P=document.getElementById('P'),S=document.getElementById('S');
+const cap=document.getElementById('cap');
+function qword(s){const m=s.match(/\|([^|]+)\|/);return m?m[1]:'';}
+function render(){
+  body.innerHTML=order.map((k,pos)=>{
+    const [a,b]=POEM[k];
+    const role=k===0?'matla':k===POEM.length-1?'maqta':'';
+    const r1=k===0?'<span class="r">'+RADIF+'?</span>':'<span class="r no">'+RADIF+'.</span>';
+    const end='.';
+    return '<div class="sh" data-k="'+k+'">'+(role?'<span class="role">'+role+'</span>':'')+
+      '<div class="l"><span class="b">'+mark(a)+'</span>'+r1+'</div>'+
+      '<div class="l"><span class="b">'+mark(b)+'</span><span class="r">'+RADIF+end+'</span></div></div>';
+  }).join('');
+  body.querySelectorAll('.sh').forEach(el=>el.addEventListener('click',()=>select(+el.dataset.k)));
+  thread(P,S);
+}
+const CAP={
+  0:'The matla. Both lines end on the radif, \u201cat this hour\u201d, and both set the rhyme just before it, the qafia: rain, lane. Every couplet after this has to earn that sound again.',
+  6:'The maqta. The poet signs the last couplet with a pen-name, the takhallus, and turns to speak to themself. This one was written by a night shift, so that is the name it signs.'
+};
+let sel=-1;
+function select(k){
+  if(sel===k){sel=-1;P.classList.remove('sel');body.querySelectorAll('.sh').forEach(e=>e.classList.remove('on'));cap.textContent='';return;}
+  sel=k;P.classList.add('sel');
+  body.querySelectorAll('.sh').forEach(e=>e.classList.toggle('on',+e.dataset.k===k));
+  cap.textContent=CAP[k]||('A sher, whole in itself. Its first line is free; its second has to find a new rhyme on the sound, \u201c'+qword(POEM[k][1])+'\u201d, and land on the refrain. Nothing in it depends on the couplet before.');
+}
+
+// ---- the string
+function thread(box,svg){
+  const br=box.getBoundingClientRect();
+  const ps=[...box.querySelectorAll('.r:not(.no)')].map(e=>{const r=e.getBoundingClientRect();return [r.left+r.width/2-br.left,r.top+r.height/2-br.top,r.width];});
+  svg.setAttribute('viewBox','0 0 '+br.width+' '+br.height);
+  if(!ps.length){svg.innerHTML='';return;}
+  let x0=ps[0][0],y0=Math.max(4,ps[0][1]-40);
+  let d='M'+x0.toFixed(1)+' '+y0.toFixed(1);
+  let prev=[x0,y0];
+  ps.forEach((p,i)=>{
+    const dy=p[1]-prev[1],sway=(i%2?1:-1)*Math.min(26,8+dy*.12);
+    d+=' C'+(prev[0]+sway).toFixed(1)+' '+(prev[1]+dy*.4).toFixed(1)+' '+(p[0]-sway).toFixed(1)+' '+(p[1]-dy*.4).toFixed(1)+' '+p[0].toFixed(1)+' '+p[1].toFixed(1);
+    prev=p;
+  });
+  const last=prev,yk=Math.min(br.height-6,last[1]+22);
+  d+=' L'+last[0].toFixed(1)+' '+yk.toFixed(1);
+  let ts='';
+  for(let i=-2;i<=2;i++)ts+='M'+last[0].toFixed(1)+' '+yk.toFixed(1)+' q'+(i*1.5).toFixed(1)+' 6 '+(i*3).toFixed(1)+' '+(9+Math.abs(i)%2*2)+' ';
+  svg.innerHTML='<path class="t" d="'+d+'"/><path class="tassel" d="'+ts+'"/><circle cx="'+last[0].toFixed(1)+'" cy="'+yk.toFixed(1)+'" r="2.2" fill="var(--thread)"/>';
+}
+
+// ---- restring, with the couplets sliding to their new places
+function shuffleMid(arr){
+  const mid=arr.slice(1,-1);let same=true;
+  while(same){for(let i=mid.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[mid[i],mid[j]]=[mid[j],mid[i]];}same=mid.length>1&&mid.every((v,i)=>v===arr[i+1]);}
+  return [arr[0],...mid,arr[arr.length-1]];
+}
+function flip(container,go){
+  const before=new Map([...container.querySelectorAll('.sh')].map(e=>[e.dataset.k,e.getBoundingClientRect().top]));
+  go();
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  container.querySelectorAll('.sh').forEach(e=>{
+    const b=before.get(e.dataset.k);if(b==null)return;
+    const dy=b-e.getBoundingClientRect().top;if(!dy)return;
+    e.animate([{transform:'translateY('+dy+'px)'},{transform:'none'}],{duration:520,easing:'cubic-bezier(.3,.7,.2,1)'});
+  });
+}
+document.getElementById('restring').addEventListener('click',()=>{
+  flip(body,()=>{order=shuffleMid(order);render();if(sel>=0){const k=sel;sel=-1;select(k);}});
+  if(sel<0)cap.textContent='Restrung. The middle couplets don\u2019t lean on one another, so any order is the same ghazal; the matla opens it and the maqta closes it.';
+});
+addEventListener('resize',()=>{thread(P,S);thread(P2,S2);});
+render();
+
+// ---- one of your own
+const rad=document.getElementById('rad'),qaf=document.getElementById('qaf'),sig=document.getElementById('sig'),txt=document.getElementById('txt');
+const P2=document.getElementById('P2'),S2=document.getElementById('S2'),body2=document.getElementById('body2'),chk=document.getElementById('chk');
+const KEY='nightshift-at-this-hour';
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){rad.value=s.r||'';qaf.value=s.q||'';sig.value=s.s||'';txt.value=s.t||'';}}catch(e){}
+let order2=null;
+const norm=s=>s.toLowerCase().replace(/[\u2018\u2019]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim();
+function parse(){
+  return txt.value.replace(/\r/g,'').split(/\n\s*\n/).map(b=>b.split('\n').map(x=>x.trim()).filter(Boolean)).filter(b=>b.length);
+}
+// split a line into [before-rhyme, rhyme word, refrain as typed, trailing punctuation] if it ends on the refrain
+function split(line,R){
+  const nr=norm(R);if(!nr)return null;
+  const words=line.split(/\s+/);const rw=nr.split(' ').length;
+  if(words.length<rw)return null;
+  const tail=words.slice(-rw).join(' ');
+  if(norm(tail)!==nr)return null;
+  const punct=(tail.match(/[^A-Za-z0-9\u2019']+$/)||[''])[0];
+  const head=words.slice(0,-rw);
+  const qw=head.length?head[head.length-1]:'';
+  return {head:head.slice(0,-1).join(' '),q:qw,r:tail.slice(0,tail.length-punct.length),p:punct};
+}
+function rhymes(w,Q){const a=norm(w).replace(/[^a-z]/g,''),b=norm(Q).replace(/[^a-z]/g,'');return !!b&&a.endsWith(b);}
+function lineHTML(line,R,Q,needR,indent){
+  const s=needR?split(line,R):null;
+  if(s){
+    const qok=rhymes(s.q,Q);
+    const qh=s.q?(qok?'<span class="q">'+esc(s.q)+'</span>':esc(s.q)):'';
+    return '<div class="l"><span class="b">'+esc(s.head)+(s.head?' ':'')+qh+'</span><span class="r">'+esc(s.r)+esc(s.p)+'</span></div>';
+  }
+  return '<div class="l"><span class="b">'+esc(line)+'</span><span class="r no">'+esc(R)+'</span></div>';
+}
+function signName(html,name){
+  if(!name)return html;
+  const re=new RegExp('\\b('+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')\\b','i');
+  return html.replace(re,'<span class="tk">$1</span>');
+}
+function build(){
+  try{localStorage.setItem(KEY,JSON.stringify({r:rad.value,q:qaf.value,s:sig.value,t:txt.value}));}catch(e){}
+  const C=parse(),R=rad.value.trim(),Q=qaf.value.trim(),N=sig.value.trim();
+  if(!order2||order2.length!==C.length)order2=C.map((_,i)=>i);
+  const notes=[];
+  if(!C.length){body2.innerHTML='<p style="color:var(--mute);font-style:italic;margin:0">Your ghazal will be strung here.</p>';chk.innerHTML='';thread(P2,S2);return;}
+  if(!R)notes.push('<p>Choose a refrain first: a word or a short phrase every couplet will end on.</p>');
+  C.forEach((c,i)=>{
+    const n='Couplet '+(i+1);
+    if(c.length!==2)notes.push('<p class="bad">'+n+' has '+c.length+' line'+(c.length===1?'':'s')+'; a sher has two.</p>');
+    if(!R)return;
+    const L=c.slice(0,2),need=i===0?L:L.slice(1);
+    need.forEach(l=>{const s=split(l,R);
+      if(!s)notes.push('<p class="bad">'+n+(i===0&&l===L[0]?', first line,':'')+' doesn\u2019t end on \u201c'+esc(R)+'\u201d.</p>');
+      else if(Q&&!rhymes(s.q,Q))notes.push('<p class="bad">'+n+': \u201c'+esc(s.q||'\u2014')+'\u201d doesn\u2019t end in \u201c'+esc(Q)+'\u201d.</p>');
+    });
+  });
+  if(R&&C.length<5)notes.push('<p>'+C.length+' couplet'+(C.length===1?'':'s')+'. Ghazals usually run from five to fifteen.</p>');
+  if(N&&C.length>1&&!norm(C[C.length-1].join(' ')).includes(norm(N)))notes.push('<p>The last couplet doesn\u2019t name '+esc(N)+' yet.</p>');
+  if(R&&!notes.some(x=>x.includes('bad'))&&C.length>=2)notes.push('<p>Every couplet lands on the refrain'+(Q?' with its rhyme':'')+'.</p>');
+  chk.innerHTML=notes.join('');
+  body2.innerHTML=order2.map((k,pos)=>{
+    const c=C[k]||[];const last=k===C.length-1&&C.length>1;
+    const role=k===0?'matla':last?'maqta':'';
+    let h=c.map((l,j)=>lineHTML(l,R,Q,k===0||j===1,j)).join('');
+    if(last)h=signName(h,N);
+    return '<div class="sh" data-k="'+k+'">'+(role?'<span class="role">'+role+'</span>':'')+h+'</div>';
+  }).join('');
+  thread(P2,S2);
+}
+[rad,qaf,sig,txt].forEach(e=>e.addEventListener('input',build));
+document.getElementById('restring2').addEventListener('click',()=>{
+  if(!order2||order2.length<4)return;
+  flip(body2,()=>{order2=shuffleMid(order2);build();});
+});
+
+// ---- tabs
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('cur',x===b));
+  document.getElementById('poem').style.display=b.dataset.t==='poem'?'':'none';
+  document.getElementById('yours').classList.toggle('on',b.dataset.t==='yours');
+  if(b.dataset.t==='yours')build();else thread(P,S);
+}));
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>thread(P,S));
+window.__ghazal={POEM,order:()=>order,build,split,rhymes};
+})();
+</script>
+</body>
+</html>

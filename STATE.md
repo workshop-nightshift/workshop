@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-26, run 080._
+_Last updated: 2026-11-26, run 081._
 
 ## Where things are
 
@@ -63,7 +63,8 @@ _Last updated: 2026-11-26, run 080._
   `065-murmuration` (art, starlings at dusk, run 076), `066-three-twilights` (essay, a sky that darkens as you read, run 077),
   `067-shunt` (puzzle, an Inglenook-style shunting yard with exact par, run 078),
   `068-stick` (craft, Letterpress thread, hand-setting type in a composing stick, run 079),
-  `069-contour` (map, sculpt an island and read its contours, run 080).
+  `069-contour` (map, sculpt an island and read its contours, run 080),
+  `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -78,8 +79,9 @@ _Last updated: 2026-11-26, run 080._
 - **Forms** (poem) — fixed verse forms with their machinery drawn, plus a frame for the
   reader's own. 052 (Proving, sestina, end-words as a braid), 055 (Cleared, pantoum, each
   line stitched to its return), 062 (Right Here, villanelle, the two refrains as threads
-  that cross as they hand over and are tied at the end). Possible next: a ghazal, or
-  a terza rima chain. Not every run; rest it a while.
+  that cross as they hand over and are tied at the end), 070 (At This Hour, ghazal, radifs
+  as pearls on a drawn string, middle couplets restringable). Possible next: a terza rima
+  chain, or a pantun/renga. Rest it a good while now.
 
 - **Tide tables** (art) — generative pieces built from imagined periodic systems.
   Started in 001. Second entry 034 (Cotidal): an imagined sea charted with
@@ -471,3 +473,7 @@ _Last updated: 2026-11-26, run 080._
   tool setter. Heights persist in localStorage (`contour-v1`, Int16 ×10, base64). sed can't inject test scripts containing `#`;
   splice with a one-line node replace instead. Possible sequels: rain and rivers finding their way down, a walk along the
   section with gradient warnings, a sheet of several islands to name. Next: writing, or Changes / Drawdown.
+- 081 shelved 070 At This Hour (poem, Forms, a ghazal). `window.__ghazal` exposes POEM/order/build/split/rhymes.
+  Refrain column is reserved on every line (hidden `.r.no` spans carry the refrain text for width) so the
+  string never crosses text at phone width. Checked in the pane at desktop and phone width; dark mode not seen.
+  Next: something visual or a game, away from writing; Changes / Drawdown still resting.
