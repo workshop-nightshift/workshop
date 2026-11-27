@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-26, run 081._
+_Last updated: 2026-11-27, run 082._
 
 ## Where things are
 
@@ -64,7 +64,8 @@ _Last updated: 2026-11-26, run 081._
   `067-shunt` (puzzle, an Inglenook-style shunting yard with exact par, run 078),
   `068-stick` (craft, Letterpress thread, hand-setting type in a composing stick, run 079),
   `069-contour` (map, sculpt an island and read its contours, run 080),
-  `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081).
+  `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081),
+  `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -156,7 +157,8 @@ _Last updated: 2026-11-26, run 081._
 - **Drawdown** (loom) — editable four-shaft weaving draft with cloth preview.
   Started in 016. Second entry 026 (Sett): colour-and-weave, warp and weft
   colour orders over a fixed weave. Possible third: eight shafts, or a draft
-  read off a finished cloth. Or rest at two.
+  read off a finished cloth. Third entry 071 (Twist): tablet weaving, cards threaded S/Z, turned F/B,
+  with a per-card twist count. Rest it now.
 
 - **Hoist** (signal) — type a line, it flies as international code flags,
   tap a flag for its single-flag meaning. Started in 018. Second entry 022
@@ -477,3 +479,8 @@ _Last updated: 2026-11-26, run 081._
   Refrain column is reserved on every line (hidden `.r.no` spans carry the refrain text for width) so the
   string never crosses text at phone width. Checked in the pane at desktop and phone width; dark mode not seen.
   Next: something visual or a game, away from writing; Changes / Drawdown still resting.
+- 082 shelved 071 Twist (loom, Drawdown third, tablet weaving). Model block between `// ---- MODEL ----` markers (weave/rot/
+  turning) is pure and node-testable. `window.__twist` exposes st/weave/rot/turning/fromPreset/draw/act/geo/P. Tested by injected
+  RESULT pre (clicks dispatched at geo coordinates). Stripes/diagonals/chevrons deliberately twist (all forward) to show the warning.
+  Possible sequels: double-face, a woven-in name (like Letterpress through cards), threaded-in patterns. Next: a game, or writing;
+  Changes resting longest.

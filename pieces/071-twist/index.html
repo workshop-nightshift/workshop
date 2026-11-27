@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twist</title>
+<style>
+:root{--bg:#efe9dd;--fg:#1f1c17;--mute:#7a7262;--line:#d4cbb8;--card:#f8f4ea;--grid:#c9bfa9;--accent:#9b3d2a;--warn:#a8432c}
+@media (prefers-color-scheme:dark){:root{--bg:#121214;--fg:#e8e3d8;--mute:#9a9485;--line:#2e2e33;--card:#1b1b1f;--grid:#3a3a40;--accent:#e08a6c;--warn:#e08a6c}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:18px 16px 64px;display:flex;justify-content:center}
+main{width:100%;max-width:640px;min-width:0}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 14px;font-style:italic}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.bar button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer;touch-action:manipulation}
+.bar button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.lab{color:var(--mute);font-size:13px;margin-right:2px;min-width:42px}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);padding:0!important;cursor:pointer}
+.sw[aria-pressed=true]{border-color:var(--fg);outline:2px solid var(--accent);outline-offset:1px}
+.card{background:var(--card);border:1px solid var(--line);padding:12px;box-shadow:0 8px 22px -14px rgba(0,0,0,.35)}
+canvas{display:block;width:100%;touch-action:manipulation;cursor:pointer}
+#band{margin-top:10px}
+.hint{color:var(--mute);font-size:13px;margin:8px 2px 0}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;color:var(--mute);font-size:14px}
+.row button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 10px;cursor:pointer;touch-action:manipulation}
+.row button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
+.n{display:inline-block;min-width:1.6em;text-align:center;color:var(--fg)}
+#twistnote{margin:10px 2px 0;font-size:14px}
+#twistnote.bad{color:var(--warn)}
+.note{margin-top:22px;font-size:15px}
+.note p{margin:0 0 .8em}
+.note h2{font-size:16px;font-weight:normal;font-style:italic;margin:0 0 6px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Twist</h1>
+  <p class="sub">Square cards with a hole at each corner, a thread through every hole. Turn the pack a quarter and pass the weft. That is all of it.</p>
+  <div class="bar" id="presets" role="group" aria-label="Bands"></div>
+  <div class="bar" id="palette"><span class="lab">thread</span></div>
+  <div class="card">
+    <canvas id="thr" aria-label="Threading: one column per card, its four holes A to D coloured by thread, and S or Z for which way the threads pass through"></canvas>
+    <p class="hint">Pick a thread colour above, then tap a hole to thread it. Tap a card's number to give it a quarter turn before weaving starts; tap S/Z to thread it the other way through.</p>
+    <canvas id="band" aria-label="The woven band, first pick at the top, with each pick's turning direction at the left"></canvas>
+    <p class="hint">Each row is one pick. Tap F/B at the left to turn the whole pack the other way on that pick, or tap a single grain to turn just that card the other way. The rule marks the end of one repeat.</p>
+    <div class="row">
+      <span>cards <button data-a="c-" aria-label="fewer cards">−</button><span class="n" id="nc"></span><button data-a="c+" aria-label="more cards">+</button>
+        &nbsp; repeat <button data-a="l-" aria-label="shorter repeat">−</button><span class="n" id="nl"></span><button data-a="l+" aria-label="longer repeat">+</button></span>
+      <span><button data-a="side" id="sidebtn" aria-pressed="false">see the back</button></span>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <span>turning <button data-a="t0">all forward</button><button data-a="t4">4 &amp; 4</button><button data-a="t8">8 &amp; 8</button></span>
+    </div>
+    <p id="twistnote"></p>
+  </div>
+  <div class="note">
+    <h2>About the cards</h2>
+    <p>Tablet weaving is old. Bands made this way turn up in Iron Age graves in central Europe, and the Viking ship burial at Oseberg held a band still on its tablets. The cards were bone, wood, leather; now they are often playing cards with the corners punched.</p>
+    <p>Every card carries four warp threads. Turning it a quarter lifts one thread to the top and sends another under, so the four twist round each other into a little cord, and the weft passed through the shed locks each turn in place. On the face you see one thread per card per pick, sloping one way or the other. Which way depends on how the card was threaded (S or Z, from the slant of the letters' middle strokes) and which way it turned. Turn back and the slope flips, which is why reversing makes mirrors: diamonds out of chevrons.</p>
+    <p>The catch is in the name here. Turn a card the same way for long enough and the warp behind it twists up like a skipping rope wound in one direction. Weavers untwist it, or design patterns whose turns come back to nothing, or turn some cards back while others go on. The numbers under the band count each card's quarter turns over one repeat.</p>
+  </div>
+</main>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const PALETTE = ["#1d1b18","#efe6d2","#a8432c","#2b3a55","#d9b44a","#3e6b4f","#7a6248"];
+const MINC = 6, MAXC = 24, MINL = 2, MAXL = 32;
+
+// ---- MODEL ----
+// A card: holes[0..3] = colour index of the threads in holes A–D, z = threaded Z (else S).
+// seq[r][c] = +1 forward / -1 back for card c on pick r of one repeat.
+// Forward: card turns, then the thread now on top shows. Back: the top thread shows, then it turns back.
+// So reversing repeats the turning row and mirrors what follows.
+function weave(st, rows, back){
+  const N = st.cards.length, L = st.seq.length, out = [];
+  const s = new Array(N).fill(0), tw = new Array(N).fill(0);
+  for(let r=0;r<rows;r++){
+    const d = st.seq[r % L], row = [];
+    for(let c=0;c<N;c++){
+      const k = d[c], card = st.cards[c];
+      let h;
+      if(k>0){ s[c]=(s[c]+1)&3; h=s[c]; } else { h=s[c]; s[c]=(s[c]+3)&3; }
+      if(back) h=(h+2)&3;
+      // slope: S forward = "\", Z forward = "/"; back flips; the back of the band is seen mirrored
+      let slope = (card.z ? 1 : -1) * k;
+      if(back) slope = -slope;
+      row.push({ col: card.holes[h], slope });
+      if(r < L) tw[c] += k;
+    }
+    out.push(back ? row.reverse() : row);
+  }
+  return { grid: out, twist: tw };
+}
+const rot = (holes, k=1) => holes.map((_,j)=>holes[(j+k)&3]);
+const flat = (N, L, f) => Array.from({length:L}, (_,r)=>Array.from({length:N}, (_,c)=>f(r,c)));
+const turning = (N, L, half) => flat(N, L, r => half ? ((Math.floor(r/half)%2) ? -1 : 1) : 1);
+// ---- END MODEL ----
+
+const P = {
+  "stripes": () => { const N=16; return { cards: Array.from({length:N},()=>({holes:[0,0,1,1],z:false})), seq: turning(N,8,0) }; },
+  "diagonals": () => { const N=16; return { cards: Array.from({length:N},(_,i)=>({holes:rot([2,2,1,1],i),z:false})), seq: turning(N,8,0) }; },
+  "chevrons": () => { const N=16; return { cards: Array.from({length:N},(_,i)=>{ const m=i<N/2?i:N-1-i; return {holes:rot([3,3,4,4],m), z:i>=N/2}; }), seq: turning(N,8,0) }; },
+  "diamonds": () => { const N=16; return { cards: Array.from({length:N},(_,i)=>{ const m=i<N/2?i:N-1-i; return {holes:rot([0,0,2,2],-m), z:i>=N/2}; }), seq: turning(N,8,4) }; },
+  "bordered": () => { const N=18; return { cards: Array.from({length:N},(_,i)=>{
+      if(i<2||i>=N-2) return {holes:[3,3,3,3], z:(i%2===0)};
+      const j=i-2, n=N-4, m=j<n/2?j:n-1-j; return {holes:rot([1,1,5,0],-m), z:j>=n/2}; }), seq: turning(N,16,8) }; },
+  "waves": () => { const N=16; return { cards: Array.from({length:N},(_,i)=>({holes:rot([4,4,6,6],i),z:false})), seq: turning(N,16,8) }; },
+};
+const NAMES = Object.keys(P);
+const fromPreset = n => { const p=P[n](); return { name:n, cards:p.cards, seq:p.seq, paint:2 }; };
+function valid(v){
+  return v && Array.isArray(v.cards) && v.cards.length>=MINC && v.cards.length<=MAXC &&
+    v.cards.every(c=>Array.isArray(c.holes)&&c.holes.length===4&&c.holes.every(h=>h>=0&&h<PALETTE.length)) &&
+    Array.isArray(v.seq) && v.seq.length>=MINL && v.seq.length<=MAXL && v.seq.every(r=>Array.isArray(r)&&r.length===v.cards.length);
+}
+function load(){ try{ const v=JSON.parse(localStorage.getItem("twist-v1")); if(valid(v)) return v; }catch(e){} return null; }
+function save(){ try{ localStorage.setItem("twist-v1", JSON.stringify(st)); }catch(e){} }
+let st = load() || fromPreset("diamonds");
+if(typeof st.paint!=="number") st.paint=2;
+let back = false;
+
+// ---- controls ----
+const pb=$("presets"), pl=$("palette");
+for(const n of NAMES){ const b=document.createElement("button"); b.textContent=n; b.dataset.n=n; b.onclick=()=>{ st=fromPreset(n); draw(); }; pb.appendChild(b); }
+PALETTE.forEach((c,i)=>{ const b=document.createElement("button"); b.className="sw"; b.style.background=c; b.dataset.i=i; b.setAttribute("aria-label","thread colour "+(i+1)); b.onclick=()=>{ st.paint=i; draw(); }; pl.appendChild(b); });
+document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>act(b.dataset.a));
+function act(a){
+  const N=st.cards.length, L=st.seq.length;
+  if(a==="c+" && N<MAXC){ const c=st.cards[N-1]; st.cards.push({holes:rot(c.holes,1), z:c.z}); st.seq.forEach(r=>r.push(r[N-1])); }
+  else if(a==="c-" && N>MINC){ st.cards.pop(); st.seq.forEach(r=>r.pop()); }
+  else if(a==="l+" && L<MAXL){ st.seq.push(st.seq[L-1].slice()); }
+  else if(a==="l-" && L>MINL){ st.seq.pop(); }
+  else if(a==="t0") st.seq = turning(N,L,0);
+  else if(a==="t4") st.seq = turning(N,Math.max(8,L - L%8 || 8),4);
+  else if(a==="t8") st.seq = turning(N,Math.max(16,L - L%16 || 16),8);
+  else if(a==="side"){ back=!back; draw(); return; }
+  else return;
+  st.name=null; draw();
+}
+
+// ---- drawing ----
+const thr=$("thr"), tx=thr.getContext("2d"), band=$("band"), bx=band.getContext("2d");
+let geo=null;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function shade(hex, f){ const n=parseInt(hex.slice(1),16); let r=n>>16, g=(n>>8)&255, b=n&255;
+  if(f<0){ r*=1+f; g*=1+f; b*=1+f; } else { r+=(255-r)*f; g+=(255-g)*f; b+=(255-b)*f; }
+  return `rgb(${r|0},${g|0},${b|0})`; }
+function size(cv, w, h){ const d=window.devicePixelRatio||1; cv.width=Math.round(w*d); cv.height=Math.round(h*d); cv.style.height=h+"px"; const c=cv.getContext("2d"); c.setTransform(d,0,0,d,0,0); return c; }
+
+function draw(){
+  const N=st.cards.length, L=st.seq.length;
+  const W = thr.clientWidth || 600;
+  const lab = Math.max(22, Math.min(30, W*0.07));
+  const cw = Math.min(30, (W-lab-14)/N);
+  const x0 = lab + 7 + ((W-lab-14) - cw*N)/2;
+  const fg=css("--fg"), mute=css("--mute"), line=css("--line"), card=css("--card"), acc=css("--accent");
+
+  // threading
+  const rh = Math.max(cw, 18), top = 18;
+  const th = top + rh*4 + 22;
+  size(thr, W, th);
+  tx.clearRect(0,0,W,th);
+  tx.font = `${Math.min(12, cw*0.5)}px Georgia,serif`; tx.textAlign="center"; tx.textBaseline="middle";
+  for(let c=0;c<N;c++){
+    const x = x0 + c*cw;
+    tx.fillStyle=mute; tx.fillText(String(c+1), x+cw/2, top/2+1);
+    for(let h=0;h<4;h++){
+      const y = top + h*rh;
+      tx.strokeStyle=line; tx.lineWidth=1; tx.strokeRect(x+.5, y+.5, cw-1, rh-1);
+      const rad = Math.min(cw,rh)*0.34;
+      tx.beginPath(); tx.arc(x+cw/2, y+rh/2, rad, 0, 7);
+      tx.fillStyle=PALETTE[st.cards[c].holes[h]]; tx.fill();
+      tx.strokeStyle=shade(PALETTE[st.cards[c].holes[h]],-0.35); tx.stroke();
+    }
+    const z=st.cards[c].z;
+    tx.fillStyle = z ? acc : fg;
+    tx.font = `${Math.min(14, cw*0.6)}px Georgia,serif`;
+    tx.fillText(z?"Z":"S", x+cw/2, top+rh*4+11);
+    tx.font = `${Math.min(12, cw*0.5)}px Georgia,serif`;
+  }
+  tx.fillStyle=mute; tx.textAlign="center";
+  "ABCD".split("").forEach((l,h)=>tx.fillText(l, lab/2, top+h*rh+rh/2));
+
+  // band
+  const pick = cw*0.62;
+  const rows = Math.max(L*2, Math.min(64, Math.ceil(520/pick)));
+  const R = Math.min(Math.ceil(rows/L)*L, Math.max(64, L*2));
+  const res = weave(st, R, back);
+  const bh = R*pick + pick + 34;
+  size(band, W, bh);
+  bx.clearRect(0,0,W,bh);
+  const weft = PALETTE[st.cards[0].holes[0]];
+  const y0 = pick*0.5;
+  // weft ground and selvedge loops
+  bx.fillStyle = shade(weft, weft===PALETTE[0] ? 0.22 : -0.3);
+  bx.fillRect(x0-2, y0-pick*0.3, cw*N+4, R*pick+pick*0.6);
+  for(let r=0;r<R;r++){
+    const y=y0+r*pick+pick/2, side = r%2 ? x0-3 : x0+cw*N+3;
+    bx.beginPath(); bx.ellipse(side, y, 3, pick*0.42, 0, 0, 7); bx.fillStyle=weft; bx.fill();
+  }
+  for(let r=0;r<R;r++){
+    const y = y0 + r*pick + pick/2;
+    for(let c=0;c<N;c++){
+      const g = res.grid[r][c], x = x0 + c*cw + cw/2, col = PALETTE[g.col];
+      bx.save(); bx.translate(x,y); bx.rotate(g.slope*0.62);
+      bx.beginPath(); bx.ellipse(0,0, cw*0.30, pick*1.02, 0, 0, 7);
+      bx.fillStyle=col; bx.fill();
+      bx.lineWidth=0.8; bx.strokeStyle=shade(col,-0.45); bx.stroke();
+      bx.beginPath(); bx.ellipse(-cw*0.07,-pick*0.15, cw*0.07, pick*0.55, 0, 0, 7);
+      bx.fillStyle=shade(col,0.28); bx.globalAlpha=0.55; bx.fill(); bx.globalAlpha=1;
+      bx.restore();
+    }
+    // turning column
+    const d = st.seq[r % L], allF = d.every(k=>k>0), allB = d.every(k=>k<0);
+    bx.fillStyle = r<L ? fg : mute; bx.globalAlpha = r<L ? 1 : 0.55;
+    bx.font=`${Math.min(12,pick*0.95)}px Georgia,serif`; bx.textAlign="center"; bx.textBaseline="middle";
+    bx.fillText(allF?"F":allB?"B":"·", lab/2, y);
+    bx.globalAlpha=1;
+  }
+  // repeat rule
+  bx.strokeStyle=acc; bx.lineWidth=1.5; bx.setLineDash([4,3]);
+  const yr = y0 + L*pick;
+  bx.beginPath(); bx.moveTo(2, yr); bx.lineTo(x0-6, yr); bx.moveTo(x0+cw*N+8, yr); bx.lineTo(W-2, yr); bx.stroke();
+  bx.setLineDash([]);
+  // twist row
+  const ty = y0 + R*pick + pick*0.6 + 14;
+  bx.font=`${Math.min(11, cw*0.45)}px Georgia,serif`;
+  bx.fillStyle=mute; bx.fillText("twist", lab/2, ty);
+  const tw = back ? res.twist.slice().reverse() : res.twist;
+  let bad = 0, worst = 0;
+  for(let c=0;c<N;c++){
+    const t = tw[c]; if(t!==0) bad++; worst=Math.max(worst,Math.abs(t));
+    bx.fillStyle = t===0 ? mute : acc;
+    bx.fillText(t===0 ? "0" : (t>0?"+":"−")+Math.abs(t), x0+c*cw+cw/2, ty);
+  }
+  geo = { x0, cw, lab, top, rh, N, L, R, y0, pick };
+
+  $("nc").textContent=N; $("nl").textContent=L;
+  $("sidebtn").setAttribute("aria-pressed", back);
+  $("sidebtn").textContent = back ? "see the face" : "see the back";
+  document.querySelectorAll("#presets button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.n===st.name));
+  document.querySelectorAll("#palette .sw").forEach(b=>b.setAttribute("aria-pressed", +b.dataset.i===st.paint));
+  const note=$("twistnote");
+  if(!bad){ note.textContent="Every card comes back to where it started at the end of each repeat. This band can be woven forever without the warp twisting up."; note.className=""; }
+  else { note.textContent=`${bad} of ${N} card${N>1?"s":""} gain twist each repeat (up to ${worst} quarter turns). Weave a metre of this and the warp behind those cards will rope up; turn them back for a while, or let the cards spin to undo it.`; note.className="bad"; }
+  save();
+}
+
+function pos(cv, e){ const r=cv.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+thr.addEventListener("click", e=>{
+  if(!geo) return; const [x,y]=pos(thr,e), {x0,cw,top,rh,N}=geo;
+  const c=Math.floor((x-x0)/cw); if(c<0||c>=N) return;
+  if(y<top) st.cards[c].holes = rot(st.cards[c].holes, 1);
+  else if(y<top+rh*4){ const h=Math.floor((y-top)/rh); st.cards[c].holes[h]=st.paint; }
+  else st.cards[c].z=!st.cards[c].z;
+  st.name=null; draw();
+});
+band.addEventListener("click", e=>{
+  if(!geo) return; const [x,y]=pos(band,e), {x0,cw,lab,N,L,R,y0,pick}=geo;
+  const r=Math.floor((y-y0)/pick); if(r<0||r>=R) return;
+  const row=st.seq[r%L];
+  if(x<lab){ const f = row.every(k=>k>0) ? -1 : 1; row.fill(f); }
+  else { let c=Math.floor((x-x0)/cw); if(c<0||c>=N) return; if(back) c=N-1-c; row[c]=-row[c]; }
+  st.name=null; draw();
+});
+let rt=0; window.addEventListener("resize", ()=>{ clearTimeout(rt); rt=setTimeout(draw,80); });
+matchMedia("(prefers-color-scheme:dark)").addEventListener?.("change", draw);
+draw();
+window.__twist = { get st(){return st;}, set st(v){st=v;}, weave, rot, turning, fromPreset, draw, act, get geo(){return geo;}, P };
+})();
+</script>
+</body>
+</html>

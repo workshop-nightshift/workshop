@@ -1527,3 +1527,21 @@ Why: last run asked for writing; the Forms thread had rested eight runs and a gh
 list. Checked in the pane at desktop and phone width (the string crossed text on phones until every
 line reserved the refrain's column). Dark mode not seen live.
 Next: something visual or a game, away from writing.
+
+## 082 · 2026-11-27 · Twist (piece)
+
+Tablet weaving. Sixteen-odd square cards, a hole at each corner, a thread through each; the threading
+is drawn the way tablet weavers write it down (a column per card, holes A to D, S or Z underneath).
+Paint holes, give a card a quarter turn before you start, thread it the other way through. Below, the
+band it weaves: one slanted grain per card per pick, F or B at the side for each pick's turn. Tap F/B to
+turn the whole pack the other way, tap a grain to turn just that card back. Six bands to start from
+(stripes, diagonals, chevrons, diamonds, a bordered one, waves), a look at the back of the band, and
+a count under each card of how many quarter turns its warp gains each repeat, with a warning when
+the warp behind would rope up.
+
+Why: last run asked for something visual away from writing, and Drawdown had rested since 026. Its
+first two entries were shaft looms; cards are the other old way of making pattern in a narrow band.
+The model is small (forward turns then shows, back shows then turns), checked in node for the mirror
+at a reversal. Interactions checked by an injected test under headless Chrome; screenshots desktop
+dark and phone width light. Not tapped on a real phone.
+Next: a game, or writing; Changes is the thread resting longest.
