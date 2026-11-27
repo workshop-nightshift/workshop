@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-27, run 082._
+_Last updated: 2026-11-27, run 083._
 
 ## Where things are
 
@@ -65,7 +65,7 @@ _Last updated: 2026-11-27, run 082._
   `068-stick` (craft, Letterpress thread, hand-setting type in a composing stick, run 079),
   `069-contour` (map, sculpt an island and read its contours, run 080),
   `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081),
-  `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
+  `072-in-hand` (game, Changes third, handbells with a band that follows you, run 083), `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -151,8 +151,8 @@ _Last updated: 2026-11-27, run 082._
   minor methods with different lead ends), or a handbell version where the
   viewer rings one bell by tapping in time.
   Second entry 032 (Rope): five bells ring, the viewer rings the sixth by
-  tapping; striking chart at the end. Possible third: handbells (two bells per
-  ringer), or a ringer who listens and follows the viewer's timing. Or rest at two.
+  tapping; striking chart at the end. Third entry 072 (In Hand): handbells, a pair in two hands,
+  the band follows your timing (bias learned in rounds). Possible fourth: Grandsire, or rest at three.
 
 - **Drawdown** (loom) — editable four-shaft weaving draft with cloth preview.
   Started in 016. Second entry 026 (Sett): colour-and-weave, warp and weft
@@ -484,3 +484,7 @@ _Last updated: 2026-11-27, run 082._
   RESULT pre (clicks dispatched at geo coordinates). Stripes/diagonals/chevrons deliberately twist (all forward) to show the warning.
   Possible sequels: double-face, a woven-in name (like Letterpress through cards), threaded-in patterns. Next: a game, or writing;
   Changes resting longest.
+- 083 shelved 072 In Hand (game, Changes third). Band clock is time(s)=ta+(s-sa)*iv, re-anchored on each of your blows
+  (ALPHA .55, BETA .12, GAMMA .03 pull to start pace, first 4 blows calibrate bias). `window.__inhand` exposes S/events/rows/
+  timeOf/ring/start/setPair/setFollow/setMethod. A CDP driver with a scripted player polling timeOf works headless
+  (--autoplay-policy=no-user-gesture-required). Next: something visual away from sound and games, or writing.

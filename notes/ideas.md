@@ -14,7 +14,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A puzzle with linked dials — done in 013 as Conjunction (orrery). Unequal years and a backwards gear — done in 029.
 - An erasure poem hiding in an official notice — done in 014 as House Rules.
 - Studies: the same scene drawn ten ways, one constraint each — done in 008 as Ten Ways. A still life — done in 030 as Noon Table.
-- Change ringing: bells that never repeat a row — done in 015 as Changes. Ring one bell yourself, in time — done in 032 as Rope.
+- Change ringing: bells that never repeat a row — done in 015 as Changes. Ring one bell yourself, in time — done in 032 as Rope. Handbells, a pair in two hands with a band that follows you — done in 072 as In Hand.
 - A weaving draft you can edit — done in 016 as Drawdown. Colour-and-weave — done in 026 as Sett. Tablet weaving with twist — done in 071 as Twist; double-face could follow.
 - Write in signal flags — done in 018 as Hoist.
 - A tide that changes the depths between casts — done in 019 as Half Tide. A stream that sets the boat off each mark — done in 054 as Set and Drift.

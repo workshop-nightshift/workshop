@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>In Hand</title>
+<style>
+:root{--bg:#f1efea;--fg:#1d1b18;--mute:#716b62;--line:#d8d3ca;--card:#faf9f6;--left:#2b5fb0;--right:#9a3f8c;--red:#b2402f;--strike:#c98a1f;--good:#2f8a5b}
+@media (prefers-color-scheme:dark){:root{--bg:#121110;--fg:#e8e4dd;--mute:#958e84;--line:#2e2b27;--card:#1a1917;--left:#7aa6ec;--right:#d98ccb;--red:#e47c69;--strike:#f0b851;--good:#6cc79a}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;padding:18px 16px 28px;display:flex;justify-content:center}
+main{width:100%;max-width:560px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 14px;font-style:italic}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 13px;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.4;cursor:default}
+button[aria-pressed=true]{border-color:var(--fg)}
+button.big{font-size:16px;padding:7px 20px;border-color:var(--fg)}
+.row{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin:0 0 10px}
+.lab{color:var(--mute);font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin-right:2px}
+.card{background:var(--card);border:1px solid var(--line);padding:6px 8px}
+canvas{display:block;width:100%;height:400px}
+.hands{display:flex;gap:10px;margin:10px 0 0}
+.hand{flex:1;padding:20px 0;border-radius:10px;font-size:17px;letter-spacing:.08em;border:1px solid var(--line);background:var(--card);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.hand small{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+#hL{border-bottom:3px solid var(--left)} #hR{border-bottom:3px solid var(--right)}
+.hand.hit{background:var(--strike);color:#1d1b18}
+.hand.hit small{color:#1d1b18}
+#status{min-height:3em;margin:12px 2px 0;font-style:italic}
+#status b{font-style:normal;font-weight:normal}
+input[type=range]{accent-color:var(--left);width:120px}
+.note{color:var(--mute);font-size:14px;margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+.note p{margin:0 0 .7em}
+.kb{font-family:"Courier New",monospace;font-size:13px;border:1px solid var(--line);border-radius:3px;padding:0 4px}
+</style>
+</head>
+<body>
+<main>
+<h1>In Hand</h1>
+<p class="sub">Six handbells round a table. Two are yours, one in each hand.</p>
+
+<div class="row">
+  <span class="lab">Ring</span>
+  <button id="mHunt" aria-pressed="true">Plain hunt</button>
+  <button id="mBob" aria-pressed="false">Plain bob</button>
+</div>
+<div class="row">
+  <span class="lab">Your pair</span>
+  <span id="pick"></span>
+</div>
+<div class="row">
+  <span class="lab">The others</span>
+  <button id="fFollow" aria-pressed="true">Follow you</button>
+  <button id="fKeep" aria-pressed="false">Keep their time</button>
+</div>
+<div class="row">
+  <button id="go" class="big">Start</button>
+  <button id="stand" disabled>Stand</button>
+  <button id="auto" aria-pressed="false">Ring mine for me</button>
+  <label class="lab" style="margin-left:auto">Pace <input id="pace" type="range" min="240" max="480" value="380"></label>
+</div>
+
+<div class="card"><canvas id="c"></canvas></div>
+<div class="hands">
+  <button class="hand" id="hL" disabled><small>left · <span class="kb">F</span></small><span id="nL">1</span></button>
+  <button class="hand" id="hR" disabled><small>right · <span class="kb">J</span></small><span id="nR">2</span></button>
+</div>
+<div id="status">Pick a pair and press start. Sound will play.</div>
+
+<div class="note">
+  <p>Handbell ringers sit in a ring, each holding two bells, and ring the same methods as a
+  tower band. The difference is that every ringer has two lines to follow at once, one in
+  each hand, and they cross, part and meet again. The trick is not to watch both but to
+  feel where they are against each other.</p>
+  <p>Here the other four bells are rung by two ringers who listen. When <i>follow you</i>
+  is on, they take their time from yours: strike a little late and the next blows come a
+  little later; hurry and the whole band hurries with you. (They spend your first few
+  blows in rounds learning your habit, so a steady lean, or a slow speaker, isn't
+  chased; it's the change they hear.) The pace strip at the right of
+  the chart shows where you took them. With <i>keep their time</i> they ring like a
+  metronome and leave you to fit in.</p>
+  <p>Tap the left and right buttons (or <span class="kb">F</span> and <span class="kb">J</span>)
+  when each of your bells comes up in the row. A dot on your number is dead on; left of it
+  was early, right was late. Two rounds are rung for you first, to listen.</p>
+</div>
+</main>
+
+<script>
+(()=>{
+const N=6, ROUNDS=[1,2,3,4,5,6];
+const $=id=>document.getElementById(id);
+const cv=$('c'), cx=cv.getContext('2d');
+let method='hunt', pair=1, auto=false, follow=true;
+const mineL=()=>2*pair-1, mineR=()=>2*pair;
+
+// ---- place notation ----
+function change(row,places){
+  const r=row.slice(); let i=0;
+  while(i<N){
+    if(places.includes(i+1)){i++;continue}
+    if(i+1<N && !places.includes(i+2)){[r[i],r[i+1]]=[r[i+1],r[i]];i+=2}else i++;
+  }
+  return r;
+}
+const X=[], P16=[1,6], P12=[1,2];
+function methodChanges(m){
+  const a=[];
+  if(m==='hunt'){for(let k=0;k<6;k++)a.push(X,P16)}
+  else for(let l=0;l<5;l++){for(let k=0;k<5;k++)a.push(X,P16);a.push(X,P12)}
+  return a;
+}
+
+// ---- ui ----
+const pk=[];
+for(let p=1;p<=3;p++){const btn=document.createElement('button');btn.textContent=(2*p-1)+'–'+(2*p);btn.style.marginRight='6px';btn.setAttribute('aria-pressed',p===pair);
+  btn.onclick=()=>{if(running)return;pair=p;pk.forEach((x,i)=>x.setAttribute('aria-pressed',i+1===p));$('nL').textContent=mineL();$('nR').textContent=mineR();preview()};$('pick').appendChild(btn);pk.push(btn)}
+function setMethod(m){if(running)return;method=m;$('mHunt').setAttribute('aria-pressed',m==='hunt');$('mBob').setAttribute('aria-pressed',m==='bob');preview()}
+$('mHunt').onclick=()=>setMethod('hunt');
+$('mBob').onclick=()=>setMethod('bob');
+function setFollow(f){if(running)return;follow=f;$('fFollow').setAttribute('aria-pressed',f);$('fKeep').setAttribute('aria-pressed',!f)}
+$('fFollow').onclick=()=>setFollow(true);
+$('fKeep').onclick=()=>setFollow(false);
+$('auto').onclick=()=>{if(running)return;auto=!auto;$('auto').setAttribute('aria-pressed',auto)};
+const LOCK=['mHunt','mBob','fFollow','fKeep','auto','pace'];
+
+// ---- audio: handbells, bright and short, the twelfth strong ----
+let ac=null, master=null, comp=null, lat=0;
+const steps=[9,7,5,4,2,0], TENOR=392.0;
+const freq=b=>TENOR*Math.pow(2,steps[b-1]/12);
+const PART=[[1,1,1.6],[3,.42,.7],[2.01,.06,.5],[5.04,.08,.25],[6.3,.04,.15]];
+function strike(b,t,vol){
+  const f=freq(b), g=ac.createGain(); g.gain.value=.15*(vol||1);
+  let out=g;
+  if(ac.createStereoPanner){const pan=ac.createStereoPanner();pan.pan.value=(b-3.5)/5;g.connect(pan);out=pan}
+  out.connect(master);
+  for(const [m,a,d] of PART){
+    const o=ac.createOscillator(), e=ac.createGain();
+    o.type='sine'; o.frequency.value=f*m*(1+(Math.random()-.5)*.0015);
+    e.gain.setValueAtTime(0,t); e.gain.linearRampToValueAtTime(a,t+.003);
+    e.gain.exponentialRampToValueAtTime(.0005,t+d);
+    o.connect(e); e.connect(g); o.start(t); o.stop(t+d+.05);
+  }
+}
+
+// ---- the touch ----
+// Every blow has a slot number s (handstroke gaps count as a slot). The band's clock is
+// time(s) = ta + (s - sa) * iv, re-anchored whenever one of your blows lands.
+// rows: {r, s0, tag, iv}; events: {s, row, pos, bell, mine, hand, err, missed, ts}
+let running=false, done=false, rows=[], events=[], iv=.38, iv0=.38, sa=0, ta=0, schedIdx=0, strays=0;
+const LISTEN=2, LOOK=.07, ALPHA=.55, BETA=.12, GAMMA=.03, CAL=4;
+let calib=[], bias=0;
+function build(){
+  rows=[]; events=[];
+  const seq=[ROUNDS,ROUNDS,ROUNDS,ROUNDS]; let cur=ROUNDS.slice();
+  for(const p of methodChanges(method)){cur=change(cur,p);seq.push(cur)}
+  seq.push(ROUNDS,ROUNDS);
+  let s=0;
+  seq.forEach((r,i)=>{
+    if(i>0&&i%2===0)s+=1;
+    const tag=i===0?'listen':i===LISTEN?'yours':i===3?(method==='hunt'?'go hunt':'go bob'):i===seq.length-2?"that's all":i===seq.length-1?'stand':'';
+    rows.push({r,s0:s,tag,iv:null});
+    for(let p=0;p<N;p++){
+      const b=r[p], m=(b===mineL()||b===mineR())&&i>=LISTEN&&!auto;
+      events.push({s,row:i,pos:p,bell:b,mine:m,hand:b===mineL()?'L':b===mineR()?'R':null,err:null,missed:false,ts:null});
+      s++;
+    }
+  });
+}
+const timeOf=s=>ta+(s-sa)*iv;
+function preview(){done=false;iv=iv0=+$('pace').value/1000;sa=0;ta=0;build();viewT=-1}
+let viewT=-1;
+function start(){
+  if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();comp=ac.createDynamicsCompressor();comp.connect(ac.destination)}
+  ac.resume();
+  master=ac.createGain();master.gain.value=.9;master.connect(comp);
+  lat=(ac.outputLatency||0)+(ac.baseLatency||0);
+  iv=iv0=+$('pace').value/1000;
+  sa=0; ta=ac.currentTime+.6;
+  build();
+  schedIdx=0; strays=0; calib=[]; bias=0; running=true; done=false; say.took=0;
+  $('go').disabled=true; $('stand').disabled=false; $('hL').disabled=$('hR').disabled=auto;
+  LOCK.forEach(id=>$(id).disabled=true); pk.forEach(b=>b.disabled=true);
+  say(auto?`Listen. The ${mineL()} and ${mineR()} are rung for you.`:`Rounds, rung for you twice. Your bells are the ${ordinal(mineL())} and ${ordinal(mineR())} in each row; then they're yours.`);
+}
+function ordinal(n){return n+(n===1?'st':n===2?'nd':n===3?'rd':'th')}
+function stop(early){
+  running=false; done=true;
+  if(master){const t=ac.currentTime,m=master;m.gain.setTargetAtTime(0,t,early?.2:.6);setTimeout(()=>m.disconnect(),3000)}
+  if(early){const cut=ac.currentTime-lat;events.forEach(e=>{if((e.ts!==null?e.ts:timeOf(e.s))>cut)e.cut=true})}
+  $('go').disabled=false; $('go').textContent='Again'; $('stand').disabled=true; $('hL').disabled=$('hR').disabled=true;
+  LOCK.forEach(id=>$(id).disabled=false); pk.forEach(b=>b.disabled=false);
+  report(early);
+}
+function stats(list){
+  const ms=list.map(e=>e.err*1000);
+  if(!ms.length)return null;
+  const mean=ms.reduce((a,b)=>a+b,0)/ms.length;
+  return {n:ms.length,mean,rms:Math.sqrt(ms.reduce((a,b)=>a+b*b,0)/ms.length),good:ms.filter(x=>Math.abs(x)<=40).length};
+}
+function report(early){
+  const mine=events.filter(e=>e.mine&&!e.cut);
+  if(auto){say(early?'Stood.':'Stood. Now try them yourself: switch off <i>ring mine for me</i>.');return}
+  if(!mine.length){say('Stood before your bells were yours.');return}
+  const hit=mine.filter(e=>e.err!==null), miss=mine.length-hit.length;
+  if(!hit.length){say(`Stood. Neither bell found its place: ${miss} blow${miss===1?'':'s'} missed${strays?`, ${strays} stray`:''}. Try one hand first, with the other rung for you at the slowest pace.`);return}
+  const all=stats(hit), L=stats(hit.filter(e=>e.hand==='L')), R=stats(hit.filter(e=>e.hand==='R'));
+  const word=all.rms<=28?'Fine striking. Nobody at the table looks up.':all.rms<=50?'Good striking, a little ragged.':all.rms<=85?'Lumpy. The others are making room for you.':'Clips and drags. Try the slowest pace, and one hand at a time in your head.';
+  let s=`${early?'Stood. ':''}${hit.length} of ${mine.length} blows struck${miss?`, ${miss} missed`:''}${strays?`, ${strays} stray`:''}. Typical error ${Math.round(all.rms)} ms. <b>${word}</b>`;
+  if(Math.abs(bias)>.03)s+=` You struck a steady ${Math.round(Math.abs(bias)*1000)} ms ${bias<0?'early':'late'} from the start; the band took that as your habit (or your device's delay) and didn't chase it.`;
+  if(L&&R&&Math.abs(L.rms-R.rms)>15)s+=` Your ${L.rms<R.rms?'left':'right'} hand was the steadier (${Math.round(Math.min(L.rms,R.rms))} ms against ${Math.round(Math.max(L.rms,R.rms))}).`;
+  const ivs=rows.map(r=>r.iv).filter(x=>x);
+  if(follow&&ivs.length){
+    const end=ivs[ivs.length-1]*1000, st=iv0*1000, d=end-st;
+    s+=Math.abs(d)<12?` The band held the pace you were given, ${Math.round(st)} ms a blow.`:` You took the band from ${Math.round(st)} ms a blow to ${Math.round(end)}: ${d<0?'you hurried them':'you held them back'}.`;
+  }
+  say(s);
+}
+function say(h){$('status').innerHTML=h}
+
+// ---- ringing ----
+const flash={L:0,R:0};
+function ring(hand){
+  if(!running||auto)return;
+  const t=ac.currentTime, b=hand==='L'?mineL():mineR();
+  strike(b,t);
+  flash[hand]=performance.now();
+  const heard=t-lat;
+  let best=null,bd=1e9;
+  for(const e of events){
+    if(!e.mine||e.hand!==hand||e.err!==null||e.missed)continue;
+    const d=heard-timeOf(e.s);
+    if(d<-iv*1.2)break;
+    if(Math.abs(d)<bd){bd=Math.abs(d);best=e}
+  }
+  if(best&&bd<iv*.9){
+    const due=timeOf(best.s);
+    best.err=heard-due; best.ts=heard;
+    // the first few blows, in rounds, teach the band your habit (and your device's delay);
+    // after that they follow how you differ from it
+    if(calib.length<CAL){calib.push(best.err);if(calib.length===CAL)bias=Math.max(-.08,Math.min(.08,calib.reduce((a,b)=>a+b,0)/CAL))}
+    else if(follow){
+      const e=best.err-bias;
+      ta=due+ALPHA*e; sa=best.s;
+      iv=Math.max(iv0*.72,Math.min(iv0*1.35,iv+BETA*e-GAMMA*(iv-iv0)));
+    }
+  } else strays++;
+}
+function bindHand(id,hand){
+  const el=$(id);
+  el.addEventListener('pointerdown',e=>{e.preventDefault();ring(hand)});
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+}
+bindHand('hL','L'); bindHand('hR','R');
+document.addEventListener('keydown',e=>{
+  if(e.repeat||!running)return;
+  const k=e.key.toLowerCase();
+  if(k==='f'||k==='d'||e.key==='ArrowLeft'){e.preventDefault();ring('L')}
+  else if(k==='j'||k==='k'||e.key==='ArrowRight'){e.preventDefault();ring('R')}
+});
+$('go').onclick=start;
+$('stand').onclick=()=>stop(true);
+
+// ---- loop: scheduling, misses, drawing ----
+let W=0,H=0,dpr=1;
+function size(){dpr=window.devicePixelRatio||1;const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr}
+window.addEventListener('resize',size); size();
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const RH=24;
+function tick(){
+  requestAnimationFrame(tick);
+  if(running)advance();
+  $('hL').classList.toggle('hit',performance.now()-flash.L<110);
+  $('hR').classList.toggle('hit',performance.now()-flash.R<110);
+  draw();
+}
+function advance(){
+  const now=ac.currentTime;
+  // schedule the band's blows a moment ahead; your own wait for you
+  while(schedIdx<events.length){
+    const e=events[schedIdx];
+    if(e.mine){schedIdx++;continue}
+    const t=timeOf(e.s);
+    if(t>now+LOOK)break;
+    const at=Math.max(t,now+.005);
+    strike(e.bell,at); e.ts=at; schedIdx++;
+    if(rows[e.row].iv===null)rows[e.row].iv=iv;
+  }
+  // a mine blow scheduled-past but never matched
+  for(const e of events){if(e.mine&&e.err===null&&!e.missed&&now-lat>timeOf(e.s)+iv*.9)e.missed=true}
+  const vt=now-lat, last=events[events.length-1];
+  if(schedIdx>=events.length&&vt>(last.ts||timeOf(last.s))+1.0)stop(false);
+  else{
+    const r=rowAt(vt);
+    if(!auto&&r>=LISTEN&&r<LISTEN+2&&!say.took){say(`Yours now: left on the ${ordinal(mineL())}, right on the ${ordinal(mineR())}.`);say.took=1}
+  }
+}
+function rowTime(i){const e=events[i*N];return e.ts!==null&&!e.mine?e.ts:timeOf(rows[i].s0)}
+function rowAt(t){let r=0;while(r+1<rows.length&&rowTime(r+1)<=t)r++;return r}
+function draw(){
+  cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,W,H);
+  const col={fg:css('--fg'),mute:css('--mute'),L:css('--left'),R:css('--right'),red:css('--red'),strike:css('--strike'),line:css('--line'),card:css('--card'),good:css('--good')};
+  if(!rows.length)preview();
+  if(done&&!auto)return chart(col);
+  const vt=running?ac.currentTime-lat:viewT;
+  let r=rowAt(vt), frac=0;
+  if(vt<rowTime(0)){r=0;frac=0}
+  else if(r+1<rows.length)frac=Math.max(0,Math.min(1,(vt-rowTime(r))/(rowTime(r+1)-rowTime(r))));
+  const left=44, colW=(W-left-56)/N;
+  const X_=p=>left+colW*(p+.5);
+  const baseY=H*.36-(r+frac)*RH, Y_=i=>baseY+i*RH;
+  let ce=-1; for(let k=0;k<events.length;k++){const e=events[k];const t=e.ts!==null?e.ts:null;if(t!==null&&t<=vt&&vt-t<.2)ce=k}
+  const first=Math.max(0,Math.floor(-baseY/RH)-1), lastV=Math.min(rows.length-1,Math.ceil((H-baseY)/RH)+1);
+  cx.strokeStyle=col.line;cx.lineWidth=1;cx.setLineDash([3,4]);cx.beginPath();cx.moveTo(left-10,H*.36+RH*.5);cx.lineTo(W-48,H*.36+RH*.5);cx.stroke();cx.setLineDash([]);
+  const bL=mineL(), bR=mineR();
+  function path(b,c,w,alpha){
+    cx.strokeStyle=c;cx.lineWidth=w;cx.lineJoin='round';
+    for(let i=first+1;i<=lastV;i++){
+      cx.globalAlpha=alpha*(i<=r+1?1:Math.max(.12,.6-(i-r)*.07));
+      cx.beginPath();cx.moveTo(X_(rows[i-1].r.indexOf(b)),Y_(i-1));cx.lineTo(X_(rows[i].r.indexOf(b)),Y_(i));cx.stroke();
+    }
+    cx.globalAlpha=1;
+  }
+  if(pair!==1)path(1,col.red,1.2,.45);
+  path(bL,col.L,2.5,.9);
+  path(bR,col.R,2.5,.9);
+  cx.textAlign='center';
+  for(let i=first;i<=lastV;i++){
+    const y=Y_(i), row=rows[i].r, ahead=i>r;
+    cx.globalAlpha=ahead?Math.max(.15,.75-(i-r)*.08):1;
+    if(rows[i].tag){cx.fillStyle=col.mute;cx.font='italic 13px Georgia,serif';cx.textAlign='right';cx.fillText(rows[i].tag,W-2,y+4);cx.textAlign='center'}
+    const chNo=i-3; if(chNo>0&&chNo%6===0&&chNo<rows.length-5){cx.fillStyle=col.mute;cx.font='11px "Courier New",monospace';cx.textAlign='right';cx.fillText(chNo,left-14,y+4);cx.textAlign='center'}
+    for(let p=0;p<N;p++){
+      const k=i*N+p, e=events[k], b=row[p], x=X_(p);
+      const hot=k===ce;
+      const c=b===bL?col.L:b===bR?col.R:null;
+      if(c||b===1||hot){const ga=cx.globalAlpha;cx.globalAlpha=1;cx.beginPath();cx.arc(x,y,9,0,7);cx.fillStyle=col.card;cx.fill();cx.globalAlpha=ga}
+      if(e.mine&&(!ahead||i===r+1)){cx.beginPath();cx.arc(x,y,10,0,7);cx.strokeStyle=c;cx.lineWidth=1;cx.stroke()}
+      cx.font='15px "Courier New",monospace';
+      cx.fillStyle=hot?col.strike:c?c:b===1?col.red:col.fg;
+      cx.fillText(b,x,y+5);
+      if(e.err!==null)dot(x+e.err/iv*colW,y,e.err,col);
+      if(e.missed){cx.strokeStyle=col.red;cx.lineWidth=1.5;cx.beginPath();cx.moveTo(x-6,y+11);cx.lineTo(x+6,y+11);cx.stroke()}
+    }
+    cx.globalAlpha=1;
+  }
+}
+function dot(x,y,err,col){
+  const a=Math.abs(err)*1000;
+  cx.beginPath();cx.arc(x,y+12,3.2,0,7);cx.fillStyle=a<=40?col.good:a<=80?col.strike:col.red;cx.fill();
+}
+// after: striking chart, both hands, with the band's pace down the right
+function chart(col){
+  const used=rows.map((_,i)=>i).filter(i=>i>=LISTEN&&!events[i*N].cut);
+  if(!used.length)return;
+  const top=26, bot=16, rh=Math.min(RH,(H-top-bot)/used.length);
+  const left=40, colW=(W-left-64)/N, X_=p=>left+colW*(p+.5);
+  cx.fillStyle=col.mute;cx.font='italic 13px Georgia,serif';cx.textAlign='left';
+  cx.fillText('striking chart: every blow, by when it fell',left-26,16);
+  const yOf=j=>top+j*rh+rh/2;
+  for(const [b,c] of [[mineL(),col.L],[mineR(),col.R]]){
+    cx.strokeStyle=c;cx.globalAlpha=.22;cx.lineWidth=1;cx.beginPath();
+    used.forEach((i,j)=>{const x=X_(rows[i].r.indexOf(b));j?cx.lineTo(x,yOf(j)):cx.moveTo(x,yOf(j))});cx.stroke();cx.globalAlpha=1;
+    cx.lineWidth=1.8;cx.beginPath();let st=false;
+    used.forEach((i,j)=>{const p=rows[i].r.indexOf(b),e=events[i*N+p];
+      if(e.err===null){st=false;return}const x=X_(p)+e.err/(rows[i].iv||iv0)*colW;st?cx.lineTo(x,yOf(j)):cx.moveTo(x,yOf(j));st=true});
+    cx.stroke();
+  }
+  const s=Math.max(2,Math.min(4,rh*.3));
+  used.forEach((i,j)=>{
+    const y=yOf(j);
+    for(let p=0;p<N;p++){
+      const e=events[i*N+p],x=X_(p);
+      if(e.mine){
+        if(e.err!==null){const a=Math.abs(e.err)*1000;cx.beginPath();cx.arc(x+e.err/(rows[i].iv||iv0)*colW,y,s,0,7);cx.fillStyle=a<=40?col.good:a<=80?col.strike:col.red;cx.fill()}
+        else{cx.strokeStyle=col.red;cx.lineWidth=1.2;cx.beginPath();cx.moveTo(x-s,y-s);cx.lineTo(x+s,y+s);cx.moveTo(x+s,y-s);cx.lineTo(x-s,y+s);cx.stroke()}
+      }else{cx.beginPath();cx.arc(x,y,Math.max(1,Math.min(2,rh*.15)),0,7);cx.fillStyle=e.bell===1?col.red:col.mute;cx.fill()}
+    }
+  });
+  // pace strip: the band's interval per row, centred on where it began
+  const px=W-30, span=22;
+  cx.strokeStyle=col.line;cx.lineWidth=1;cx.beginPath();cx.moveTo(px,top);cx.lineTo(px,yOf(used.length-1));cx.stroke();
+  cx.strokeStyle=col.fg;cx.lineWidth=1.5;cx.beginPath();let st=false;
+  used.forEach((i,j)=>{const v=rows[i].iv;if(!v){st=false;return}const x=px+Math.max(-1,Math.min(1,(v-iv0)/(iv0*.3)))*span;st?cx.lineTo(x,yOf(j)):cx.moveTo(x,yOf(j));st=true});
+  cx.stroke();
+  cx.fillStyle=col.mute;cx.font='11px "Courier New",monospace';cx.textAlign='center';
+  cx.fillText('pace',px,top-4);
+  cx.fillText('← early',left+colW*.5,H-2);cx.fillText('late →',left+colW*(N-1.2),H-2);
+  cx.fillText('fast·slow',px,H-2);
+}
+window.__inhand={get S(){return {running,done,iv,iv0,sa,ta,lat,strays,follow,bias,auto,pair,method}},events:()=>events,rows:()=>rows,timeOf,ring,start,stop,setFollow,setPair:p=>pk[p-1].onclick(),setMethod,setAuto:v=>{auto=v;$('auto').setAttribute('aria-pressed',v)},ac:()=>ac,status:()=>$('status').innerHTML};
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
