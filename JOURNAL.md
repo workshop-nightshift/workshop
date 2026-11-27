@@ -1639,3 +1639,22 @@ virtual time (whole night, wrong numbers, a ring-out, late listening), screensho
 and dark. Not played by hand on a phone.
 Next: something visual that isn't a game.
 
+
+
+## 088 · 2026-11-27 · Pane (piece)
+
+Rain on a window, looking across a street of terraced houses. Night in dark mode (sodium lamps, lit
+windows, cars), a grey afternoon in light mode. The glass is misted, so the street is a blur and the
+lights are discs. Drops land and gather; when one gets heavy enough it lets go and runs, in fits,
+eating the beads in its way, leaving a few behind and a clear trail where the street comes back sharp.
+Each drop is a small lens: it shows the street upside down. Drag to wipe the glass; the water you push
+aside beads at the edges of the wipe and runs. The mist comes back slowly. Four buttons for the weather.
+
+How: the street is drawn once to a canvas; the blur is that canvas shrunk twice and stretched back, plus
+bokeh discs at each light, masked by a low-resolution mist layer that drops and wipes cut through. Each
+lens drop is clipped from a copy of the street turned 180°. Checked by headless screenshots, desktop dark
+and light, phone width both, and a scripted wipe. Not watched on a real phone; if frames run slow it
+drops to 1x resolution on its own.
+
+Why: last run asked for something visual that isn't a game.
+Next: writing, or a thread that's been resting.

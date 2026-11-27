@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pane</title>
+<style>
+:root{--bg:#d9dcdd;--fg:#1d1f21;--mute:#50565b;--line:#1d1f2133;--on:#1d1f21;--onfg:#eef0f0;--veil:#e8ebecb8}
+@media (prefers-color-scheme:dark){:root{--bg:#0c0e13;--fg:#e4e2dc;--mute:#a8a49a;--line:#e4e2dc33;--on:#e4e2dc;--onfg:#0c0e13;--veil:#0c0e13a6}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden}
+body{font:15px/1.45 Georgia,"Iowan Old Style",serif}
+canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;touch-action:none;cursor:grab}
+canvas.wiping{cursor:grabbing}
+header{position:fixed;left:0;right:0;top:0;padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px 16px;flex-wrap:wrap;pointer-events:none}
+#cap{background:var(--veil);padding:6px 10px 7px;border-radius:6px;max-width:24em;transition:opacity 2.5s}
+#cap.faded{opacity:.25}
+#cap:hover{opacity:1}
+h1{font-size:20px;font-weight:normal;font-style:italic;margin:0;letter-spacing:.02em}
+#cap p{margin:2px 0 0;color:var(--mute);font-style:italic;font-size:14px}
+#ui{display:flex;gap:4px;flex-wrap:wrap;pointer-events:auto;background:var(--veil);padding:5px;border-radius:6px}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 9px;cursor:pointer}
+button[aria-pressed=true]{background:var(--on);color:var(--onfg);border-color:var(--on)}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="a rain-wet window looking across a street of terraced houses; drag to wipe the glass"></canvas>
+<header>
+  <div id="cap">
+    <h1>Pane</h1>
+    <p>Rain on the window, the street across the way. Each drop holds the street upside down. Drag to wipe the glass.</p>
+  </div>
+  <div id="ui" role="group" aria-label="rain">
+    <button data-r="0" aria-pressed="false">drizzle</button>
+    <button data-r="1" aria-pressed="true">steady</button>
+    <button data-r="2" aria-pressed="false">downpour</button>
+    <button data-r="3" aria-pressed="false">easing off</button>
+  </div>
+</header>
+<script>
+(()=>{
+'use strict';
+const TAU=Math.PI*2;
+const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+const mq=matchMedia('(prefers-color-scheme: dark)');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let dark=mq.matches;
+let W=0,H=0,DPR=1,S=1;
+function mk(w,h){const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w));c.height=Math.max(1,Math.round(h));return c;}
+let stat,stx,scene,sctx,flip,fctx,s1,s1x,s2,s2x,blur,bx,mist,mx,sprite;
+const BS=0.5, MS=0.25;           // blur layer scale, mist scale
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shade(hex,k){const n=parseInt(hex.slice(1),16);const r=(n>>16)&255,g=(n>>8)&255,b=n&255;return`rgb(${r*k|0},${g*k|0},${b*k|0})`;}
+
+/* ---------------- the street ---------------- */
+let houses=[],lamps=[],trees=[],yb=0,roadTop=0,roadBot=0;
+const WALLS=['#9a5a44','#a8664c','#8e5040','#b89a78','#c8c0ae','#8f8a80','#7d4a3a','#b0866a'];
+const DOORS=['#2f4a5a','#6a2a2a','#2e4a36','#1f2a3a','#7a6a2a','#3a2a4a'];
+function layout(){
+  const R=mulberry(1955);
+  S=H/800; if(W<600) S=Math.min(S,W/520);
+  yb=H*0.6; roadTop=yb+H*0.045; roadBot=H*0.86;
+  houses=[];let x=-R()*80*S;
+  while(x<W+60*S){
+    const w=(120+R()*60)*S, h=(180+R()*90)*S;
+    const cols=w>150*S?3:2, floors=h>230*S?3:2;
+    const wins=[];
+    const ww=w/(cols*2.1), wh=Math.min(ww*1.55,(h-30*S)/(floors*1.7));
+    const doorCol=(R()*cols)|0;
+    for(let f=0;f<floors;f++)for(let c=0;c<cols;c++){
+      const wx=x+w*(c+0.5)/cols-ww/2, wy=yb-h+ (f+0.5)*h/floors - wh/2 + 4*S;
+      if(f===floors-1&&c===doorCol)continue;
+      wins.push({x:wx,y:wy,w:ww,h:wh,lit:R()<0.42,warm:R()});
+    }
+    const dw=ww*0.75, dh=Math.min(h/floors*0.82,56*S);
+    houses.push({x,w,h,wall:WALLS[(R()*WALLS.length)|0],door:DOORS[(R()*DOORS.length)|0],
+      roof:R()<0.65?'gable':'flat',chim:R()<0.8?(R()<0.5?0.18:0.82):-1,wins,
+      dx:x+w*(doorCol+0.5)/cols-dw/2,dw,dh});
+    x+=w;
+  }
+  lamps=[];for(let lx=(70+R()*80)*S;lx<W+40*S;lx+=(250+R()*60)*S)lamps.push({x:lx,y:roadTop-2*S,top:roadTop-2*S-200*S});
+  trees=[];const nt=W>700?2:1;for(let i=0;i<nt;i++){let tx;do{tx=W*(0.15+R()*0.7);}while(lamps.some(l=>Math.abs(l.x-tx)<60*S));trees.push({x:tx,h:(170+R()*60)*S,seed:(R()*1e6)|0});}
+}
+function drawStatic(){
+  const c=stx;c.setTransform(DPR,0,0,DPR,0,0);
+  // sky
+  let g=c.createLinearGradient(0,0,0,yb);
+  if(dark){g.addColorStop(0,'#090c16');g.addColorStop(0.6,'#1a1a26');g.addColorStop(1,'#3a2a2a');}
+  else{g.addColorStop(0,'#b9c0c6');g.addColorStop(1,'#dcdfde');}
+  c.fillStyle=g;c.fillRect(0,0,W,yb+2);
+  // a far roofline behind
+  c.fillStyle=dark?'#14141c':'#aab0b2';
+  const R=mulberry(77);c.beginPath();c.moveTo(0,yb);
+  for(let x=0;x<=W+40;x+=30*S){c.lineTo(x,yb-(290+R()*40)*S);}c.lineTo(W,yb);c.fill();
+  // houses
+  for(const hs of houses){
+    const wk=dark?0.2:1, top=yb-hs.h;
+    c.fillStyle=shade(hs.wall,wk);c.fillRect(hs.x,top,hs.w+0.5,hs.h);
+    // roof
+    c.fillStyle=dark?'#101116':'#5a6068';
+    if(hs.roof==='gable'){c.beginPath();c.moveTo(hs.x-4*S,top);c.lineTo(hs.x+hs.w/2,top-hs.w*0.28);c.lineTo(hs.x+hs.w+4*S,top);c.fill();}
+    else{c.fillRect(hs.x,top-8*S,hs.w,8*S);}
+    if(hs.chim>=0){const cx=hs.x+hs.w*hs.chim;c.fillStyle=shade(hs.wall,wk*0.85);
+      const ch=hs.roof==='gable'?hs.w*0.22:22*S;c.fillRect(cx-9*S,top-ch-18*S,18*S,ch+18*S);
+      c.fillStyle=dark?'#18120e':'#8a4a30';c.fillRect(cx-6*S,top-ch-26*S,5*S,9*S);c.fillRect(cx+1*S,top-ch-24*S,5*S,7*S);}
+    // windows
+    for(const w of hs.wins){
+      c.fillStyle=dark?'#22201e':'#eeeeea';c.fillRect(w.x-3*S,w.y-3*S,w.w+6*S,w.h+6*S);
+      if(dark&&w.lit){const wg=c.createLinearGradient(0,w.y,0,w.y+w.h);
+        const a=w.warm<0.7?['#ffd88a','#e8a050']:['#d8e4ff','#8aa0d0'];
+        wg.addColorStop(0,a[0]);wg.addColorStop(1,a[1]);c.fillStyle=wg;}
+      else if(dark)c.fillStyle='#0d0f14';
+      else{const wg=c.createLinearGradient(0,w.y,0,w.y+w.h);wg.addColorStop(0,'#8e9ca6');wg.addColorStop(1,'#4c5660');c.fillStyle=wg;}
+      c.fillRect(w.x,w.y,w.w,w.h);
+      c.fillStyle=dark?'#22201e':'#eeeeea';c.fillRect(w.x,w.y+w.h*0.48,w.w,2*S);c.fillRect(w.x+w.w/2-1*S,w.y,2*S,w.h);
+      if(dark&&w.lit&&w.warm>0.4){c.fillStyle='rgba(120,40,30,0.55)';c.fillRect(w.x,w.y,w.w*0.22,w.h);c.fillRect(w.x+w.w*0.78,w.y,w.w*0.22,w.h);}
+    }
+    // door
+    c.fillStyle=dark?shade(hs.door,0.35):hs.door;c.fillRect(hs.dx,yb-hs.dh,hs.dw,hs.dh);
+    c.fillStyle=dark?'#3a3020':'#c9b27a';c.fillRect(hs.dx+hs.dw*0.78,yb-hs.dh*0.5,2.5*S,2.5*S);
+  }
+  // pavement, kerb, road
+  c.fillStyle=dark?'#1c1c20':'#8d908f';c.fillRect(0,yb,W,roadTop-yb);
+  c.fillStyle=dark?'#2a2a2e':'#a9acab';c.fillRect(0,roadTop-3*S,W,3*S);
+  g=c.createLinearGradient(0,roadTop,0,roadBot);
+  if(dark){g.addColorStop(0,'#101116');g.addColorStop(1,'#16171c');}else{g.addColorStop(0,'#5e6366');g.addColorStop(1,'#4a4e51');}
+  c.fillStyle=g;c.fillRect(0,roadTop,W,roadBot-roadTop);
+  // centre line
+  c.fillStyle=dark?'#3a3a36':'#c9c9c0';const cy=(roadTop+roadBot)/2;
+  for(let x=10*S;x<W;x+=70*S)c.fillRect(x,cy-1.5*S,36*S,3*S);
+  // wet reflections
+  if(dark){
+    for(const l of lamps){const rg=c.createLinearGradient(0,roadTop,0,roadBot);rg.addColorStop(0,'rgba(255,170,80,0.55)');rg.addColorStop(1,'rgba(255,170,80,0)');
+      c.fillStyle=rg;c.fillRect(l.x+16*S-7*S,roadTop,14*S,roadBot-roadTop);}
+    for(const hs of houses)for(const w of hs.wins)if(w.lit&&w.y>yb-hs.h*0.6){
+      const rg=c.createLinearGradient(0,roadTop,0,roadTop+(roadBot-roadTop)*0.5);rg.addColorStop(0,'rgba(255,200,120,0.16)');rg.addColorStop(1,'rgba(255,200,120,0)');
+      c.fillStyle=rg;c.fillRect(w.x,roadTop,w.w,(roadBot-roadTop)*0.5);}
+  }else{
+    c.fillStyle='rgba(220,225,228,0.12)';c.fillRect(0,roadTop+(roadBot-roadTop)*0.1,W,(roadBot-roadTop)*0.25);
+  }
+  // near pavement and low wall with a hedge
+  c.fillStyle=dark?'#18181c':'#9a9c9a';c.fillRect(0,roadBot,W,H-roadBot);
+  c.fillStyle=dark?'#24242a':'#b4b6b4';c.fillRect(0,roadBot,W,3*S);
+  // trees
+  for(const t of trees){
+    const r=mulberry(t.seed);
+    c.fillStyle=dark?'#0e0d0c':'#4a3a2e';c.fillRect(t.x-5*S,roadTop-t.h*0.55,10*S,t.h*0.55);
+    for(let i=0;i<14;i++){const a=r()*TAU,d=r()*t.h*0.22;
+      c.fillStyle=dark?(i%2?'#0f1410':'#121a14'):(i%2?'#4f6a3e':'#5f7a48');
+      c.beginPath();c.arc(t.x+Math.cos(a)*d*1.2,roadTop-t.h*0.62+Math.sin(a)*d*0.8,(28+r()*24)*S,0,TAU);c.fill();}
+  }
+  // lamp posts
+  for(const l of lamps){
+    c.strokeStyle=dark?'#0c0c0e':'#2c3034';c.lineWidth=4*S;c.lineCap='round';
+    c.beginPath();c.moveTo(l.x,l.y);c.lineTo(l.x,l.top);c.quadraticCurveTo(l.x,l.top-12*S,l.x+16*S,l.top-10*S);c.stroke();
+    c.fillStyle=dark?'#ffcf80':'#d8dcdc';c.beginPath();c.ellipse(l.x+17*S,l.top-6*S,9*S,4*S,0,0,TAU);c.fill();
+    if(dark){const lg=c.createRadialGradient(l.x+17*S,l.top-4*S,0,l.x+17*S,l.top-4*S,60*S);lg.addColorStop(0,'rgba(255,190,100,0.55)');lg.addColorStop(1,'rgba(255,190,100,0)');c.fillStyle=lg;c.fillRect(l.x-50*S,l.top-70*S,140*S,140*S);}
+  }
+}
+
+/* ---------------- moving things ---------------- */
+let cars=[],walkers=[],nextCar=2,nextWalker=4,nextFlick=8,T=0;
+const CARS=['#7a1e1e','#2a3e5a','#c8c8c0','#3a3a3a','#4a5a3a','#8a6a2a','#1e2a2a'];
+const BROLLIES=['#b0302a','#1f3a6a','#e0b030','#2a5a3a','#222','#7a3a7a'];
+function spawnCar(){const dir=Math.random()<0.5?1:-1;const lane=dir>0?roadTop+(roadBot-roadTop)*0.32:roadTop+(roadBot-roadTop)*0.72;
+  const L=(110+Math.random()*30)*S;cars.push({x:dir>0?-L-20:W+L+20,y:lane,dir,v:(120+Math.random()*80)*S,L,col:CARS[(Math.random()*CARS.length)|0]});}
+function spawnWalker(){const dir=Math.random()<0.5?1:-1;walkers.push({x:dir>0?-40*S:W+40*S,y:roadBot+(H-roadBot)*0.55,dir,v:(28+Math.random()*16)*S,col:BROLLIES[(Math.random()*BROLLIES.length)|0],ph:Math.random()*TAU});}
+function drawMoving(c){
+  for(const k of cars){
+    const L=k.L,hh=34*S,x=k.x,y=k.y;
+    c.fillStyle=dark?shade(k.col,0.28):k.col;
+    c.beginPath();c.roundRect(x-L/2,y-hh*0.55,L,hh*0.55,6*S);c.fill();
+    c.beginPath();c.roundRect(x-L*0.3+k.dir*L*0.02,y-hh,L*0.56,hh*0.5,8*S);c.fill();
+    c.fillStyle=dark?'#08090c':'#2a3238';c.fillRect(x-L*0.26+k.dir*L*0.02,y-hh*0.92,L*0.48,hh*0.34);
+    c.fillStyle='#0a0a0a';for(const s of[-0.3,0.3]){c.beginPath();c.arc(x+s*L,y,9*S,0,TAU);c.fill();}
+    const fx=x+k.dir*L/2, bx2=x-k.dir*L/2;
+    c.fillStyle=dark?'#fffbe8':'#f0f0e0';c.beginPath();c.arc(fx-k.dir*3*S,y-hh*0.35,4*S,0,TAU);c.fill();
+    c.fillStyle=dark?'#ff2a1a':'#b02a20';c.beginPath();c.arc(bx2+k.dir*3*S,y-hh*0.35,3.5*S,0,TAU);c.fill();
+    if(dark){const lg=c.createRadialGradient(fx,y-hh*0.35,0,fx,y-hh*0.35,70*S);lg.addColorStop(0,'rgba(255,250,220,0.45)');lg.addColorStop(1,'rgba(255,250,220,0)');c.fillStyle=lg;c.fillRect(fx-70*S,y-hh*0.35-70*S,140*S,140*S);
+      const rg=c.createLinearGradient(0,y,0,roadBot);rg.addColorStop(0,'rgba(255,240,200,0.35)');rg.addColorStop(1,'rgba(255,240,200,0)');c.fillStyle=rg;c.fillRect(fx-8*S,y,12*S,roadBot-y);}
+  }
+  for(const w of walkers){
+    const x=w.x,y=w.y,st=Math.sin(T*5+w.ph);
+    c.strokeStyle=dark?'#060608':'#2a2a2e';c.lineWidth=4*S;c.lineCap='round';
+    c.beginPath();c.moveTo(x,y-28*S);c.lineTo(x+st*7*S,y);c.moveTo(x,y-28*S);c.lineTo(x-st*7*S,y);c.stroke();
+    c.fillStyle=dark?'#0a0a0e':'#3a3a40';c.beginPath();c.roundRect(x-9*S,y-62*S,18*S,36*S,6*S);c.fill();
+    c.beginPath();c.arc(x,y-68*S,6.5*S,0,TAU);c.fill();
+    c.strokeStyle=dark?'#060608':'#222';c.lineWidth=2*S;c.beginPath();c.moveTo(x+3*S,y-50*S);c.lineTo(x+3*S,y-86*S);c.stroke();
+    c.fillStyle=dark?shade(w.col,0.4):w.col;c.beginPath();c.moveTo(x-34*S,y-80*S);c.quadraticCurveTo(x+3*S,y-118*S,x+40*S,y-80*S);
+    for(let i=0;i<6;i++){const a=x+40*S-(i+0.5)*74*S/6;c.quadraticCurveTo(a,y-86*S,x+40*S-(i+1)*74*S/6,y-80*S);}c.fill();
+  }
+}
+function stepMoving(dt){
+  if((nextCar-=dt)<=0){spawnCar();nextCar=5+Math.random()*10;}
+  if((nextWalker-=dt)<=0){spawnWalker();nextWalker=9+Math.random()*16;}
+  for(const k of cars)k.x+=k.dir*k.v*dt;cars=cars.filter(k=>k.x>-k.L*2-40&&k.x<W+k.L*2+40);
+  for(const w of walkers)w.x+=w.dir*w.v*dt;walkers=walkers.filter(w=>w.x>-80*S&&w.x<W+80*S);
+  if(dark&&(nextFlick-=dt)<=0){nextFlick=10+Math.random()*25;const hs=houses[(Math.random()*houses.length)|0];
+    if(hs&&hs.wins.length){const w=hs.wins[(Math.random()*hs.wins.length)|0];w.lit=!w.lit;drawStatic();}}
+}
+function drawBokeh(c){
+  const k=BS;c.globalCompositeOperation='lighter';
+  const disc=(x,y,r,col,a)=>{c.globalAlpha=a;c.fillStyle=col;c.beginPath();c.arc(x*k,y*k,r*k,0,TAU);c.fill();
+    c.globalAlpha=a*0.6;c.strokeStyle=col;c.lineWidth=1.5;c.stroke();};
+  if(dark){
+    for(const l of lamps)disc(l.x+17*S,l.top-6*S,34*S,'#ff9e40',0.32);
+    for(const hs of houses)for(const w of hs.wins)if(w.lit)disc(w.x+w.w/2,w.y+w.h/2,Math.max(w.w,w.h)*0.55,w.warm<0.7?'#ffb860':'#90a8ff',0.12);
+    for(const q of cars){disc(q.x+q.dir*q.L/2,q.y-12*S,22*S,'#fff4d8',0.38);disc(q.x-q.dir*q.L/2,q.y-12*S,16*S,'#ff2010',0.32);}
+  }else{
+    for(const q of cars){disc(q.x-q.dir*q.L/2,q.y-12*S,12*S,'#ff5030',0.12);}
+  }
+  c.globalAlpha=1;c.globalCompositeOperation='source-over';
+}
+
+/* ---------------- water ---------------- */
+let drops=[],nid=1,rain=1;
+const R0=6.2;                            // radius at which a drop lets go
+const RAIN=[5,20,55,0], DEW=[50,60,70,25];
+let grid=new Map(),CELL=28;
+function key(i,j){return i*4096+j;}
+function buildGrid(){grid.clear();for(const d of drops){if(d.dead)continue;const k=key((d.x/CELL)|0,(d.y/CELL)|0);let a=grid.get(k);if(!a)grid.set(k,a=[]);a.push(d);}}
+function near(x,y,r,f){const i0=((x-r)/CELL)|0,i1=((x+r)/CELL)|0,j0=((y-r)/CELL)|0,j1=((y+r)/CELL)|0;
+  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const a=grid.get(key(i,j));if(a)for(const o of a)if(!o.dead)f(o);}}
+function addDrop(x,y,r,par){
+  const d={x,y,r,v:0,moving:false,dx:0,tr:8,id:nid++,par:par||0,born:T,stall:0};
+  let A=r*r,sx=x*A,sy=y*A;
+  near(x,y,r+16,o=>{if(o.par&&o.par===par)return;const q=Math.hypot(o.x-x,o.y-y);if(q<(o.r+r)*0.85){A+=o.r*o.r;sx+=o.x*o.r*o.r;sy+=o.y*o.r*o.r;o.dead=true;if(o.moving){d.moving=true;d.v=Math.max(d.v,o.v);d.dx=o.dx;}}});
+  d.r=Math.sqrt(A);d.x=sx/A;d.y=sy/A;
+  drops.push(d);
+  const k=key((d.x/CELL)|0,(d.y/CELL)|0);let a=grid.get(k);if(!a)grid.set(k,a=[]);a.push(d);
+  return d;
+}
+let clears=[];
+function stepWater(dt){
+  buildGrid();
+  const area=W*H/1e6;
+  let tiny=0;for(const d of drops)if(d.r<2.2)tiny++;
+  let n=DEW[rain]*area*dt;const cap=W*H/(lowRes?420:260);
+  while(n>0){if(Math.random()<n&&tiny<cap){addDrop(Math.random()*W,Math.random()*H,0.5+Math.random()*1.4);tiny++;}n-=1;}
+  n=RAIN[rain]*area*dt*(reduce?0.6:1);
+  while(n>0){if(Math.random()<n){const r=Math.random()<0.22?4+Math.random()*3.5:1.8+Math.random()*2.8;addDrop(Math.random()*W,Math.random()*H*1.02-H*0.02,r);}n-=1;}
+  for(const d of drops){
+    if(d.dead)continue;
+    if(!d.moving&&d.r>R0){d.moving=true;d.dx=(Math.random()-0.5)*0.12;}
+    if(!d.moving)continue;
+    if(d.stall>0){d.stall-=dt;d.v*=0.5;continue;}
+    if(d.r<R0*1.5&&Math.random()<dt*0.6)d.stall=0.15+Math.random()*0.6;
+    const vt=(30+55*Math.pow(Math.max(0,d.r-R0*0.8),0.9))*(reduce?0.5:1);
+    d.v+=(vt-d.v)*Math.min(1,dt*4);
+    if(Math.random()<dt*3)d.dx=Math.max(-0.16,Math.min(0.16,d.dx+(Math.random()-0.5)*0.18));
+    const ox=d.x,oy=d.y;
+    d.y+=d.v*dt;d.x+=d.dx*d.v*dt;
+    clears.push(ox,oy,d.x,d.y,d.r*0.8);
+    d.tr-=d.v*dt;
+    if(d.tr<=0){d.tr=5+Math.random()*16;
+      if(d.r>R0*0.8&&Math.random()<0.8){const rt=d.r*(0.16+Math.random()*0.2);d.r=Math.sqrt(Math.max(0,d.r*d.r-rt*rt));
+        const t=addDrop(ox+(Math.random()-0.5)*d.r*0.4,oy-d.r*0.3,rt,d.id);t.par=d.id;}}
+    near(d.x,d.y,d.r+10,o=>{if(o===d||o.par===d.id)return;if(Math.hypot(o.x-d.x,o.y-d.y)<(o.r+d.r)*0.8){
+      d.r=Math.sqrt(d.r*d.r+o.r*o.r);o.dead=true;}});
+    if(d.r<R0*0.55){d.moving=false;d.v=0;}
+    if(d.y-d.r>H+4)d.dead=true;
+  }
+  drops=drops.filter(d=>!d.dead);
+}
+function clearMist(){
+  const c=mx;c.globalCompositeOperation='destination-out';c.lineCap='round';c.strokeStyle='#000';
+  for(let i=0;i<clears.length;i+=5){c.lineWidth=Math.max(1,clears[i+4]*2*MS);c.beginPath();c.moveTo(clears[i]*MS,clears[i+1]*MS);c.lineTo(clears[i+2]*MS,clears[i+3]*MS);c.stroke();}
+  c.globalCompositeOperation='source-over';clears.length=0;
+}
+let mistT=0;
+function regrowMist(dt){mistT+=dt;if(mistT>0.3){mistT=0;mx.fillStyle='rgba(255,255,255,0.03)';mx.fillRect(0,0,mist.width,mist.height);}}
+
+/* ---------------- wiping ---------------- */
+let wiping=false,lx=0,ly=0;
+const WR=()=>Math.max(22,30*S);
+function segDist(px,py,ax,ay,bx,by){const vx=bx-ax,vy=by-ay,L=vx*vx+vy*vy;let t=L?((px-ax)*vx+(py-ay)*vy)/L:0;t=Math.max(0,Math.min(1,t));return Math.hypot(px-ax-vx*t,py-ay-vy*t);}
+function wipe(ax,ay,bx,by){
+  const r=WR();clears.push(ax,ay,bx,by,r);
+  const push=[];const L=Math.hypot(bx-ax,by-ay)||1,nx=-(by-ay)/L,ny=(bx-ax)/L;
+  near((ax+bx)/2,(ay+by)/2,L/2+r+12,o=>{if(segDist(o.x,o.y,ax,ay,bx,by)<r+o.r*0.5){o.dead=true;if(o.r>1.4&&Math.random()<0.4)push.push(o.r);}});
+  drops=drops.filter(d=>!d.dead);
+  for(const pr of push){const t=Math.random(),sd=Math.random()<0.5?1:-1;
+    addDrop(ax+(bx-ax)*t+nx*sd*(r+2),ay+(by-ay)*t+ny*sd*(r+2),pr*0.95);}
+}
+cv.addEventListener('pointerdown',e=>{wiping=true;lx=e.clientX;ly=e.clientY;cv.classList.add('wiping');cv.setPointerCapture(e.pointerId);buildGrid();wipe(lx,ly,lx+0.1,ly);});
+cv.addEventListener('pointermove',e=>{if(!wiping)return;const x=e.clientX,y=e.clientY;if(Math.hypot(x-lx,y-ly)<3)return;buildGrid();wipe(lx,ly,x,y);lx=x;ly=y;});
+const up=()=>{wiping=false;cv.classList.remove('wiping');};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+
+/* ---------------- drawing ---------------- */
+function makeSprite(){
+  sprite=mk(128,128);const c=sprite.getContext('2d');
+  let g=c.createRadialGradient(64,58,0,64,64,64);
+  g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(0.62,'rgba(0,0,0,0.04)');g.addColorStop(0.86,'rgba(0,0,0,0.3)');g.addColorStop(0.95,'rgba(0,0,0,0.42)');g.addColorStop(1,'rgba(0,0,0,0)');
+  c.fillStyle=g;c.fillRect(0,0,128,128);
+  g=c.createRadialGradient(46,38,0,46,38,20);g.addColorStop(0,'rgba(255,255,255,0.75)');g.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=g;c.beginPath();c.ellipse(46,38,18,12,-0.6,0,TAU);c.fill();
+  c.strokeStyle='rgba(255,255,255,0.22)';c.lineWidth=5;c.beginPath();c.arc(64,62,52,0.35*Math.PI,0.75*Math.PI);c.stroke();
+}
+function resize(){
+  DPR=lowRes?1:Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  stat=mk(W*DPR,H*DPR);stx=stat.getContext('2d');
+  scene=mk(W*DPR,H*DPR);sctx=scene.getContext('2d');
+  flip=mk(W,H);fctx=flip.getContext('2d');
+  s1=mk(W/6,H/6);s1x=s1.getContext('2d');s2=mk(W/22,H/22);s2x=s2.getContext('2d');
+  blur=mk(W*BS,H*BS);bx=blur.getContext('2d');
+  const oldMist=mist;mist=mk(W*MS,H*MS);mx=mist.getContext('2d');
+  mx.fillStyle='#fff';mx.fillRect(0,0,mist.width,mist.height);
+  if(oldMist)mx.drawImage(oldMist,0,0,mist.width,mist.height);
+  for(const c of[s1x,s2x,bx])c.imageSmoothingQuality='high';
+  layout();drawStatic();
+}
+function render(){
+  sctx.setTransform(1,0,0,1,0,0);sctx.drawImage(stat,0,0);
+  sctx.setTransform(DPR,0,0,DPR,0,0);drawMoving(sctx);
+  fctx.setTransform(-1,0,0,-1,W,H);fctx.globalCompositeOperation='source-over';fctx.globalAlpha=1;fctx.drawImage(scene,0,0,W,H);
+  if(dark){fctx.globalCompositeOperation='lighter';fctx.globalAlpha=0.7;fctx.drawImage(scene,0,0,W,H);fctx.globalAlpha=1;fctx.globalCompositeOperation='source-over';}
+  s1x.drawImage(scene,0,0,s1.width,s1.height);
+  s2x.drawImage(s1,0,0,s2.width,s2.height);
+  bx.globalCompositeOperation='source-over';bx.globalAlpha=1;
+  bx.drawImage(s1,0,0,blur.width,blur.height);bx.globalAlpha=0.65;bx.drawImage(s2,0,0,blur.width,blur.height);bx.globalAlpha=1;
+  drawBokeh(bx);
+  bx.fillStyle=dark?'rgba(70,80,100,0.07)':'rgba(236,240,242,0.3)';bx.fillRect(0,0,blur.width,blur.height);
+  bx.globalCompositeOperation='destination-in';bx.drawImage(mist,0,0,blur.width,blur.height);bx.globalCompositeOperation='source-over';
+
+  ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(scene,0,0);
+  ctx.setTransform(DPR,0,0,DPR,0,0);ctx.drawImage(blur,0,0,W,H);
+  // tiny droplets, one path
+  ctx.beginPath();
+  for(const d of drops)if(d.r<2.2){ctx.moveTo(d.x+d.r,d.y);ctx.arc(d.x,d.y,d.r,0,TAU);}
+  ctx.fillStyle=dark?'rgba(190,200,225,0.2)':'rgba(255,255,255,0.42)';ctx.fill();
+  ctx.beginPath();
+  for(const d of drops)if(d.r<2.2&&d.r>1){ctx.moveTo(d.x+d.r*0.7,d.y+d.r*0.5);ctx.arc(d.x,d.y+d.r*0.5,d.r*0.7,0,Math.PI);}
+  ctx.fillStyle=dark?'rgba(0,0,0,0.25)':'rgba(40,50,60,0.18)';ctx.fill();
+  // lens drops: each shows the street flipped
+  const Z=4.2;
+  for(const d of drops){
+    if(d.r<2.2)continue;
+    const st=d.moving?Math.min(d.v/350,0.3):0, rx=d.r*(1-st*0.25), ry=d.r*(1+st);
+    const oy=d.moving?-st*d.r*0.6:0;
+    ctx.save();ctx.beginPath();ctx.ellipse(d.x,d.y+oy,rx,ry,0,0,TAU);ctx.clip();
+    const s=d.r*2*Z;
+    ctx.drawImage(flip,W-d.x-s/2,H-d.y-s/2,s,s,d.x-rx,d.y+oy-ry,rx*2,ry*2);
+    ctx.restore();
+    ctx.drawImage(sprite,d.x-rx*1.06,d.y+oy-ry*1.06,rx*2.12,ry*2.12);
+  }
+}
+
+let last=0,ema=0.016,slowT=0,lowRes=false;
+function frame(t){
+  const raw=(t-last)/1000||0.016,dt=Math.min(0.05,raw);last=t;T+=dt;
+  // a slow device gets a lighter window
+  ema+=(Math.min(raw,0.2)-ema)*0.05;if(!lowRes&&ema>0.034&&(slowT+=dt)>2.5){lowRes=true;rescale();}
+  stepMoving(dt);stepWater(dt);clearMist();regrowMist(dt);
+  render();requestAnimationFrame(frame);
+}
+function preseed(){
+  // the rain has been going a while before you look
+  for(let i=0;i<500;i++){const dt=1/30;T+=dt;stepWater(dt);clearMist();regrowMist(dt);}
+  for(let i=0;i<4;i++){stepMoving(0.1);} spawnCar();cars[0].x=W*0.3;
+}
+document.querySelectorAll('#ui button').forEach(b=>b.addEventListener('click',()=>{
+  rain=+b.dataset.r;document.querySelectorAll('#ui button').forEach(o=>o.setAttribute('aria-pressed',o===b?'true':'false'));}));
+mq.addEventListener('change',e=>{dark=e.matches;drawStatic();});
+function rescale(){const ow=W,oh=H;resize();if(ow&&oh)for(const d of drops){d.x*=W/ow;d.y*=H/oh;}}
+let rt=0;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(rescale,120);});
+setTimeout(()=>document.getElementById('cap').classList.add('faded'),9000);
+makeSprite();resize();preseed();requestAnimationFrame(t=>{last=t;frame(t);});
+window.__pane={get drops(){return drops.length;},setRain(r){rain=r;}};
+})();
+</script>
+</body>
+</html>
