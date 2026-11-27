@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hopper</title>
+<style>
+:root{--bg:#ebe7df;--fg:#1f1d1a;--mute:#736c60;--line:#cec7b8;--rim:#6b5d4d;--rim2:#4d4236;--on:#1f1d1a;--onfg:#f3efe7}
+@media (prefers-color-scheme:dark){:root{--bg:#131416;--fg:#e6e2da;--mute:#958d80;--line:#2e2e31;--rim:#3c342c;--rim2:#2a241e;--on:#e6e2da;--onfg:#131416}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 64px}
+main{width:100%;max-width:760px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em;font-style:italic}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+.dish{background:var(--rim);padding:10px;border-radius:6px;box-shadow:inset 0 0 0 2px var(--rim2),0 2px 8px #0003}
+.slate{position:relative;width:100%;aspect-ratio:4/5;max-height:76vh;overflow:hidden;border-radius:2px;background:#24282c}
+@media (min-width:640px){.slate{aspect-ratio:3/2}}
+.slate canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 14px;flex-wrap:wrap;margin-top:12px;color:var(--mute);font-size:14px}
+.grp{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.grp .lab{margin-right:2px}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 9px;cursor:pointer}
+button[aria-pressed=true]{background:var(--on);color:var(--onfg);border-color:var(--on)}
+#hud{font-variant-numeric:tabular-nums}
+.prose{max-width:36em}
+p{margin:.6em 0}
+h2{font-size:16px;font-weight:normal;margin:26px 0 8px;color:var(--mute);font-style:italic}
+</style>
+</head>
+<body>
+<main>
+  <h1>Hopper</h1>
+  <p class="sub">brine on a slate, left to dry</p>
+
+  <div class="dish">
+    <div class="slate" id="slate">
+      <canvas id="cv" aria-label="a dark slate; drag across it to pour brine, which dries and leaves crystals"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <span id="hint">drag to pour brine</span>
+    <span id="hud"></span>
+  </div>
+  <div class="row">
+    <span class="grp" id="salts"><span class="lab">salt</span>
+      <button data-salt="halite" aria-pressed="true">sea salt</button>
+      <button data-salt="epsom" aria-pressed="false">Epsom</button>
+      <button data-salt="alum" aria-pressed="false">alum</button>
+    </span>
+    <span class="grp" id="warms"><span class="lab">where</span>
+      <button data-warm="0" aria-pressed="false">cold sill</button>
+      <button data-warm="1" aria-pressed="true">warm room</button>
+      <button data-warm="2" aria-pressed="false">stove top</button>
+    </span>
+    <span class="grp"><button id="wipe">wipe the slate</button></span>
+  </div>
+
+  <div class="prose">
+    <h2>about the salt</h2>
+    <p>Water can hold only so much salt. Pour brine that is nearly full and let it
+    dry, and the water leaves while the salt stays, so what is left grows stronger
+    until it is more than full. Even then it waits a little, for something to start
+    on. Then a grain appears, and the brine around it gives up its extra salt to it.</p>
+    <p>Common salt builds cubes. When the brine is only a little over full, the cube
+    grows slowly and evenly and its faces stay flat. When it is far over, because the
+    water is going fast, the corners and edges reach out into fresh brine and are fed
+    first, and the middle of each face is starved. The edges run on ahead and leave
+    the face behind as a hollow, then another inside that: a stepped, square pit like
+    the hopper of a mill. Move the slate onto the stove and you get hoppers; leave it
+    on a cold sill and you get small clear cubes.</p>
+    <p>The edge of a puddle dries first, and its edge stays put while the middle thins,
+    so brine flows out towards the rim to replace what goes, carrying salt with it. That
+    is why the crust and the first crystals gather in a ring. The last thin film goes
+    all at once and leaves a frost of grains too small to have a shape.</p>
+    <p>Epsom salt holds on longer before it gives in, then shoots out in sprays of
+    needles. Alum builds eight-sided crystals, and one lying on a face shows a triangle
+    with its corners cut off.</p>
+    <p>This is a toy, not a model: the slate is a grid of a few thousand cells, each
+    with a depth of water and a weight of salt, and the crystals are drawn, not grown
+    molecule by molecule. But the two rules that matter are in it: salt starts only
+    when the brine is well over full, and a crystal fed fast grows hollow.</p>
+  </div>
+</main>
+
+<script>
+// ---- SIM ----
+const SALTS={
+  halite:{barrier:.07,vol:.6,G:.16,kN:.0002,fast:.025},
+  epsom:{barrier:.24,vol:.55,G:.26,kN:.0004,fast:1},
+  alum:{barrier:.1,vol:.6,G:.12,kN:.0006,fast:1}
+};
+let REACH=7;const WARM=[.45,1,3];
+function rng(seed){let s=(seed>>>0)||1;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296}}
+function makeSim(gw,gh,salt,seed){
+  const n=gw*gh;
+  return{gw,gh,n,salt:salt||'halite',warm:1,h:new Float32Array(n),m:new Float32Array(n),
+    crust:new Float32Array(n),near:new Uint8Array(n),fh:new Float32Array(n),fm:new Float32Array(n),
+    cr:[],dep:[],t:0,wet:0,R:rng(seed||7)};
+}
+function pour(S,x,y,r,amt,c0){
+  c0=c0==null?.93:c0;
+  const x0=Math.max(0,Math.floor(x-r)),x1=Math.min(S.gw-1,Math.ceil(x+r));
+  const y0=Math.max(0,Math.floor(y-r)),y1=Math.min(S.gh-1,Math.ceil(y+r));
+  for(let j=y0;j<=y1;j++)for(let i=x0;i<=x1;i++){
+    const d2=((i+.5-x)**2+(j+.5-y)**2)/(r*r); if(d2>=1)continue;
+    const k=j*S.gw+i; let dh=amt*(1-d2); if(S.h[k]+dh>2)dh=Math.max(0,2-S.h[k]);
+    S.h[k]+=dh; S.m[k]+=c0*dh;
+  }
+}
+function newCrystal(S,x,y){
+  const R=S.R,kind=S.salt;
+  const c={kind,x,y,a:R()*Math.PI*2,mass:.05,s:.3,r:.6,fast:0,slow:0,lastS:.3,done:false,born:S.t};
+  if(kind==='halite')c.a=R()*Math.PI/2;
+  if(kind==='epsom'){
+    const nN=4+Math.floor(R()*8),b=R()*Math.PI*2,spread=R()<.5?Math.PI*2:Math.PI*(.6+R()*.8);
+    c.nd=[];for(let i=0;i<nN;i++)c.nd.push({a:b+spread*(i/nN-.5)+(R()-.5)*.5,len:.4,w:.2,ar:5+R()*8,A:0,g:.5+R()});
+  }
+  S.cr.push(c);return c;
+}
+function grow(S,c,got,sup){
+  const P=SALTS[c.kind];
+  c.mass+=got; const A=c.mass*P.vol;
+  if(c.kind==='halite'){
+    c.s=Math.sqrt(A); c.r=c.s*.72;
+    if(c.s-c.lastS>.45){if(sup>P.fast)c.fast++; else c.slow++; c.lastS=c.s;}
+  }else if(c.kind==='alum'){
+    c.s=Math.sqrt(A/.6); c.r=c.s*.62;
+  }else{
+    const tip=d=>{const x=Math.floor(c.x+Math.cos(d.a)*d.len),y=Math.floor(c.y+Math.sin(d.a)*d.len);return x>=0&&y>=0&&x<S.gw&&y<S.gh&&S.h[y*S.gw+x]>0};
+    let live=c.nd.filter(tip);const thick=!live.length;if(thick)live=c.nd;
+    let tw=0;for(const d of live)tw+=d.g;
+    let mx=0;for(const d of live){d.A+=got*P.vol*(d.g/tw);if(thick)d.w=Math.min(1.6,Math.max(d.w,d.A/d.len));else{d.len=Math.max(.4,Math.min(d.len+.25,Math.sqrt(d.A*d.ar)));d.w=Math.min(1.6,Math.max(.2,d.len/d.ar,d.A/d.len*.5))}}for(const d of c.nd)if(d.len>mx)mx=d.len;
+    c.r=mx; c.s=mx;
+  }
+}
+function step(S){
+  const{gw,gh,h,m,fh,fm,near}=S,P=SALTS[S.salt],e=.00016*WARM[S.warm],D=.2,PIN=.3,DC=.22;
+  fh.fill(0);fm.fill(0);
+  // levelling: water runs downhill to neighbours; a dry edge is wetted only by brine deeper than PIN
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){
+    const i=y*gw+x,hi=h[i];
+    for(let q=0;q<2;q++){
+      let j;if(q===0){if(x===gw-1)continue;j=i+1}else{if(y===gh-1)continue;j=i+gw}
+      const hj=h[j];if(hi<=0&&hj<=0)continue;
+      let f;
+      if(hi>0&&hj>0){f=D*(hi-hj);const dc=DC*(m[i]/hi-m[j]/hj)*Math.min(hi,hj);fm[i]-=dc;fm[j]+=dc}
+      else if(hj<=0)f=hi>PIN?D*(hi-PIN):0;
+      else f=hj>PIN?-D*(hj-PIN):0;
+      if(f===0)continue;
+      const fs=f>0?f*m[i]/hi:f*m[j]/hj;
+      fh[i]-=f;fh[j]+=f;fm[i]-=fs;fm[j]+=fs;
+    }
+  }
+  for(let i=0;i<S.n;i++){if(fh[i]!==0){h[i]+=fh[i];m[i]+=fm[i];if(m[i]<0)m[i]=0}}
+  // evaporation, faster at the edge of a puddle
+  let wet=0;
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){
+    const i=y*gw+x;if(h[i]<=0)continue;
+    const edge=(x>0&&h[i-1]<=0)||(x<gw-1&&h[i+1]<=0)||(y>0&&h[i-gw]<=0)||(y<gh-1&&h[i+gw]<=0);
+    h[i]-=e*(edge?2.6:1);
+    if(h[i]<=.004){S.crust[i]+=m[i];if(m[i]>1e-4)S.dep.push(i,m[i]);m[i]=0;h[i]=0}else wet++;
+  }
+  S.wet=wet;
+  // crystals take the excess from brine within reach
+  near.fill(0);
+  for(const c of S.cr){
+    if(c.done){markNear(S,c,c.r+1);continue}
+    const rr=c.r+REACH,ex=c.r+REACH+1.5,x0=Math.max(0,Math.floor(c.x-ex)),x1=Math.min(gw-1,Math.floor(c.x+ex));
+    const y0=Math.max(0,Math.floor(c.y-ex)),y1=Math.min(gh-1,Math.floor(c.y+ex));
+    let got=0,any=false,sx=0,sn=0;
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+      const i=y*gw+x,d2=(x+.5-c.x)**2+(y+.5-c.y)**2;if(d2>ex*ex)continue;
+      near[i]=1;if(d2>rr*rr||h[i]<=0)continue;any=true;
+      const xs=m[i]-h[i];sx+=xs/h[i];sn++;if(xs>0){const t=xs*P.G*(d2<(c.r+1)*(c.r+1)?1:.5);m[i]-=t;got+=t}
+    }
+    if(got>0)grow(S,c,got,sn?sx/sn:0);
+    if(!any)c.done=true;
+  }
+  // nucleation: only well over full, and not too close to a grain already there
+  if(S.cr.length<1400){
+    for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){
+      const i=y*gw+x;if(h[i]<=0||near[i])continue;
+      const sup=m[i]/h[i]-1-P.barrier;if(sup<=0)continue;
+      const edge=(x>0&&h[i-1]<=0)||(x<gw-1&&h[i+1]<=0)||(y>0&&h[i-gw]<=0)||(y<gh-1&&h[i+gw]<=0);
+      const p=Math.min(.03,P.kN*sup*(edge?3:1));
+      if(S.R()<p){const c=newCrystal(S,x+S.R(),y+S.R());markNear(S,c,3)}
+    }
+  }
+  S.t++;
+}
+function markNear(S,c,r){
+  const x0=Math.max(0,Math.floor(c.x-r)),x1=Math.min(S.gw-1,Math.floor(c.x+r));
+  const y0=Math.max(0,Math.floor(c.y-r)),y1=Math.min(S.gh-1,Math.floor(c.y+r));
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)S.near[y*S.gw+x]=1;
+}
+function totals(S){let w=0,s=0,cr=0,cm=0;for(let i=0;i<S.n;i++){w+=S.h[i];s+=S.m[i];cr+=S.crust[i]}for(const c of S.cr)cm+=c.mass;return{water:w,brine:s,crust:cr,crystal:cm,all:s+cr+cm}}
+// ---- END SIM ----
+
+const slate=document.getElementById('slate'),cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const hud=document.getElementById('hud'),hint=document.getElementById('hint');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let W,H,DPR,cs,S,bg,crust,cctx,wcv,wctx,wimg,salt='halite',warm=1,seed=1;
+
+function size(){
+  const r=slate.getBoundingClientRect();W=Math.round(r.width);H=Math.round(r.height);
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  cv.width=W*DPR;cv.height=H*DPR;
+  const gw=Math.max(80,Math.min(190,Math.round(W/4)));cs=W/gw;const gh=Math.round(H/cs);
+  S=makeSim(gw,gh,salt,seed++);S.warm=warm;
+  bg=document.createElement('canvas');bg.width=W*DPR;bg.height=H*DPR;drawSlate(bg.getContext('2d'));
+  crust=document.createElement('canvas');crust.width=W*DPR;crust.height=H*DPR;cctx=crust.getContext('2d');cctx.scale(DPR,DPR);
+  wcv=document.createElement('canvas');wcv.width=gw;wcv.height=gh;wctx=wcv.getContext('2d');wimg=wctx.createImageData(gw,gh);
+}
+function drawSlate(g){
+  const R=rng(11);g.fillStyle='#262a2e';g.fillRect(0,0,bg.width,bg.height);
+  // a slate's faint cleavage grain, running one way
+  g.save();g.scale(DPR,DPR);
+  for(let i=0;i<900;i++){const y=R()*H,x=R()*W,l=20+R()*120;g.strokeStyle=`rgba(${R()<.5?'255,255,255':'0,0,0'},${.02+R()*.035})`;
+    g.lineWidth=.5+R()*1.5;g.beginPath();g.moveTo(x,y);g.lineTo(x+l,y+(R()-.5)*3);g.stroke()}
+  for(let i=0;i<2500;i++){g.fillStyle=`rgba(255,255,255,${R()*.05})`;g.fillRect(R()*W,R()*H,1,1)}
+  const v=g.createRadialGradient(W/2,H/2,Math.min(W,H)*.3,W/2,H/2,Math.max(W,H)*.75);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.35)');
+  g.fillStyle=v;g.fillRect(0,0,W,H);g.restore();
+}
+function depositCrust(){
+  const d=S.dep;if(!d.length)return;const R=S.R;
+  for(let k=0;k<d.length;k+=2){
+    const i=d[k],mm=d[k+1],x=(i%S.gw)*cs,y=Math.floor(i/S.gw)*cs,n=Math.min(16,Math.ceil(mm*18));
+    for(let q=0;q<n;q++){
+      const px=x+(R()*2-.5)*cs,py=y+(R()*2-.5)*cs,rr=.35+R()*.8;
+      cctx.fillStyle=`rgba(236,233,226,${Math.min(.85,.18+mm*.9)*(.5+R()*.5)})`;
+      if(S.salt==='epsom'&&R()<.5){cctx.strokeStyle=cctx.fillStyle;cctx.lineWidth=.6;const a=R()*Math.PI;cctx.beginPath();cctx.moveTo(px,py);cctx.lineTo(px+Math.cos(a)*2.2,py+Math.sin(a)*2.2);cctx.stroke()}
+      else cctx.fillRect(px,py,rr,rr);
+    }
+  }
+  d.length=0;
+}
+function drawWater(){
+  const{gw,gh,h,m}=S,D=wimg.data;
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){
+    const i=y*gw+x,o=i*4;if(h[i]<=0){D[o+3]=0;continue}
+    const edge=(x>0&&h[i-1]<=0)||(x<gw-1&&h[i+1]<=0)||(y>0&&h[i-gw]<=0)||(y<gh-1&&h[i+gw]<=0);
+    const c=Math.min(1.4,m[i]/h[i]),dd=Math.min(1,h[i]);
+    D[o]=120+c*40;D[o+1]=150+c*30;D[o+2]=172+c*20;D[o+3]=edge?150:46+dd*60;
+  }
+  wctx.putImageData(wimg,0,0);
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(wcv,0,0,W,H);
+}
+function steps(c){return Math.max(0,Math.min(9,Math.round(11*(c.fast/Math.max(1,c.fast+c.slow)-.25))))}
+function sq(s){ctx.fillRect(-s/2,-s/2,s,s)}
+function drawCrystal(c){
+  const X=c.x*cs,Y=c.y*cs,fade=Math.min(1,(S.t-c.born)/30+.4);
+  ctx.save();ctx.translate(X,Y);ctx.rotate(c.a);ctx.globalAlpha=fade;
+  if(c.kind==='halite'){
+    const s=Math.max(1,c.s*cs);
+    ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(-s/2+1,-s/2+1.4,s,s);
+    ctx.fillStyle='#ebe7de';sq(s);
+    const T=steps(c);
+    if(T>0&&s>5){
+      for(let k=1;k<=T;k++){
+        const si=s*(1-k/(T+1.25)),g=Math.round(222-k*(70/T));
+        ctx.fillStyle=`rgb(${g},${g-3},${g-8})`;sq(si);
+        // pit walls: the far (lower right) wall catches the light, the near one is in shade
+        ctx.lineWidth=Math.max(.5,s/(T+1)/6);ctx.strokeStyle='rgba(255,255,255,.55)';
+        ctx.beginPath();ctx.moveTo(si/2,-si/2);ctx.lineTo(si/2,si/2);ctx.lineTo(-si/2,si/2);ctx.stroke();
+        ctx.strokeStyle='rgba(60,56,50,.35)';ctx.beginPath();ctx.moveTo(-si/2,si/2);ctx.lineTo(-si/2,-si/2);ctx.lineTo(si/2,-si/2);ctx.stroke();
+      }
+    }else if(s>4){
+      ctx.fillStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.moveTo(-s/2,-s/2);ctx.lineTo(s/2,-s/2);ctx.lineTo(-s/2,s/2);ctx.fill();
+    }
+    ctx.lineWidth=Math.max(.5,s/22);ctx.strokeStyle='rgba(255,255,255,.9)';
+    ctx.beginPath();ctx.moveTo(-s/2,s/2);ctx.lineTo(-s/2,-s/2);ctx.lineTo(s/2,-s/2);ctx.stroke();
+    ctx.strokeStyle='rgba(120,114,104,.8)';ctx.beginPath();ctx.moveTo(s/2,-s/2);ctx.lineTo(s/2,s/2);ctx.lineTo(-s/2,s/2);ctx.stroke();
+  }else if(c.kind==='alum'){
+    const s=Math.max(1.2,c.s*cs),pts=[];
+    for(let k=0;k<3;k++){const a0=-Math.PI/2+k*2*Math.PI/3,a1=a0+2*Math.PI/3;
+      const A=[Math.cos(a0)*s*.62,Math.sin(a0)*s*.62],B=[Math.cos(a1)*s*.62,Math.sin(a1)*s*.62];
+      pts.push([A[0]+(B[0]-A[0])*.22,A[1]+(B[1]-A[1])*.22],[A[0]+(B[0]-A[0])*.78,A[1]+(B[1]-A[1])*.78])}
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0]+1,p[1]+1.4):ctx.moveTo(p[0]+1,p[1]+1.4));ctx.fill();
+    ctx.fillStyle='rgba(232,226,240,.86)';ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=Math.max(.5,s/26);ctx.stroke();
+    if(s>5){const t=s*.3;ctx.strokeStyle='rgba(255,255,255,.55)';ctx.beginPath();
+      for(let k=0;k<3;k++){const a=-Math.PI/2+k*2*Math.PI/3+Math.PI;const p=[Math.cos(a)*t,Math.sin(a)*t];k?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])}
+      ctx.closePath();ctx.stroke();ctx.fillStyle='rgba(255,255,255,.18)';ctx.fill();
+      ctx.strokeStyle='rgba(150,140,165,.4)';ctx.beginPath();
+      for(let k=0;k<3;k++){const a=-Math.PI/2+k*2*Math.PI/3+Math.PI,p=[Math.cos(a)*t,Math.sin(a)*t];const q=pts[(2*k+3)%6];ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1])}
+      ctx.stroke()}
+  }else{
+    ctx.lineCap='round';
+    for(const d of c.nd){const l=d.len*cs,w=Math.max(.6,d.w*cs),dx=Math.cos(d.a)*l,dy=Math.sin(d.a)*l;
+      ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=w+.8;ctx.beginPath();ctx.moveTo(1,1.3);ctx.lineTo(dx+1,dy+1.3);ctx.stroke();
+      ctx.strokeStyle='rgba(238,243,244,.92)';ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(dx,dy);ctx.stroke();
+      if(w>1.6){ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=w*.3;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(dx,dy);ctx.stroke()}}
+  }
+  ctx.restore();
+}
+function draw(){
+  depositCrust();
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.drawImage(bg,0,0,W,H);ctx.drawImage(crust,0,0,W,H);
+  for(const c of S.cr)drawCrystal(c);
+  drawWater();
+  const n=S.cr.length,hop=S.cr.filter(c=>c.kind==='halite'&&c.s*cs>5&&steps(c)>0).length;
+  hud.textContent=(S.wet?'drying':'dry')+' · '+n+' crystal'+(n===1?'':'s')+(S.salt==='halite'&&hop?' · '+hop+' hopper'+(hop===1?'':'s'):'');
+}
+
+// pouring
+let down=false,last=null,poured=false;
+function at(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/cs,(e.clientY-r.top)/cs]}
+function pourAt(p,amt){pour(S,p[0],p[1],Math.max(4,Math.min(9,S.gw/16)),amt)}
+cv.addEventListener('pointerdown',e=>{down=true;cv.setPointerCapture(e.pointerId);last=at(e);pourAt(last,.5);poured=true;hint.textContent='keep dragging for a bigger puddle'});
+cv.addEventListener('pointermove',e=>{if(!down)return;const p=at(e),d=Math.hypot(p[0]-last[0],p[1]-last[1]);
+  const k=Math.ceil(d/1.5);for(let i=1;i<=k;i++){pourAt([last[0]+(p[0]-last[0])*i/k,last[1]+(p[1]-last[1])*i/k],.16)}last=p});
+const up=()=>{if(!down)return;down=false;hint.textContent='drag to pour brine';if(reduce)finish()};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+
+function seedPuddles(){
+  const R=S.R,k=S.gw>120?4:3;
+  for(let q=0;q<k;q++){
+    const r=Math.min(S.gw,S.gh)*(.09+.07*R()),x=r*1.6+(S.gw-r*3.2)*R(),y=r*1.6+(S.gh-r*3.2)*R();
+    for(let i=0;i<5;i++)pour(S,x+(R()-.5)*r,y+(R()-.5)*r,r,.45);
+  }
+}
+function finish(){let g=0;while(S.wet&&g++<20000)step(S);draw()}
+function fresh(){size();seedPuddles();step(S);if(reduce)finish();else draw()}
+
+document.querySelectorAll('[data-salt]').forEach(b=>b.addEventListener('click',()=>{
+  salt=b.dataset.salt;document.querySelectorAll('[data-salt]').forEach(x=>x.setAttribute('aria-pressed',x===b));fresh()}));
+document.querySelectorAll('[data-warm]').forEach(b=>b.addEventListener('click',()=>{
+  warm=+b.dataset.warm;S.warm=warm;document.querySelectorAll('[data-warm]').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
+document.getElementById('wipe').addEventListener('click',()=>{size();draw()});
+
+function loop(){
+  if(!reduce&&S.wet){const n=2;for(let i=0;i<n;i++)step(S)}
+  if(!reduce&&(S.wet||S.dep.length||down))draw();
+  requestAnimationFrame(loop);
+}
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{const r=slate.getBoundingClientRect();if(Math.abs(Math.round(r.width)-W)>2)fresh()},250)});
+fresh();requestAnimationFrame(loop);
+window.__salt={get S(){return S},step,pour,makeSim,totals,draw,fresh,finish,SALTS,set salt(v){document.querySelector(`[data-salt=${v}]`).click()},set warm(v){document.querySelector(`[data-warm="${v}"]`).click()}};
+</script>
+</body>
+</html>

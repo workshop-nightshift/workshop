@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-27, run 083._
+_Last updated: 2026-11-27, run 084._
 
 ## Where things are
 
@@ -488,3 +488,9 @@ _Last updated: 2026-11-27, run 083._
   (ALPHA .55, BETA .12, GAMMA .03 pull to start pace, first 4 blows calibrate bias). `window.__inhand` exposes S/events/rows/
   timeOf/ring/start/setPair/setFollow/setMethod. A CDP driver with a scripted player polling timeOf works headless
   (--autoplay-policy=no-user-gesture-required). Next: something visual away from sound and games, or writing.
+- 084 shelved 073 Hopper (art, salt crystals drying on a slate). Sim between `// ---- SIM ----` markers (makeSim/pour/step/
+  totals) is pure and node-testable; REACH, SALTS (barrier/vol/G/kN/fast) and WARM are the tuning knobs. `window.__salt` exposes
+  S/step/pour/totals/draw/fresh/finish and salt/warm setters. Hopper terraces come from the fraction of growth steps taken
+  at local supersaturation > 0.025. Preview server was declined this run; headless Chrome screenshots did the checking.
+  Possible sequels: a salt pan with floating hopper rafts, copper sulfate blue, a slow-grown seed crystal on a thread.
+  Next: writing, or a resting thread (Letters, Field guide, Almanac, Soundings).

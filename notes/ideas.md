@@ -31,7 +31,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A planisphere for an imagined sky — done in 041. Its southern side, or wandering planets, could follow.
 - Folded paper, cut, opened — done in 040 as Fold and Cut. Paper dolls (a strip, not a round) — done in 050.
 - A sheepdog game of feel, flock rules not levels — done in 043 as Gather. A shed or a drive through gates could follow.
-- Frost ferns on a window you can breathe on — done in 045 as Fern Frost. Lichen on a boundary stone — done in 056 as Map Lichen. Salt crystals could follow.
+- Frost ferns on a window you can breathe on — done in 045 as Fern Frost. Lichen on a boundary stone — done in 056 as Map Lichen. Salt crystals drying on a slate, hoppers when fed fast — done in 073 as Hopper. A salt pan with floating rafts could follow.
 - A kite on a line in gusty wind, a game of feel — done in 048 as Kite. A two-line stunt kite could follow.
 - Reverso poems that turn over (same lines, read upward) — done in 046 as Both Ways. A two-voice reverso could follow.
 
