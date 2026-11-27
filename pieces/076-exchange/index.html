@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exchange</title>
+<style>
+:root{--bg:#efe9dc;--fg:#2a241c;--mute:#7a6e5c;--paper:#fbf7ee;--rule:#d9cfbc;--wood:#7a4b2a;--wood2:#5e3820;--panel:#2b2a27;--brass:#c9a05a;--hole:#151412;
+  --lamp:#ffb43a;--lampoff:#4a4136;--clear:#e9e1c8;--you:#2f5d7c;--cord1:#7d2a22;--cord2:#2f4a2c;--cord3:#2a2622;--card:#f3ecd9}
+@media (prefers-color-scheme:dark){:root{--bg:#141210;--fg:#e8e0d0;--mute:#9b8f7c;--paper:#1d1a16;--rule:#37312a;--wood:#5a3720;--wood2:#3f2615;
+  --panel:#1b1a18;--brass:#a8844a;--hole:#0a0908;--lamp:#ffae2e;--lampoff:#3a332b;--clear:#d8cfb4;--you:#8fb8d6;--cord1:#9a3a30;--cord2:#47683f;--cord3:#5b5249;--card:#d9cfb4}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:16px/1.5 Georgia,"Iowan Old Style","Times New Roman",serif;padding:16px 16px 72px}
+h1{font-size:1.5rem;margin:0 0 .2rem;font-weight:normal;letter-spacing:.02em}
+.sub{color:var(--mute);margin:0 0 1rem;font-style:italic}
+.wrap{max-width:1080px;margin:0 auto}
+.main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:760px){.main{grid-template-columns:1fr}}
+.switch{position:relative;background:linear-gradient(var(--wood),var(--wood2));border-radius:10px;padding:12px;box-shadow:0 2px 0 rgba(0,0,0,.25) inset,0 6px 18px rgba(0,0,0,.18)}
+.top{display:flex;justify-content:space-between;align-items:center;color:#f1e4c8;font-size:.85rem;margin:0 2px 8px}
+.clock{font-variant-numeric:tabular-nums;font-size:1.15rem;letter-spacing:.05em}
+.pace{background:none;border:1px solid rgba(241,228,200,.45);color:#f1e4c8;border-radius:12px;font:inherit;font-size:.8rem;padding:2px 10px;cursor:pointer}
+.jacks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:var(--panel);border-radius:6px;padding:10px 8px}
+.jk{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.lamp{width:16px;height:16px;border-radius:50%;background:var(--lampoff);box-shadow:inset 0 1px 2px rgba(0,0,0,.6);transition:background .15s,box-shadow .15s}
+.lamp.on{background:var(--lamp);box-shadow:0 0 10px 3px rgba(255,170,40,.55)}
+.lamp.on.flick{animation:flick 1.1s infinite}
+@keyframes flick{0%,100%{opacity:1}50%{opacity:.45}}
+.hole{width:40px;height:40px;border-radius:50%;border:4px solid var(--brass);background:radial-gradient(circle at 50% 50%,var(--hole) 0 38%,#3a3630 39% 100%);cursor:pointer;padding:0}
+.hole:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+.hole.busy{background:radial-gradient(circle at 50% 50%,#000 0 30%,var(--brass) 31% 44%,#3a3630 45%)}
+.lbl{background:var(--card);color:#2a241c;font-size:.72rem;line-height:1.15;padding:3px 4px;border-radius:2px;text-align:center;width:100%;min-height:2.4em;display:flex;flex-direction:column;justify-content:center}
+.lbl small{color:#7a6e5c;font-size:.62rem}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.cord{background:var(--panel);border-radius:6px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;border:2px solid transparent;color:#e6dcc6;font-size:.72rem}
+.cord.sel{border-color:var(--brass)}
+.plugs{display:flex;gap:10px}
+.plug{width:14px;height:22px;border-radius:3px 3px 6px 6px}
+.plug.out{opacity:.2}
+.keyrow{display:flex;align-items:center;gap:8px}
+.clr{width:12px;height:12px;border-radius:50%;background:var(--lampoff)}
+.clr.on{background:var(--clear);box-shadow:0 0 8px 2px rgba(240,230,200,.5);animation:flick .9s infinite}
+.key{font:inherit;font-size:.7rem;border-radius:10px;border:1px solid #7b7160;background:#38342e;color:#e6dcc6;padding:2px 8px;cursor:pointer}
+.key[aria-pressed="true"]{background:var(--brass);color:#1a1510;border-color:var(--brass)}
+svg.cords{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.hint{color:#f1e4c8;font-size:.8rem;margin:8px 2px 0;min-height:1.2em;font-style:italic}
+.line{background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;max-height:72vh;overflow:auto}
+@media (max-width:760px){.line{max-height:40vh;min-height:180px}}
+.line h2{font-size:.8rem;font-weight:normal;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin:0 0 6px}
+.call{border-top:1px solid var(--rule);padding:8px 0 6px}
+.call:first-of-type{border-top:0}
+.hdr{font-size:.78rem;color:var(--mute);font-variant-numeric:tabular-nums}
+.ln{margin:.2rem 0 .2rem 0}
+.sp{font-variant:small-caps;letter-spacing:.03em;color:var(--mute);margin-right:.35em}
+.ln.you{color:var(--you)}
+.ln.stage{font-style:italic;color:var(--mute)}
+.ln.gap{color:var(--mute);letter-spacing:.3em}
+.silent{color:var(--mute);font-style:italic;font-size:.9rem}
+.intro,.end{background:var(--paper);border:1px solid var(--rule);border-radius:4px;padding:14px 16px;margin-bottom:16px}
+.intro p,.end p{margin:.4rem 0}
+.btn{font:inherit;background:var(--fg);color:var(--bg);border:0;border-radius:4px;padding:6px 14px;cursor:pointer;margin-top:6px}
+table.docket{border-collapse:collapse;width:100%;font-size:.85rem;margin:.6rem 0;font-variant-numeric:tabular-nums}
+.docket td,.docket th{border-bottom:1px solid var(--rule);padding:3px 4px;text-align:left;vertical-align:top}
+.docket th{font-weight:normal;color:var(--mute);font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}
+.hidden{display:none}
+@media (max-width:420px){.hole{width:34px;height:34px;border-width:3px}.lbl{font-size:.66rem}.jacks{gap:6px;padding:8px 6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Exchange</h1>
+<p class="sub">Hollin Cross, the night of the fourteenth of January, 1955.</p>
+
+<div class="intro" id="intro">
+<p>You are the night operator. The exchange is a switchboard in the back room of the post office, a stove, a kettle, and twelve lines.</p>
+<p>When somebody lifts their receiver, the lamp above their jack lights. Tap the jack to answer. They will tell you who they want: tap that jack to put them through. When they ring off, the cord's clear lamp lights; tap the cord to take it down.</p>
+<p>Each cord has a listening key. You are not supposed to use it.</p>
+<button class="btn" id="go">Take the chair</button>
+</div>
+
+<div class="end hidden" id="end"></div>
+
+<div class="main">
+<div class="switch" id="switch">
+  <div class="top"><span>HOLLIN CROSS · MAGNETO 12</span><span class="clock" id="clock">22.00</span><button class="pace" id="pace" aria-pressed="false">brisk</button></div>
+  <div class="jacks" id="jacks"></div>
+  <div class="shelf" id="shelf"></div>
+  <p class="hint" id="hint" aria-live="polite"></p>
+  <svg class="cords" id="cords" aria-hidden="true"></svg>
+</div>
+<div class="line" id="line" aria-live="polite"><h2>On the line</h2><div id="log"></div></div>
+</div>
+</div>
+
+<script>
+// ---- STORY ----
+const LINES=[
+ {id:'bell',name:'The Bell',no:'3'},{id:'hall',name:'Hall Farm',no:'7'},{id:'station',name:'Station',no:'2'},{id:'penrose',name:'Penrose',no:'14'},
+ {id:'surgery',name:'Surgery',no:'5'},{id:'vicarage',name:'Vicarage',no:'1'},{id:'ashby',name:'Ashby Farm',no:'22'},{id:'police',name:'Police House',no:'9'},
+ {id:'skell',name:'Skell Box',no:'rly'},{id:'mill',name:'Mill House',no:'11'},{id:'trunk',name:'Trunks',no:'Brackley'},{id:'post',name:'Post Office',no:'4'}];
+const BY={};LINES.forEach(l=>BY[l.id]=l);
+const WRONG={
+ bell:['Jack Dunn','Bell. We’re shut. Who is it?'],
+ hall:['Peg Hartley','Hall Farm. Wrong number? Then what’s it ringing for?'],
+ station:['Mr Dakin','Station. There’s no trains, whoever you are.'],
+ penrose:['Ruth Penrose','Hello? Is it the train? … Oh. Sorry.'],
+ surgery:null,
+ vicarage:['Mrs Lowe','Vicarage. Is somebody dying? No? Goodnight, then.'],
+ ashby:['Will Ashby','Ashby. Is it the doctor? Get off the line, love, please.'],
+ police:['PC Moss','Police house. Wrong number, is it. I’ll be writing that down.'],
+ skell:['Birtle','Skell box. Railway business only.'],
+ mill:['Mr Carrow','Mill House. … Is it three already?'],
+ trunk:['Trunks','Trunks. Number, caller? … Clearing.'],
+ post:['Mrs Gill','It’s Mrs Gill. Is that you downstairs? Go to bed when the day girl comes.']};
+const CALLS=[
+ {t:'22.10',from:'bell',caller:'Jack Dunn',ask:'Hall Farm, love.',min:3,legs:[{to:'hall',lines:[
+  ['Peg Hartley','Hall Farm.'],
+  ['Jack Dunn','Peg, it’s Jack at the Bell. Is Tom about?'],
+  ['Peg Hartley','He’s in his chair. Is it the dog again?'],
+  ['Jack Dunn','Under the settle, by the fire. Won’t shift for anybody.'],
+  ['Peg Hartley','Tom! … He says leave him. He’ll fetch him in the morning. He says it’s coming on to snow.'],
+  ['Jack Dunn','It’s been coming on to snow since dinner. It’s here now. Tell him there’s a pie in it if he’s quick.'],
+  ['Peg Hartley','He’s gone back to sleep, Jack.']]}]},
+ {t:'22.40',from:'penrose',caller:'Ruth Penrose',ask:'The station, please.',min:2,overlap:true,legs:[{to:'station',lines:[
+  ['Mr Dakin','Hollin Cross station.'],
+  ['Ruth Penrose','Mr Dakin, it’s Ruth Penrose. Is the 10.52 running?'],
+  ['Mr Dakin','Left Brackley on time, Miss Penrose. Snow on the tops, mind. She’ll be late.'],
+  ['Ruth Penrose','How late?'],
+  ['Mr Dakin','How long’s a piece of string. Are you meeting somebody?'],
+  ['Ruth Penrose','Yes.'],
+  ['Mr Dakin','Get back to your fire. I’ll ring the exchange the minute she’s signalled, and they’ll put me through.']]}]},
+ {t:'23.05',from:'ashby',caller:'Will Ashby',ask:'Doctor Hale. Quick, please.',min:4,legs:[
+  {to:'surgery',none:true,then:'Nobody? He’ll be at the vicarage, it’s Friday, they play chess. Try the vicarage.'},
+  {to:'vicarage',lines:[
+  ['Mrs Lowe','Hollin Cross vicarage.'],
+  ['Will Ashby','Mrs Lowe, it’s Will Ashby. Is the doctor there?'],
+  ['Mrs Lowe','He’s here. Is it Ellen? … Doctor!'],
+  ['Dr Hale','Will.'],
+  ['Will Ashby','She’s started. It’s three weeks early. The lane’s filling, I can’t see the wall tops.'],
+  ['Dr Hale','A first one comes slow, Will. I’ll get to you. Keep the range in, put the kettle on, and keep it on.'],
+  ['Will Ashby','What’s the water for?'],
+  ['Dr Hale','For you. It gives you something to do. Now go and sit with her.']]}]},
+ {t:'23.20',from:'vicarage',caller:'Dr Hale',ask:'Hall Farm, please. It’s Doctor Hale.',min:3,legs:[{to:'hall',lines:[
+  ['Peg Hartley','Hall Farm.'],
+  ['Dr Hale','Mrs Hartley, it’s Doctor Hale. I need Tom and the tractor. My car won’t get up Ashby lane tonight.'],
+  ['Peg Hartley','Is it Ellen?'],
+  ['Dr Hale','It is.'],
+  ['Peg Hartley','TOM. … He’s getting his boots. He says twenty minutes to the vicarage.'],
+  ['Dr Hale','Tell him I’ll be at the gate.'],
+  ['Peg Hartley','He says he’ll go round by the Bell. He says the dog’ll want to come.']]}]},
+ {t:'23.55',from:'station',caller:'Mr Dakin',ask:'Exchange, it’s Dakin at the station. Miss Penrose, please. I said I’d ring.',min:3,legs:[{to:'penrose',lines:[
+  ['Ruth Penrose','Hello? Mr Dakin?'],
+  ['Mr Dakin','She’s stopped, Miss Penrose. Skell cutting. The drifts are over her buffers.'],
+  ['Ruth Penrose','Is anybody hurt?'],
+  ['Mr Dakin','Nobody’s hurt. They’ve steam up, they’re warm. The plough comes out of Brackley at first light.'],
+  ['Ruth Penrose','First light.'],
+  ['Mr Dakin','He’ll be stiff and he’ll be hungry. That’s all he’ll be.'],
+  ['Ruth Penrose','Is there a telephone up there?'],
+  ['Mr Dakin','There’s the box at Skell, a mile down the line. Nobody’s walking a mile in that.']]}]},
+ {t:'00.40',from:'police',caller:'PC Moss',ask:'Skell box, please. Constable Moss.',min:2,overlap:true,legs:[{to:'skell',lines:[
+  ['Birtle','Skell.'],
+  ['PC Moss','Birtle, it’s Moss. Your train. Anybody I should know about?'],
+  ['Birtle','Two hundred yards up the cutting with her lamps lit. Guard says eleven aboard and a crate of hens.'],
+  ['PC Moss','Nobody wandering about?'],
+  ['Birtle','One. A lad walked down the line in his good shoes. He’s sat by my stove, steaming.'],
+  ['PC Moss','What’s he after?'],
+  ['Birtle','A telephone. I’ve told him it’s railway business only.'],
+  ['PC Moss','Is it.'],
+  ['Birtle','It is till you ring off.']]}]},
+ {t:'01.05',from:'skell',caller:'Birtle',ask:'Exchange, Skell box. This isn’t railway business. There’s a lad here wants Hollin Cross 14, a Miss Penrose. He’s no money for it.',min:6,legs:[{to:'penrose',lines:[
+  ['Ruth Penrose','Hello?'],
+  ['Dan Sowerby','Ruth. It’s me.'],
+  ['Ruth Penrose','Dan. Where are you?'],
+  ['Dan Sowerby','In a signal box. There’s a man here with his back to me, being polite.'],
+  ['Ruth Penrose','Mr Dakin said nobody’d walk a mile in that.'],
+  ['Dan Sowerby','I didn’t know it was a mile till I’d done it.'],
+  ['Ruth Penrose','Your feet.'],
+  ['Dan Sowerby','I’ve no feet. Ruth, I had a thing to say on the platform. I’ve been saying it to the window since Brackley.'],
+  ['Ruth Penrose','Then don’t say it down a telephone.'],
+  ['Dan Sowerby','No?'],
+  ['Ruth Penrose','Say it on the platform. You can say it on the platform at seven.'],
+  ['Dan Sowerby','It might be eight.'],
+  ['Ruth Penrose','I’ll be there at seven.']]}]},
+ {t:'02.10',from:'hall',caller:'Peg Hartley',ask:'Ashby Farm, please. It’s Peg Hartley. Only if they’re up.',min:2,overlap:true,legs:[{to:'ashby',lines:[
+  ['Will Ashby','Ashby.'],
+  ['Peg Hartley','Will, it’s Peg. Did they get there? Tom’s not back.'],
+  ['Will Ashby','They got there. The tractor’s in the yard with snow on the seat. Doctor’s upstairs.'],
+  ['Peg Hartley','And Tom?'],
+  ['Will Ashby','Asleep in the kitchen chair with your dog on his feet. I’ve put the kettle on. I keep putting the kettle on.'],
+  ['Peg Hartley','Leave him be. Ring me after.']]}]},
+ {t:'03.10',from:'mill',caller:'Mr Carrow',ask:'Trunks, please. The speaking clock. Same as always, love.',min:1,legs:[{to:'trunk',lines:[
+  ['The clock','At the third stroke it will be three, eleven, and twenty seconds.'],
+  ['The clock','Pip. Pip. Pip.'],
+  ['Mr Carrow','Thank you.'],
+  ['The clock','At the third stroke it will be three, eleven, and thirty seconds.'],
+  ['Mr Carrow','She used to say if you’re awake at three you’re the only one. It’s not true, is it.'],
+  ['The clock','Pip. Pip. Pip.'],
+  ['Mr Carrow','Bad night for it. Goodnight, love. Goodnight.']]}]},
+ {t:'04.40',from:'ashby',caller:'Dr Hale',ask:'The vicarage. It’s Doctor Hale.',min:3,legs:[{to:'vicarage',lines:[
+  ['Revd Lowe','Vicarage. Lowe.'],
+  ['Dr Hale','Arthur. A girl. Twenty to five. Both of them as sound as a bell.'],
+  ['Revd Lowe','Thanks be to God. And to you.'],
+  ['Dr Hale','Mostly to Ellen. Tell Margaret.'],
+  ['Revd Lowe','She’s been sat on the stairs all night. She heard. … She’s crying. Your bishop’s still on the board.'],
+  ['Dr Hale','Don’t touch it. I’ll be back for breakfast. I’ve seen a way out.'],
+  ['Revd Lowe','There’s no way out.']]}]},
+ {t:'05.35',from:'station',caller:'Mr Dakin',ask:'Skell box, please. Dakin.',min:2,overlap:true,legs:[{to:'skell',lines:[
+  ['Birtle','Skell.'],
+  ['Mr Dakin','Plough’s through Brackley. They’ll dig her out by seven.'],
+  ['Birtle','I’ll tell the lad. He’s asleep in my chair. I’ve been sat on the coal box since one.'],
+  ['Mr Dakin','Tell him there’s a light on at number fourteen. I can see it from the platform. It’s been on all night.'],
+  ['Birtle','I’ll tell him.']]}]},
+ {t:'05.55',from:'ashby',caller:'Will Ashby',ask:'Exchange? Is that the exchange? It’s Will Ashby.',min:3,op:true,lines:[
+  ['you','It’s the exchange, Mr Ashby.'],
+  ['Will Ashby','Have you been on all night? The same one?'],
+  ['you','All night.'],
+  ['Will Ashby','Then you’ll know. You put us through to everybody.'],
+  ['you','I only put the plugs in.'],
+  ['Will Ashby','It’s a girl. Ellen wants to know your name.'],
+  ['you','Whatever for?'],
+  ['Will Ashby','She says it’s a good night’s name. She’d like to borrow it.'],
+  ['stage','You tell him.']]}
+];
+// ---- END STORY ----
+
+const $=id=>document.getElementById(id);
+const CORDS=[{c:'--cord1'},{c:'--cord2'},{c:'--cord3'}].map(o=>({col:o.c,call:null,a:null,b:null,listen:false,phase:'idle'}));
+const S={i:0,lit:[],started:false,done:false,speed:1,clock:'22.00',sel:0,tickets:[],heard:0,listenedAny:0,timers:new Set(),lastTalk:0,nextAt:null};
+let blocks={};
+
+function later(fn,ms){const h=setTimeout(()=>{S.timers.delete(h);fn()},ms/S.speed);S.timers.add(h);return h}
+function pace(txt){return 900+txt.length*42}
+
+function buildBoard(){
+  const J=$('jacks');J.innerHTML='';
+  for(const l of LINES){
+    const d=document.createElement('div');d.className='jk';
+    d.innerHTML=`<span class="lamp" id="lamp-${l.id}"></span><button class="hole" id="hole-${l.id}" aria-label="${l.name} jack"></button><span class="lbl">${l.name}<small>${l.no}</small></span>`;
+    J.appendChild(d);
+    d.querySelector('button').onclick=()=>tapJack(l.id);
+  }
+  const Sh=$('shelf');Sh.innerHTML='';
+  CORDS.forEach((k,i)=>{
+    const d=document.createElement('div');d.className='cord';d.id='cord-'+i;d.tabIndex=0;d.setAttribute('role','button');
+    d.setAttribute('aria-label','Cord '+(i+1));
+    d.innerHTML=`<div class="plugs"><span class="plug" id="pa-${i}" style="background:var(${k.col})"></span><span class="plug" id="pb-${i}" style="background:var(${k.col})"></span></div>
+    <div class="keyrow"><span class="clr" id="clr-${i}" title="clear"></span><button class="key" id="key-${i}" aria-pressed="false">listen</button></div><span id="cs-${i}">free</span>`;
+    Sh.appendChild(d);
+    d.onclick=e=>{if(e.target.classList.contains('key'))return;tapCord(i)};
+    d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tapCord(i)}};
+    d.querySelector('.key').onclick=e=>{e.stopPropagation();toggleListen(i)};
+  });
+}
+
+function hint(t){$('hint').textContent=t}
+function jackBusy(id){return CORDS.find(k=>k.a===id||k.b===id)}
+
+function logBlock(call){
+  const ci=CALLS.indexOf(call);
+  if(blocks[ci])return blocks[ci];
+  const d=document.createElement('div');d.className='call';
+  const to=call.op?'the exchange':BY[call.legs[call.legs.length-1].to].name;
+  d.innerHTML=`<div class="hdr">${call.t} · ${BY[call.from].name}</div>`;
+  $('log').appendChild(d);blocks[ci]=d;return d;
+}
+function addLine(call,sp,txt,cls){
+  const b=logBlock(call);
+  const p=document.createElement('p');p.className='ln'+(cls?' '+cls:'');
+  if(sp==='you'){p.classList.add('you');p.innerHTML=`<span class="sp">you</span>`+esc(txt)}
+  else if(sp==='stage'){p.classList.add('stage');p.textContent=txt}
+  else if(sp)p.innerHTML=`<span class="sp">${esc(sp)}</span>`+esc(txt);
+  else p.textContent=txt;
+  b.appendChild(p);scrollLog();
+}
+function addSilent(call,txt){const b=logBlock(call);let s=b.querySelector('.silent');if(!s){s=document.createElement('p');s.className='ln silent';b.appendChild(s)}s.textContent=txt;scrollLog()}
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function scrollLog(){const L=$('line');L.scrollTop=L.scrollHeight}
+
+// ---- flow ----
+function lightNext(){
+  if(S.i>=CALLS.length)return;
+  const c=CALLS[S.i++];c.state='lit';c.leg=0;c.heard=0;c.missed=0;
+  S.lit.push(c);S.clock=c.t;render();
+  hint(BY[c.from].name+' is calling.');
+  scheduleNext();
+}
+function scheduleNext(){
+  // next call: overlap ones light a few seconds into the previous call's talk; others wait for a clear board
+  if(S.i>=CALLS.length)return;
+  const n=CALLS[S.i];
+  if(n.overlap){S.nextAt='talk'}else S.nextAt='clear';
+}
+function checkNext(){
+  if(S.i>=CALLS.length||S.pending)return;
+  const prev=CALLS[S.i-1];
+  if(S.nextAt==='talk'&&prev&&(prev.state==='talk'||prev.state==='done'||prev.state==='gone')){S.pending=true;later(()=>{S.pending=false;lightNext()},5000)}
+  else if(S.nextAt==='clear'&&CALLS.slice(0,S.i).every(c=>c.state==='gone')&&CORDS.every(k=>!k.call)){S.pending=true;later(()=>{S.pending=false;lightNext()},2600)}
+}
+function freeCord(){
+  if(!CORDS[S.sel].call)return S.sel;
+  return CORDS.findIndex(k=>!k.call);
+}
+function tapJack(id){
+  if(!S.started||S.done)return;
+  const waiting=S.lit.find(c=>c.from===id&&c.state==='lit');
+  if(waiting){
+    const i=freeCord();
+    if(i<0){hint('Every cord is in use. Take one down first.');return}
+    const k=CORDS[i];k.call=waiting;k.a=id;k.b=null;waiting.cord=i;waiting.state='ask';S.sel=i;
+    S.lit=S.lit.filter(c=>c!==waiting);
+    if(!waiting.answered){waiting.answered=true;
+      addLine(waiting,'you','Number, please.');addLine(waiting,waiting.caller,waiting.ask);}
+    if(waiting.op){k.listen=true;waiting.state='talk';talk(waiting,waiting.lines,0)}
+    else hint(waiting.caller+' wants '+BY[waiting.legs[waiting.leg].to].name+'. Tap that jack.');
+    render();return;
+  }
+  // a cord waiting for a far end?
+  let i=CORDS[S.sel].call&&CORDS[S.sel].call.state==='ask'?S.sel:CORDS.findIndex(k=>k.call&&k.call.state==='ask');
+  const busy=jackBusy(id);
+  if(i>=0&&!busy){connect(i,id);return}
+  if(busy&&busy.call&&busy.call.state==='done'){clearCord(CORDS.indexOf(busy));return}
+  if(i>=0&&busy){hint(BY[id].name+' is already on a call.');return}
+  hint('Nobody is calling on '+BY[id].name+'.');
+}
+function connect(i,id){
+  const k=CORDS[i],c=k.call,leg=c.legs[c.leg];
+  k.b=id;c.state='ring';render();
+  addLine(c,'','… ringing '+BY[id].name+' …','stage');
+  later(()=>{
+    if(id!==leg.to){
+      const w=WRONG[id];
+      if(w)addLine(c,w[0],w[1]);else addLine(c,'','No reply.','stage');
+      later(()=>{k.b=null;c.state='ask';addLine(c,c.caller,'No, love. '+BY[leg.to].name+'.');hint(c.caller+' wants '+BY[leg.to].name+'.');render()},1400);
+      return;
+    }
+    if(leg.none){
+      later(()=>{addLine(c,'','No reply.','stage');
+        later(()=>{k.b=null;c.leg++;c.state='ask';addLine(c,c.caller,leg.then);hint(c.caller+' wants '+BY[c.legs[c.leg].to].name+'.');render()},1200)},2200);
+      return;
+    }
+    c.state='talk';render();talk(c,leg.lines,0);
+  },1500);
+}
+function talk(c,lines,j){
+  if(j===0){S.lastTalk=Date.now();checkNext()}
+  const k=CORDS[c.cord];
+  if(j>=lines.length){
+    c.state='done';
+    S.tickets.push({ci:CALLS.indexOf(c),t:c.t,from:BY[c.from].name,to:c.op?'(exchange)':BY[c.legs[c.leg].to].name,min:c.min});
+    if(!c.heard)addSilent(c,'→ '+(c.op?'exchange':BY[c.legs[c.leg].to].name)+'. You didn’t listen. '+c.min+' min.');
+    hint('Clear lamp on cord '+(c.cord+1)+'. Tap the cord to take it down.');
+    render();return;
+  }
+  const [sp,txt]=lines[j];
+  if(k.listen){
+    if(c.missed&&c.lastMissed){const s=logBlock(c).querySelector('.silent');if(s)s.remove();addLine(c,'','…','gap')}
+    c.lastMissed=false;addLine(c,sp,txt);c.heard++;
+  } else {c.missed++;c.lastMissed=true;addSilent(c,'→ '+(c.op?'exchange':BY[c.legs[c.leg].to].name)+'. Talking…')}
+  later(()=>talk(c,lines,j+1),pace(txt));
+}
+function clearCord(i){
+  const k=CORDS[i],c=k.call;
+  if(!c||c.state!=='done')return;
+  c.state='gone';if(c.heard)S.listenedAny++;
+  k.call=null;k.a=k.b=null;k.listen=false;render();
+  hint('');
+  if(CALLS.every(x=>x.state==='gone'))later(finish,1800);else checkNext();
+}
+function tapCord(i){
+  if(!S.started)return;
+  const k=CORDS[i];
+  if(k.call&&k.call.state==='done'){clearCord(i);return}
+  S.sel=i;render();
+}
+function toggleListen(i){
+  const k=CORDS[i];
+  if(k.call&&k.call.op)return;
+  k.listen=!k.listen;render();
+}
+function finish(){
+  S.done=true;S.clock='06.30';render();
+  const n=CALLS.filter(c=>!c.op&&c.heard).length,tot=CALLS.filter(c=>!c.op).length;
+  const rows=S.tickets.slice().sort((a,b)=>a.ci-b.ci).map(t=>`<tr><td>${t.t}</td><td>${t.from}</td><td>${t.to}</td><td>${t.min}</td></tr>`).join('');
+  const E=$('end');E.classList.remove('hidden');
+  E.innerHTML=`<p>At half past six the day operator comes in, stamping snow off on the mat. She hangs her coat on the hook over yours and reads the tickets while the kettle boils.</p>
+  <table class="docket"><tr><th>time</th><th>from</th><th>to</th><th>min</th></tr>${rows}</table>
+  <p>“Quiet night?” she says.</p>
+  <p class="silent">${n===0?'You listened to none of the calls. The tickets are all you have.':n===tot?'You listened to every call. Nobody will ever know.':'You listened in on '+n+' of '+tot+' calls.'}</p>
+  <button class="btn" id="again">Another night</button>`;
+  $('again').onclick=reset;
+  E.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function reset(){
+  for(const h of S.timers)clearTimeout(h);S.timers.clear();
+  CALLS.forEach(c=>{delete c.state;delete c.answered;delete c.cord;c.heard=0;c.missed=0;c.lastMissed=false});
+  CORDS.forEach(k=>{k.call=null;k.a=k.b=null;k.listen=false});
+  Object.assign(S,{i:0,lit:[],done:false,clock:'22.00',sel:0,tickets:[],listenedAny:0,pending:false,nextAt:null});
+  blocks={};$('log').innerHTML='';$('end').classList.add('hidden');
+  S.started=true;render();hint('The board is quiet.');later(lightNext,2200);
+}
+
+// ---- render ----
+function render(){
+  $('clock').textContent=S.clock;
+  for(const l of LINES){
+    const on=S.lit.some(c=>c.from===l.id&&c.state==='lit');
+    const lp=$('lamp-'+l.id);lp.classList.toggle('on',on);lp.classList.toggle('flick',on);
+    $('hole-'+l.id).classList.toggle('busy',!!jackBusy(l.id));
+  }
+  CORDS.forEach((k,i)=>{
+    $('cord-'+i).classList.toggle('sel',i===S.sel);
+    $('pa-'+i).classList.toggle('out',!!k.a);$('pb-'+i).classList.toggle('out',!!k.b);
+    $('clr-'+i).classList.toggle('on',!!(k.call&&k.call.state==='done'));
+    const key=$('key-'+i);key.setAttribute('aria-pressed',k.listen?'true':'false');
+    const st=!k.call?'free':k.call.state==='ask'?'waiting for a number':k.call.state==='ring'?'ringing':k.call.state==='talk'?(k.listen?'listening':'talking'):'cleared';
+    $('cs-'+i).textContent=st;
+  });
+  drawCords();
+}
+function centre(el,base){const r=el.getBoundingClientRect();return [r.left+r.width/2-base.left,r.top+r.height/2-base.top]}
+function drawCords(){
+  const sw=$('switch'),base=sw.getBoundingClientRect(),svg=$('cords');
+  svg.setAttribute('viewBox',`0 0 ${base.width} ${base.height}`);
+  let out='';
+  CORDS.forEach((k,i)=>{
+    const col=getComputedStyle(document.documentElement).getPropertyValue(k.col).trim();
+    for(const [end,pl] of [[k.a,'pa-'],[k.b,'pb-']]){
+      if(!end)continue;
+      const [x0,y0]=centre($(pl+i),base),[x1,y1]=centre($('hole-'+end),base);
+      const sag=Math.min(140,40+Math.hypot(x1-x0,y1-y0)*.25);
+      const mx=(x0+x1)/2,my=Math.max(y0,y1)+sag*.35;
+      out+=`<path d="M${x0} ${y0} Q${mx} ${my} ${x1} ${y1}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" opacity=".92"/>`;
+      out+=`<circle cx="${x1}" cy="${y1}" r="8" fill="${col}" stroke="rgba(0,0,0,.4)"/>`;
+    }
+  });
+  svg.innerHTML=out;
+}
+addEventListener('resize',drawCords);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawCords);
+
+buildBoard();render();
+$('go').onclick=()=>{$('intro').classList.add('hidden');reset()};
+$('pace').onclick=()=>{S.speed=S.speed===1?1.8:1;$('pace').setAttribute('aria-pressed',S.speed>1?'true':'false');$('pace').textContent=S.speed>1?'brisk ✓':'brisk'};
+window.__exchange={S,CORDS,CALLS,tapJack,tapCord,toggleListen,reset,setSpeed:v=>S.speed=v};
+</script>
+</body>
+</html>

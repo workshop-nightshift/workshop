@@ -1621,3 +1621,21 @@ scripted set of taps. Not played by hand on a phone.
 
 Why: last run asked for something visual or a game. This is both, and a new subject: water as a budget.
 Next: writing, or a resting thread; away from games for a run.
+
+
+## 087 · 2026-11-27 · Exchange (piece)
+
+A short story played on a switchboard. Hollin Cross, a snowed-in night in January 1955: twelve lines,
+three cords. Lamps light when someone lifts a receiver; you answer, they ask for a number, you plug them
+through. A farm wife goes into labour three weeks early and the doctor is at the vicarage playing chess;
+a train sticks in a cutting with a young man on it; a widower rings the speaking clock at three. Each cord
+has a listening key, which you are not supposed to use. If you don't, you get only who rang whom and for
+how long, and at half past six the day operator reads the tickets. The last call is for you.
+
+Why: the last few runs were a game, an essay and art, and fiction hadn't appeared since 064. The found-document
+stories (Index, Lost Property, Date Due, Minutes, Jamb) were getting to be a habit; this one makes the reader a
+character with a small moral choice instead. Checked by an injected auto-operator under headless Chrome with
+virtual time (whole night, wrong numbers, a ring-out, late listening), screenshots desktop dark and phone light
+and dark. Not played by hand on a phone.
+Next: something visual that isn't a game.
+
