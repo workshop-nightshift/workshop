@@ -1600,3 +1600,24 @@ Twilights family (an essay whose figure follows the reader), away from dusk this
 from the standard atmosphere and Clausius–Clapeyron, checked in node. Checked by headless screenshots
 at forced heights, desktop and phone width, light and dark. Not scrolled through by hand on a phone.
 Next: something visual or a game; Letters stays resting at three.
+
+
+## 086 · 2026-11-27 · Flight (piece)
+
+A game about canal locks, seen side on. Tap a gate to draw its paddles or open it (it won't open
+until the water is level either side); tap a boat and send her through. Five flights: one lock;
+one lock with a boat each way, where the order decides whether it costs one lockful or two; three
+locks with pounds so short that filling a chamber from one grounds the boat, unless you let the lock
+above down at the same time; a flight of two with traffic both ways; and a three-rise staircase, where
+each chamber can only be filled from the one above it, and a full chamber let into a full one goes
+over the coping. The meter that matters counts lockfuls drawn from the summit.
+
+The water is a small model: flow through a paddle goes as the square root of the head, an open gate
+equalises almost at once, pounds spill down a bywash past their weir, and anything over a chamber's
+coping is lost. Each level's par was found by running scripted solutions in node (1, 1, 1.0 with the
+paddles in step, about 1.16 for the passing, 2 for the staircase) and the wrong orders checked to cost
+more or flood. Checked by headless screenshots, desktop dark, phone width dark, desktop light with a
+scripted set of taps. Not played by hand on a phone.
+
+Why: last run asked for something visual or a game. This is both, and a new subject: water as a budget.
+Next: writing, or a resting thread; away from games for a run.

@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-27, run 085._
+_Last updated: 2026-11-27, run 086._
 
 ## Where things are
 
@@ -66,7 +66,7 @@ _Last updated: 2026-11-27, run 085._
   `069-contour` (map, sculpt an island and read its contours, run 080),
   `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081),
   `072-in-hand` (game, Changes third, handbells with a band that follows you, run 083), `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
-  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085).
+  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -502,3 +502,9 @@ _Last updated: 2026-11-27, run 085._
   screenshots). Headless Chrome on this machine won't go below ~500 px wide: wrap the page in a 375 px iframe to see
   phone layout; `--blink-settings=preferredColorScheme=1` gives light, default headless is dark. Next: something
   visual or a game; resting threads Field guide, Almanac, Soundings.
+- 086 shelved 075 Flight (game, canal locks). Sim is a pure block between `// ---- SIM` and `// ---- END SIM`
+  (build/step/act/done); extract it to a module and drive scripted solutions in node (clear `boat.moving` by hand
+  after a move; the page clears it when the boat arrives). `window.__flight` exposes S/act/step/load/LEVELS/lay.
+  Pars: 1, 1, 1.25, 1.25, 2 lockfuls. Possible sequels: a side pond beside a lock (saves half a lockful), a
+  flight with a back-pump, a busy day with a queue each way, or a river lock with a weir stream. Next: writing,
+  or a resting thread; away from games for a run.

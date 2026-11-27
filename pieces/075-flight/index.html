@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flight</title>
+<style>
+:root{--bg:#eae6dc;--fg:#1e1c18;--mute:#6f6758;--line:#cdc5b3;--card:#f5f1e7;
+  --sky:#e3e4df;--earth:#b7a98c;--earth2:#a39478;--cut:#d4d0c4;--brick:#8b5a45;--coping:#d8d2c4;
+  --water:#5b86a3;--water2:#4a7590;--timber:#2d2620;--white:#f4f1ea;--hi:#d3901c;--ok:#3f7a4a;--bad:#b23d2a;
+  --boat1:#2f5e43;--boat1b:#a8322a;--boat2:#2d4a78;--boat2b:#d7a531}
+@media (prefers-color-scheme:dark){:root{--bg:#12120f;--fg:#e6e0d3;--mute:#9a907e;--line:#2f2c26;--card:#1c1b17;
+  --sky:#171815;--earth:#3a3428;--earth2:#2e291f;--cut:#22221d;--brick:#6e4334;--coping:#5a564d;
+  --water:#3e6c8a;--water2:#2f5872;--timber:#0b0a08;--white:#d9d4c8;--hi:#e8b04a;--ok:#6fae78;--bad:#e06a52;
+  --boat1:#3f7d59;--boat1b:#c5493c;--boat2:#4467a0;--boat2b:#e0b445}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;justify-content:center;padding:14px 16px 72px}
+main{width:100%;max-width:720px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 12px;font-style:italic}
+#levels{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+button.b{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:4px 11px;cursor:pointer;touch-action:manipulation}
+button.b.on{border-color:var(--fg)}
+button.b.go{border-color:var(--hi)}
+button.b:disabled{opacity:.4;cursor:default}
+button.b .st{color:var(--hi);font-size:12px;margin-left:3px}
+#card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:8px 11px}
+#card .t{font-size:16px}
+#card .d{color:var(--mute);font-size:14px}
+#meters{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin:8px 0 0}
+#meters b{font-weight:normal;font-variant-numeric:tabular-nums}
+#meters .over b{color:var(--bad)}
+#cv{display:block;width:100%;margin:10px 0 0;border-radius:6px;touch-action:manipulation;user-select:none;-webkit-user-select:none;cursor:pointer}
+#panel{min-height:84px;margin-top:8px;display:flex;flex-direction:column;gap:6px}
+#panel .what{font-size:14px;color:var(--mute)}
+#panel .row{display:flex;gap:8px;flex-wrap:wrap}
+#panel .row button.b{padding:7px 14px;font-size:15px}
+#msg{min-height:1.5em;font-size:14px}
+#msg.bad{color:var(--bad)}
+#msg.ok{color:var(--ok)}
+.tools{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.prose{margin-top:24px;max-width:620px}
+.prose p{margin:0 0 .85em}
+.prose h2{font-size:17px;font-weight:normal;font-style:italic;margin:1.2em 0 .4em}
+details{margin-top:14px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+<h1>Flight</h1>
+<p class="sub">Work boats through a flight of canal locks with the water you have.</p>
+
+<div id="levels"></div>
+<div id="card"><div class="t" id="ltitle"></div><div class="d" id="ldesc"></div>
+  <div id="meters"><span>from the summit <b id="msum">0.00</b> lockfuls</span><span>par <b id="mpar">1</b></span><span id="mflood" class="over" hidden>over the coping <b id="mfl">0</b></span><span id="mby" hidden>bywash running</span></div>
+</div>
+<canvas id="cv" aria-label="Side view of the locks: tap a gate or a boat"></canvas>
+<div id="panel"></div>
+<div id="msg" role="status"></div>
+<div class="tools"><button class="b" id="reset">Start again</button><button class="b" id="fast">Hurry ×4</button></div>
+
+<div class="prose">
+<p>A lock is a box of water with a gate at each end. To go up, you bring the boat into an empty chamber, shut the gate behind her, and let water in from the pound above until the levels meet; then the top gate will open, and not before, because a few centimetres of head hold a gate shut better than any lock-keeper. To go down, the same backwards.</p>
+<p>Tap a gate to choose it. A gate has its paddles, the sluices that let water through it, and the gate itself. Draw the paddle and wait; when the water is level either side, the gate can be opened. Tap a boat to choose her, then send her up or down through an open gate.</p>
+<h2>Water</h2>
+<p>Every chamber you fill going up, and every one you empty coming down, passes a lockful of water one step down the hill. All of it comes from the summit in the end, and the summit is fed by a reservoir that may be low by August. So the meter that matters is the one at the top: how many lockfuls this flight has drawn from the summit pound.</p>
+<p>The cheapest thing in the world is a lock that is set for you. A boat coming up into a chamber that a boat going down has just left empty pays nothing to get in, and leaves the chamber full for whoever is coming the other way. Boaters call it the lock being with you. Turn a lock round for nobody and you've sent a lockful down to the sea.</p>
+<h2>Short pounds</h2>
+<p>Between the locks of a flight the pounds are sometimes hardly longer than a boat. Filling a chamber out of one draws it down by more than it can spare, and a boat in it sits on the mud. The answer is to let the lock above you down at the same time, so the water you take out of the pound is put back as fast as you take it. If you're out of step the other way, the pound fills to its weir and the surplus goes down the bywash, round the lock and away.</p>
+<h2>Staircases</h2>
+<p>In a staircase there are no pounds at all. Each chamber's top gate is the next one's bottom gate, and the only place a chamber can get its water from is the chamber above it. Going up, the chamber above must be full before you can fill yours from it, and that one must have been filled from above. Get it the wrong way round, and let a full chamber into another full one, and the water comes over the coping and down the towpath.</p>
+</div>
+<details><summary>About the model</summary>
+<p>Every chamber here holds one boat and rises two metres; the pounds and the summit and the bottom of the flight are wide enough to move only a little, or not at all. Water passes a drawn paddle at a rate that goes as the square root of the head across it, and through an open gate almost at once. A pound that rises past its weir spills down a bywash to the next pound below. A boat draws seventy centimetres and goes aground with less than seventy-five under her. Nothing here is a real flight, though all of it happens on real ones.</p>
+</details>
+</main>
+<script>
+// ---- SIM
+const RISE = 2, DRAFT = 0.7, EPS = 0.03, KP = 0.32, KG = 9, CW = 8;
+const LEVELS = [
+  {title:'One lock', desc:'Bring the green boat up. The chamber is full.',
+   chain:['R','L','R'], init:{1:'full'}, boats:[{c:1,at:0,goal:'top'}], par:1},
+  {title:'Turn about', desc:'One boat up, one boat down, one lock. The chamber is empty.',
+   chain:['R','L','R'], init:{1:'empty'}, boats:[{c:1,at:0,goal:'top'},{c:2,at:2,goal:'bottom'}], par:1},
+  {title:'Short pounds', desc:'Bring her up three locks. The pounds between hold hardly more than a lockful, and every chamber is full.',
+   chain:['R','L',1.5,'L',1.5,'L','R'], init:{1:'full',3:'full',5:'full'}, boats:[{c:1,at:0,goal:'top'}], par:1.25},
+  {title:'Passing', desc:'A flight of two, a boat each way. The bottom chamber is full and the top one empty.',
+   chain:['R','L',6,'L','R'], init:{1:'full',3:'empty'}, boats:[{c:1,at:0,goal:'top'},{c:2,at:4,goal:'bottom'}], par:1.25},
+  {title:'Staircase', desc:'Three chambers and no pounds between them. Bring her up. The bottom and top chambers are full, the middle one empty.',
+   chain:['R','L','L','L','R'], init:{1:'full',2:'empty',3:'full'}, boats:[{c:1,at:0,goal:'top'}], par:2},
+];
+
+function build(spec){
+  let cur = 0; const secs = [];
+  spec.chain.forEach((k,i)=>{
+    if (k==='L'){
+      const low = cur, high = cur+RISE; cur = high;
+      const st = spec.init[i]||'empty';
+      secs.push({k:'lock', area:1, low, high, floor:low-1.2, bank:high+0.25, level: st==='full'?high:low});
+    } else if (k==='R'){
+      secs.push({k:'res', area:1e6, normal:cur, floor:cur-1.6, bank:cur+0.6, level:cur, fixed:true});
+    } else {
+      secs.push({k:'pound', area:k, normal:cur, floor:cur-1.5, weir:cur+0.12, bank:cur+0.5, level:cur});
+    }
+  });
+  const gates = [];
+  for (let i=0;i<secs.length-1;i++){
+    const a=secs[i], b=secs[i+1];
+    let top = -1e9; for (const s of [a,b]) if (s.k==='lock') top = Math.max(top, s.bank);
+    gates.push({a:i, b:i+1, open:false, paddle:false, floor:Math.max(a.floor,b.floor), top});
+  }
+  const boats = spec.boats.map((o,j)=>({id:j, c:o.c, sec:o.at, goal:o.goal==='top'?secs.length-1:0, x:null, moving:0, from:o.at}));
+  return {secs, gates, boats, summit:0, flood:0, bywash:0, t:0, spec, won:false};
+}
+
+function depth(S,i){ const s=S.secs[i]; return s.level - s.floor; }
+function afloat(S,i){ return depth(S,i) >= DRAFT+0.05; }
+
+function moveWater(S, from, to, v){
+  const a=S.secs[from], b=S.secs[to];
+  if (v<=0) return;
+  if (!a.fixed) a.level -= v/a.area; else if (from===S.secs.length-1) S.summit += v;
+  if (!b.fixed) b.level += v/b.area;
+}
+
+function step(S, dt){
+  const n = Math.max(1, Math.ceil(dt/0.02)), h = dt/n;
+  let by = 0;
+  for (let it=0; it<n; it++){
+    for (const g of S.gates){
+      if (!g.open && !g.paddle) continue;
+      const A=S.secs[g.a], B=S.secs[g.b];
+      const dh = B.level - A.level; if (Math.abs(dh) < 1e-6) continue;
+      const [hi,lo] = dh>0 ? [g.b,g.a] : [g.a,g.b];
+      const H=S.secs[hi], L=S.secs[lo];
+      const K = (g.open?KG:0) + (g.paddle?KP:0);
+      let v = K*Math.sqrt(Math.abs(dh))*h;
+      const Ah = H.fixed?1e9:H.area, Al = L.fixed?1e9:L.area;
+      const cap = Math.abs(dh)*Ah*Al/(Ah+Al);
+      v = Math.min(v, cap);
+      if (!H.fixed) v = Math.min(v, Math.max(0,(H.level-H.floor)*H.area));
+      moveWater(S, hi, lo, v);
+    }
+    for (let i=0;i<S.secs.length;i++){
+      const s=S.secs[i];
+      if (s.k==='pound' && s.level > s.weir){
+        const head = s.level - s.weir;
+        let v = Math.min(CW*Math.pow(head,1.5)*h, head*s.area);
+        let j=i-1; while (j>0 && S.secs[j].k==='lock') j--;
+        moveWater(S, i, j, v); by += v;
+      }
+      if (!s.fixed && s.level > s.bank){ S.flood += (s.level-s.bank)*s.area; s.level = s.bank; S.floodT = S.t; }
+    }
+  }
+  S.bywash = by/dt;
+  S.t += dt;
+}
+
+function gateBetween(S, i, j){ return S.gates[Math.min(i,j)]; }
+function boatsIn(S,i){ return S.boats.filter(b=>b.sec===i); }
+function crossing(S,g){ return S.boats.some(b=>b.moving && ((b.from===g.a&&b.sec===g.b)||(b.from===g.b&&b.sec===g.a))); }
+
+// returns '' on success or a reason
+function act(S, what, idx){
+  if (what==='paddle'){ const g=S.gates[idx]; g.paddle=!g.paddle; return ''; }
+  if (what==='gate'){
+    const g=S.gates[idx];
+    if (g.open){ if (crossing(S,g)) return 'Not with a boat in the gateway.'; g.open=false; return ''; }
+    const dh = Math.abs(S.secs[g.a].level - S.secs[g.b].level);
+    if (dh > EPS) return 'It won’t budge: '+fmtM(dh)+' of water is leaning on it.';
+    g.open = true; return '';
+  }
+  if (what==='up'||what==='down'){
+    const b=S.boats[idx]; if (b.moving) return 'She’s under way.';
+    const to = b.sec + (what==='up'?1:-1);
+    if (to<0||to>=S.secs.length) return 'Nowhere further that way.';
+    const g = gateBetween(S,b.sec,to);
+    if (!g.open) return 'The gate is shut.';
+    if (!afloat(S,b.sec)) return 'She’s aground: '+fmtM(Math.max(0,depth(S,b.sec)))+' under her, she draws '+fmtM(DRAFT)+'.';
+    if (!afloat(S,to)) return 'Too shallow ahead: '+fmtM(Math.max(0,depth(S,to)))+'.';
+    if (S.secs[to].k==='lock' && boatsIn(S,to).length) return 'The chamber is taken.';
+    b.from=b.sec; b.sec=to; b.moving=1; return '';
+  }
+  return '?';
+}
+function done(S){ return S.boats.every(b=>b.sec===b.goal && !b.moving); }
+function lockfuls(v){ return v/RISE; }
+function fmtM(m){ return m<1 ? Math.round(m*100)+' cm' : m.toFixed(2)+' m'; }
+// ---- END SIM
+
+const cv=document.getElementById('cv'), cx=cv.getContext('2d');
+const RM = matchMedia('(prefers-reduced-motion: reduce)');
+let S, LI=0, sel=null, speed=1, W=0, H=0, lay=null, msgT=0;
+const best = (()=>{ try{ return JSON.parse(localStorage.getItem('nightshift-flight-v1'))||{}; }catch(e){ return {}; } })();
+function saveBest(){ try{ localStorage.setItem('nightshift-flight-v1', JSON.stringify(best)); }catch(e){} }
+
+function col(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+let C={};
+function readCols(){ for (const n of ['sky','earth','earth2','cut','brick','coping','water','water2','timber','white','hi','ok','bad','fg','mute','boat1','boat1b','boat2','boat2b','line']) C[n]=col('--'+n); }
+
+function layout(){
+  W = cv.clientWidth;
+  const ws = S.secs.map(s=> s.k==='res'?72 : s.k==='lock'?48 : 34+s.area*16);
+  const tot = ws.reduce((a,b)=>a+b,0), kx = W/tot;
+  let x=0; const xs=[];
+  ws.forEach((w,i)=>{ xs.push(x); x+=w*kx; });
+  const emin = Math.min(...S.secs.map(s=>s.floor)) - 0.5, emax = Math.max(...S.secs.map(s=>s.bank)) + 1.4;
+  H = Math.round(Math.min(380, Math.max(220, W*0.62)));
+  const sy = H/(emax-emin);
+  lay = {xs, ws:ws.map(w=>w*kx), y:m=>(emax-m)*sy, sy, kx};
+  const dpr = devicePixelRatio||1;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); cv.style.height = H+'px';
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  for (const b of S.boats) b.x = null;
+}
+
+function boatTargetX(b){
+  const i=b.sec, s=S.secs[i], x0=lay.xs[i], w=lay.ws[i];
+  const here = boatsIn(S,i).filter(o=>!o.moving||o===b);
+  const k = here.indexOf(b), n = here.length;
+  if (s.k==='lock') return x0+w/2;
+  if (s.k==='res'){ const edge = i===0 ? x0+w-26 : x0+26; return i===0 ? edge-(n-1-k)*34 : edge+k*34; }
+  return x0 + w*(k+1)/(n+1);
+}
+
+function draw(){
+  const {xs,ws,y}=lay;
+  cx.fillStyle=C.sky; cx.fillRect(0,0,W,H);
+  // earth
+  S.secs.forEach((s,i)=>{
+    cx.fillStyle=C.earth; cx.fillRect(xs[i]-0.5, y(s.bank), ws[i]+1, H);
+  });
+  // channels
+  S.secs.forEach((s,i)=>{
+    cx.fillStyle=C.cut; cx.fillRect(xs[i], y(s.bank), ws[i], y(s.floor)-y(s.bank));
+    if (s.k==='lock'){ // brick walls shown as the chamber's back wall courses
+      cx.strokeStyle=C.brick; cx.globalAlpha=.35; cx.lineWidth=1;
+      for (let m=s.floor+0.25; m<s.bank; m+=0.25){ cx.beginPath(); cx.moveTo(xs[i],y(m)); cx.lineTo(xs[i]+ws[i],y(m)); cx.stroke(); }
+      cx.globalAlpha=1;
+      cx.fillStyle=C.coping; cx.fillRect(xs[i], y(s.bank)-3, ws[i], 3);
+    }
+  });
+  // water
+  S.secs.forEach((s,i)=>{
+    const top=y(s.level), bot=y(s.floor);
+    const g=cx.createLinearGradient(0,top,0,bot); g.addColorStop(0,C.water); g.addColorStop(1,C.water2);
+    cx.fillStyle=g; cx.fillRect(xs[i], top, ws[i]+0.5, bot-top);
+    cx.strokeStyle=C.white; cx.globalAlpha=.35; cx.beginPath(); cx.moveTo(xs[i],top+0.5); cx.lineTo(xs[i]+ws[i],top+0.5); cx.stroke(); cx.globalAlpha=1;
+  });
+  // flow through paddles
+  S.gates.forEach((g,gi)=>{
+    if (!g.paddle || g.open) return;
+    const A=S.secs[g.a], B=S.secs[g.b], dh=B.level-A.level; if (Math.abs(dh)<0.01) return;
+    const lo = dh>0? g.a : g.b, dir = dh>0? -1 : 1, gx = xs[g.b];
+    const L=S.secs[lo], yb=y(Math.max(L.floor, g.floor))-6;
+    cx.strokeStyle=C.white; cx.lineWidth=1.3; cx.globalAlpha=Math.min(.85, .3+Math.sqrt(Math.abs(dh)));
+    for (let k=0;k<4;k++){
+      const ph=((S.t*1.6+k/4)%1), xx=gx+dir*(4+ph*22), yy=yb-ph*10*(1+k%2);
+      if (yy < y(L.level)) continue;
+      cx.beginPath(); cx.arc(xx,yy,2+ph*3,0,Math.PI*1.4); cx.stroke();
+    }
+    cx.globalAlpha=1;
+  });
+  // gates
+  S.gates.forEach((g,gi)=>{
+    const gx=xs[g.b], top=y(g.top), bot=y(g.floor);
+    const lockAbove = S.secs[g.b].k==='lock' && (S.secs[g.a].k!=='lock' || true);
+    // beam goes away from the chamber it closes: bottom gate of chamber b → beam to the left
+    const ch = S.secs[g.b].k==='lock' ? g.b : g.a;
+    const side = ch===g.b ? -1 : 1;
+    if (sel && sel.t==='gate' && sel.i===gi){ cx.fillStyle=C.hi; cx.globalAlpha=.22; cx.fillRect(gx-16, top-30, 32, bot-top+34); cx.globalAlpha=1; }
+    if (g.open){
+      cx.strokeStyle=C.timber; cx.globalAlpha=.45; cx.lineWidth=2; cx.setLineDash([3,3]);
+      cx.beginPath(); cx.moveTo(gx,bot); cx.lineTo(gx,top); cx.stroke(); cx.setLineDash([]); cx.globalAlpha=1;
+      // swung back: draw the beam pushed round, short
+      cx.fillStyle=C.timber; cx.fillRect(gx+side*2-2, top-7, side*14, 5);
+      cx.fillStyle=C.white; cx.fillRect(gx+side*14-1.5, top-7, side*4, 5);
+    } else {
+      cx.fillStyle=C.timber; cx.fillRect(gx-3, top, 6, bot-top);
+      cx.fillRect(gx-3+(side<0?-26:0), top-7, 32, 5);
+      cx.fillStyle=C.white; cx.fillRect(side<0? gx-29 : gx+23, top-7, 6, 5);
+    }
+    // paddle rack
+    const px = gx - side*7;
+    cx.strokeStyle=C.timber; cx.lineWidth=2;
+    cx.beginPath(); cx.moveTo(px, top-2); cx.lineTo(px, top-(g.paddle?22:12)); cx.stroke();
+    cx.fillStyle = g.paddle? C.hi : C.timber;
+    cx.fillRect(px-3, top-(g.paddle?24:14), 6, 4);
+  });
+  // boats
+  for (const b of S.boats){
+    const tx = boatTargetX(b);
+    if (b.x===null) b.x=tx;
+    const s=S.secs[b.sec], wl=y(s.level);
+    const L = Math.min(40, lay.ws[1]*0.82), hh = 8;
+    const ground = !afloat(S,b.sec) && !b.moving;
+    cx.save(); cx.translate(b.x, wl);
+    if (ground) cx.rotate(-0.06);
+    const hull = b.c===1? C.boat1 : C.boat2, band = b.c===1? C.boat1b : C.boat2b;
+    if (sel && sel.t==='boat' && sel.i===b.id){ cx.strokeStyle=C.hi; cx.lineWidth=2.5; cx.strokeRect(-L/2-4, -hh-11, L+8, hh+11+DRAFT*lay.sy*0.9+4); }
+    const dr = DRAFT*lay.sy*0.9;
+    cx.fillStyle=hull; cx.beginPath(); cx.moveTo(-L/2, -hh+2); cx.lineTo(L/2-5, -hh+2); cx.lineTo(L/2, -hh+5); cx.lineTo(L/2-3, dr); cx.lineTo(-L/2+2, dr); cx.closePath(); cx.fill();
+    cx.fillStyle=band; cx.fillRect(-L/2, -hh+2, L-5, 2.5);
+    cx.fillStyle=hull; cx.fillRect(-L/2+3, -hh-7, L*0.58, 9);
+    cx.fillStyle=C.white; for (let k=0;k<3;k++) cx.fillRect(-L/2+6+k*L*0.17, -hh-5, 3, 3);
+    cx.fillStyle=band; cx.fillRect(-L/2+3, -hh-8, L*0.58, 1.5);
+    // arrow: which way she's going
+    cx.fillStyle=C.fg; cx.font='11px system-ui,sans-serif'; cx.textAlign='center';
+    const goingUp = b.goal > 0;
+    cx.fillText(b.sec===b.goal ? '✓' : goingUp ? '↑' : '↓', L*0.3, -hh-1);
+    cx.restore();
+    if (ground){ cx.fillStyle=C.bad; cx.font='11px system-ui,sans-serif'; cx.textAlign='center'; cx.fillText('aground', b.x, wl+DRAFT*lay.sy+14); }
+  }
+  // labels
+  cx.fillStyle=C.mute; cx.font='11px system-ui,sans-serif'; cx.textAlign='center';
+  S.secs.forEach((s,i)=>{
+    let t = s.k==='res' ? (i===0?'below':'summit') : s.k==='lock' ? '' : 'pound';
+    if (t) cx.fillText(t, xs[i]+lay.ws[i]/2, H-8);
+  });
+  if (S.floodT!=null && S.t-S.floodT<2){ cx.fillStyle=C.bad; cx.font='13px Georgia,serif'; cx.textAlign='center'; cx.fillText('over the coping!', W/2, 16); }
+}
+
+function tick(dt){
+  step(S, dt*speed);
+  for (const b of S.boats){
+    if (b.x===null) continue;
+    const tx = boatTargetX(b), d = tx-b.x, v = 70*dt*speed;
+    if (Math.abs(d) <= v){ b.x = tx; if (b.moving){ b.moving=0; refresh(); } } else b.x += Math.sign(d)*v;
+  }
+  if (!S.won && done(S)) win();
+  meters();
+}
+
+function meters(){
+  document.getElementById('msum').textContent = lockfuls(S.summit).toFixed(2);
+  const fl = lockfuls(S.flood);
+  document.getElementById('mflood').hidden = fl < 0.005;
+  document.getElementById('mfl').textContent = fl.toFixed(2)+' lockfuls';
+  document.getElementById('mby').hidden = S.bywash < 0.01;
+}
+
+function say(t, cls){ const m=document.getElementById('msg'); m.textContent=t; m.className=cls||''; }
+
+function win(){
+  S.won = true;
+  const used = lockfuls(S.summit), fl = lockfuls(S.flood), par = S.spec.par;
+  const stars = 1 + (used <= par+0.05 ? 1 : 0) + (fl < 0.005 ? 1 : 0);
+  best[LI] = Math.max(best[LI]||0, stars); saveBest();
+  let t = 'Through, on '+used.toFixed(2)+' lockfuls from the summit';
+  t += used <= par+0.05 ? ' (par '+par+').' : '; it can be done on '+par+'.';
+  if (fl >= 0.005) t += ' Some went over the coping.';
+  say(t, 'ok'); levelsBar(); refresh();
+}
+
+function refresh(){
+  const p=document.getElementById('panel'); p.innerHTML='';
+  const what=document.createElement('div'); what.className='what'; p.appendChild(what);
+  const row=document.createElement('div'); row.className='row'; p.appendChild(row);
+  const btn=(label,fn,cls)=>{ const b=document.createElement('button'); b.className='b '+(cls||''); b.textContent=label; b.onclick=fn; row.appendChild(b); return b; };
+  if (S.won && LI<LEVELS.length-1){ btn('Next: '+LEVELS[LI+1].title+' →', ()=>load(LI+1), 'go'); }
+  if (!sel){ what.textContent = S.won ? '' : 'Tap a gate or a boat.'; return; }
+  if (sel.t==='gate'){
+    const g=S.gates[sel.i];
+    what.textContent = gateName(sel.i) + ' · ' + (g.open?'open':'shut') + ', paddles ' + (g.paddle?'drawn':'down');
+    btn(g.paddle?'Drop paddles':'Draw paddles', ()=>doAct('paddle',sel.i));
+    btn(g.open?'Close gate':'Open gate', ()=>doAct('gate',sel.i));
+  } else {
+    const b=S.boats[sel.i];
+    what.textContent = (b.c===1?'The green boat':'The blue boat') + ', going ' + (b.goal>0?'up':'down') + (b.sec===b.goal?' · there':'');
+    const d=btn('◀ Down', ()=>doAct('down',sel.i)); const u=btn('Up ▶', ()=>doAct('up',sel.i));
+    if (b.sec===0) d.disabled=true; if (b.sec===S.secs.length-1) u.disabled=true;
+  }
+}
+function lockNo(i){ let n=0; for (let j=0;j<=i;j++) if (S.secs[j].k==='lock') n++; return n; }
+function gateName(gi){
+  const g=S.gates[gi], A=S.secs[g.a], B=S.secs[g.b];
+  const nL = S.secs.filter(s=>s.k==='lock').length;
+  const nm = i => nL===1 ? 'the lock' : 'lock '+lockNo(i);
+  if (A.k==='lock' && B.k==='lock') return 'Between '+nm(g.a)+' and '+nm(g.b);
+  if (B.k==='lock') return 'Bottom gate, '+nm(g.b);
+  return 'Top gate, '+nm(g.a);
+}
+function doAct(what, i){
+  const r = act(S, what, i);
+  if (r) say(r, 'bad'); else say('');
+  refresh();
+}
+
+function hit(px,py){
+  for (let gi=0; gi<S.gates.length; gi++) if (Math.abs(px-lay.xs[S.gates[gi].b]) < 9) return {t:"gate", i:gi};
+  // then boats
+  for (const b of S.boats){
+    const wl = lay.y(S.secs[b.sec].level);
+    if (Math.abs(px-b.x) < 24 && py > wl-24 && py < wl+DRAFT*lay.sy+6) return {t:'boat', i:b.id};
+  }
+  let bestG=null, bd=1e9;
+  S.gates.forEach((g,gi)=>{ const d=Math.abs(px-lay.xs[g.b]); if (d<bd){bd=d; bestG=gi;} });
+  if (bd < 22) return {t:'gate', i:bestG};
+  return null;
+}
+cv.addEventListener('click', e=>{
+  const r=cv.getBoundingClientRect(); const h=hit(e.clientX-r.left, e.clientY-r.top);
+  sel = h;
+  say(''); refresh();
+});
+
+function levelsBar(){
+  const el=document.getElementById('levels'); el.innerHTML='';
+  LEVELS.forEach((L,i)=>{
+    const b=document.createElement('button'); b.className='b'+(i===LI?' on':'');
+    b.textContent=(i+1)+'. '+L.title;
+    if (best[i]){ const s=document.createElement('span'); s.className='st'; s.textContent='●'.repeat(best[i]); b.appendChild(s); }
+    b.onclick=()=>load(i); el.appendChild(b);
+  });
+}
+function load(i){
+  LI=i; S=build(LEVELS[i]); sel=null;
+  document.getElementById('ltitle').textContent=LEVELS[i].title;
+  document.getElementById('ldesc').textContent=LEVELS[i].desc;
+  document.getElementById('mpar').textContent=LEVELS[i].par;
+  say(''); levelsBar(); layout(); refresh(); meters();
+}
+document.getElementById('reset').onclick=()=>load(LI);
+document.getElementById('fast').onclick=e=>{ speed = speed===1?4:1; e.target.classList.toggle('on', speed>1); };
+
+readCols();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readCols);
+addEventListener('resize', ()=>{ layout(); });
+load(0);
+let last=performance.now();
+function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; tick(dt); draw(); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+window.__flight = {get S(){return S}, act, step, load, LEVELS, lockfuls, done, get lay(){return lay}};
+</script>
+</body>
+</html>
