@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wayside Trees</title>
+<style>
+:root{
+  --desk:#cbbfa9;--paper:#f6efdf;--paper2:#ede3cd;--print:#2b251d;--mute:#7c705d;--rule:#d8ccb3;--plate:#5a4d3b;
+  --T:#6f6a63;--E:#22355f;--R:#1f55c9;--N:#1c7a48;--Y:#a8322a;--shadow:rgba(60,40,10,.22)
+}
+@media (prefers-color-scheme:dark){:root{
+  --desk:#0f0d0b;--paper:#26221c;--paper2:#2e2921;--print:#e4dac7;--mute:#9b8f7a;--rule:#3d362c;--plate:#b9a98d;
+  --T:#a9a49b;--E:#9fb4e6;--R:#6f9dff;--N:#5fcf93;--Y:#ff8a78;--shadow:rgba(0,0,0,.5)
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--desk);color:var(--print)}
+body{font:17px/1.55 Georgia,"Iowan Old Style","Times New Roman",serif;padding:14px 16px 80px;min-height:100vh}
+button{font:inherit;color:inherit}
+.wrap{max-width:860px;margin:0 auto}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin:0 0 12px;color:var(--print)}
+.bar h1{font-size:1.05rem;font-weight:normal;letter-spacing:.08em;margin:0;text-transform:uppercase}
+.bar h1 i{text-transform:none;letter-spacing:0;color:var(--mute);font-size:.9rem}
+.years{display:flex;align-items:center;gap:8px;flex:1 1 300px;max-width:440px}
+.years input{flex:1;accent-color:var(--plate)}
+.yr{font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right;font-size:1.05rem}
+.btn{background:var(--paper);border:1px solid var(--rule);border-radius:16px;padding:3px 12px;cursor:pointer;font-size:.85rem}
+.btn:focus-visible,.chip:focus-visible{outline:2px solid var(--plate);outline-offset:2px}
+.hands{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.chip{border:1px solid var(--rule);background:var(--paper);border-radius:14px;padding:2px 10px 2px 8px;font-size:.8rem;cursor:pointer;display:flex;gap:6px;align-items:center}
+.chip b{width:10px;height:10px;border-radius:50%;display:inline-block}
+.chip.off{opacity:.4;text-decoration:line-through}
+.chip.none{display:none}
+.book{position:relative;background:linear-gradient(90deg,var(--paper2),var(--paper) 7%,var(--paper));border-radius:3px 8px 8px 3px;
+  box-shadow:0 1px 0 var(--rule),0 10px 30px var(--shadow),inset 8px 0 14px -10px var(--shadow);padding:34px 30px 26px 40px;min-height:560px;touch-action:pan-y}
+.run{display:flex;justify-content:space-between;font-size:.72rem;letter-spacing:.2em;color:var(--mute);text-transform:uppercase;margin:-14px 0 20px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,38%);gap:6px 22px;align-items:start;margin:0 0 14px}
+.row>.t{margin:0;hyphens:auto}
+.row>.t.h{font-variant:small-caps;letter-spacing:.06em;font-size:1.05rem}
+.row>.t.h i{font-variant:normal;letter-spacing:0}
+.mg{display:flex;flex-direction:column;gap:6px;padding-top:2px}
+.fig{display:flex;justify-content:center;margin:0 0 16px}
+.fig svg{width:min(270px,70%);height:auto;color:var(--print)}
+.cap{text-align:center;font-size:.75rem;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;margin:-10px 0 18px}
+.title{text-align:center;padding:40px 0 10px}
+.title .a{font-size:2rem;letter-spacing:.14em;margin:0}
+.title .b{font-style:italic;color:var(--mute);margin:.2rem 0 1.4rem}
+.title .c{font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;margin:0 0 2.2rem}
+.title .d{font-size:.8rem;color:var(--mute);margin:0}
+.n{font-size:1.02rem;line-height:1.3;transform:rotate(var(--r,-1deg));transform-origin:0 0;transition:opacity .5s,transform .5s;white-space:pre-line}
+.n.hide{opacity:0;transform:rotate(var(--r,-1deg)) translateY(-4px);pointer-events:none;height:0;overflow:hidden;margin:-3px 0}
+.n .dt{font-size:.78em;opacity:.8}
+.n.T{color:var(--T);font-family:"Bradley Hand","Segoe Print","Chalkboard SE","Comic Sans MS",cursive;letter-spacing:.01em}
+.n.E{color:var(--E);font-family:"Snell Roundhand","Segoe Script","Apple Chancery","URW Chancery L",cursive;font-size:1.12rem}
+.n.R{color:var(--R);font-family:"Noteworthy","Ink Free","Segoe Print","Marker Felt",cursive;font-size:.95rem}
+.n.N{color:var(--N);font-family:"Chalkboard SE","Ink Free","Segoe Print","Comic Sans MS",cursive;font-size:.98rem}
+.n.Y{color:var(--Y);font-family:"Bradley Hand","Ink Free","Segoe Print",cursive}
+.m{transition:text-decoration-color .5s;text-decoration:underline 1.5px transparent;text-underline-offset:3px}
+.m.on{text-decoration-color:var(--hc)}
+.nav{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:14px 0 0}
+.nav .pg{color:var(--print);font-size:.85rem;min-width:6em;text-align:center}
+.nav button{background:var(--paper);border:1px solid var(--rule);border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:1.1rem}
+.nav button:disabled{opacity:.35;cursor:default}
+.env{position:relative;margin:18px auto 10px;width:min(330px,92%);aspect-ratio:1.7;background:#e7dcc2;color:#2b251d;border:1px solid #c9b994;
+  transform:rotate(-3deg);box-shadow:0 4px 10px var(--shadow);cursor:pointer;transition:opacity .5s}
+@media (prefers-color-scheme:dark){.env{background:#cfc2a5}}
+.env .stamp{position:absolute;right:12px;top:10px;width:44px;height:52px;border:2px dotted #8b3a2e;background:#d9b9a0;display:grid;place-items:center;font-size:.55rem;text-align:center;line-height:1.1;color:#6b2a20}
+.env .pm{position:absolute;right:46px;top:20px;width:70px;height:70px;border:1.5px solid rgba(40,40,80,.55);border-radius:50%;font-size:.5rem;display:grid;place-items:center;text-align:center;color:rgba(40,40,80,.75);transform:rotate(14deg)}
+.env .ad{position:absolute;left:18%;top:46%;font-family:"Bradley Hand","Segoe Print",cursive;font-size:.95rem;line-height:1.25;color:#1d1a16}
+.env .tap{position:absolute;left:10px;bottom:6px;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:#7c705d}
+.letter{display:none;margin:16px auto;max-width:520px;background:#fbf8f0;color:#1d1a16;padding:22px 24px;box-shadow:0 4px 14px var(--shadow);
+  font-family:"Bradley Hand","Segoe Print","Chalkboard SE",cursive;font-size:1rem;line-height:1.45;transform:rotate(.6deg);
+  background-image:repeating-linear-gradient(transparent 0 1.42em,rgba(70,110,170,.16) 1.42em calc(1.42em + 1px))}
+@media (prefers-color-scheme:dark){.letter{background-color:#e9e2d2}}
+.letter.open{display:block}
+.letter p{margin:0 0 .7em}
+.letter .hd{text-align:right;font-size:.88rem}
+.leaf{display:flex;justify-content:flex-start;margin:6px 0 8px 4px;transition:opacity .5s}
+.leaf svg{width:110px;height:auto}
+.yours{margin:22px 0 0;border-top:1px dashed var(--rule);padding-top:14px}
+.yours label{font-size:.8rem;color:var(--mute);display:block;margin:0 0 6px;letter-spacing:.04em}
+.yours .w{display:flex;gap:8px}
+.yours input{flex:1;min-width:0;font:1rem "Bradley Hand","Ink Free","Segoe Print",cursive;color:var(--Y);background:transparent;border:0;border-bottom:1px solid var(--rule);padding:4px 2px}
+.yours input:focus{outline:none;border-bottom-color:var(--Y)}
+.ghost{opacity:0;pointer-events:none}
+.hint{font-size:.8rem;color:var(--mute);margin:10px 0 0;text-align:right}
+@media (max-width:620px){
+  body{padding:10px 12px 80px;font-size:16px}
+  .book{padding:26px 16px 20px 22px;min-height:480px}
+  .row{grid-template-columns:1fr;gap:4px}
+  .mg{padding-left:14%}
+  .mg:empty,.mg[data-empty="1"]{display:none}
+  .title{padding:20px 0 6px}
+  .title .a{font-size:1.5rem}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <h1>Wayside Trees <i>· a secondhand copy</i></h1>
+    <div class="years">
+      <button class="btn" id="play" aria-label="Play the years">▶ years</button>
+      <input type="range" id="yr" min="1928" max="2026" step="1" value="2026" aria-label="Show the book as it was in year">
+      <span class="yr" id="yrl">2026</span>
+    </div>
+  </div>
+  <div class="hands" id="hands"></div>
+  <div class="book" id="book" aria-live="polite"></div>
+  <div class="nav">
+    <button id="prev" aria-label="Previous page">‹</button>
+    <span class="pg" id="pg"></span>
+    <button id="next" aria-label="Next page">›</button>
+  </div>
+  <p class="hint">Drag the years back to see the book as each owner found it. Tap a name to show one hand alone.</p>
+</div>
+<script>
+// ---- BOOK ----
+const HANDS = {
+  T:{name:'Tom',what:'pencil',years:'1931'},
+  E:{name:'Edith',what:'ink',years:'1952–58'},
+  R:{name:'Raj',what:'biro',years:'1977–78'},
+  N:{name:'Nell',what:'fineliner',years:'2019–24'},
+  Y:{name:'you',what:'',years:''}
+};
+// n(hand, year, paragraph index, text, rotation)
+const n = (h,y,p,t,r) => ({h,y,p,t,r});
+const m = (h,y,s) => `<span class="m" data-h="${h}" data-y="${y}">${s}</span>`;
+
+const PAGES = [
+{ kind:'title', run:['',''],
+  title:true,
+  printed:[
+    `<div class="title"><p class="a">WAYSIDE TREES</p><p class="b">and how to know them</p><p class="c">by A. M. Pell</p><p class="d">With forty drawings by the author<br>London · 1928 · Two Shillings</p></div>`
+  ],
+  notes:[
+    n('T',1931,0,'Thomas Arkwright\nhis book\nForm II  Hollin Lane School\nif found return to Beck Cottage',-2),
+    n('E',1952,0,'Found in the Standard III cupboard, behind the inkwell box, September 1952. Nobody claims it. — E. Mardle',1),
+    n('R',1977,0,'R. Nayar. 30p, St Mary\'s jumble, May 77',-1),
+    n('N',2019,0,'Nell. £1, hospice shop on Fore Street, Oct 2019. Three people\'s handwriting in here already.',-.5),
+    n('N',2024,0,'Taking it back to the shop now. Whoever you are, it\'s yours. Write in it.',1.5)
+  ]},
+{ kind:'text', run:['To the reader','v'],
+  printed:[
+    `<span class="h">To the Reader</span>`,
+    `This little book is meant for the pocket and not for the shelf. It will be rained upon; it should be.`,
+    `The trees described are those that any walker in England may meet within a mile of ${m('R',1977,'his')} own door. I have left out the rare and the planted-for-show, and kept those that a village knows by name.`,
+    `${m('T',1931,'Write in it.')} Note where you found a tree, and when it came into leaf, and what it was doing the year you met it. A guide that has been written in is worth two that have not.`
+  ],
+  notes:[
+    n('R',1977,2,'or her door, Mr Pell.',-1),
+    n('N',2019,2,'Within a mile of the hospice shop: chestnut (gone), elms (gone), oak (there), rowan (there). Two out of four, Mr Pell.',.8),
+    n('T',1931,3,'I will',-4),
+    n('E',1952,3,'Somebody did.',1)
+  ]},
+{ kind:'tree', run:['Wayside trees','12'], leaf:'chestnut', cap:'Fig. 4. Horse chestnut, leaf',
+  printed:[
+    `<span class="h">Horse Chestnut. <i>Aesculus hippocastanum.</i></span>`,
+    `Known at once in summer by its great leaves, each made of five or seven leaflets spread like the fingers of a hand; and in May by its white candles of flower, spotted with yellow that turns to crimson once the bee has been.`,
+    `In winter look for the sticky buds, brown and varnished. A twig brought indoors and stood in water will open in a warm room weeks before its fellows outside.`,
+    `The fruit is the conker, ${m('E',1952,'beloved of boys')}, a bright brown nut in a spiny case. It is not to be eaten. A fine tree commonly stands where a village has wanted shade: by an inn, a green, or ${m('T',1931,'a school gate')}.`,
+    `It is not a native, having come to us from the mountains of the Balkans some three hundred years since, but it has made itself very much at home.`
+  ],
+  notes:[
+    n('T',1931,1,'leafs like a hand. I drew round mine, its bigger',-2),
+    n('T',1931,2,'did it. jam jar on the windowsill. opened 3rd March',-1),
+    n('R',1977,2,'Mum not pleased re: jam jar.',1),
+    n('N',2019,2,'Did it too. Opened 9 March. Tom wins.',-1),
+    n('T',1931,3,'OURS. the big one by the gate\nmy conker was a 23er  ||||  ||||  ||||  ||||  |||',-3),
+    n('E',1952,3,'And girls, Mr Pell. I was a fair hand myself.',1),
+    n('E',1952,3,'The tree by the gate is still there, Thomas. Still boys under it with sticks. Whoever you were.',-.5),
+    n('R',1977,3,'Gate tree: girth 3.2 m at 1.5 m. 14.x.77',1),
+    n('N',2019,3,'The school\'s flats now (Hollin Court). The gate is still there. The tree isn\'t: there\'s a stump under the bin store. I counted rings as far as I could and got to 140 before the moss.',-1),
+    n('R',1977,4,'c. 1616. "Made itself at home" — so have we, Mr Pell.',-.5)
+  ]},
+{ kind:'tree', run:['Wayside trees','19'], leaf:'elm', cap:'Fig. 7. English elm, leaf',
+  printed:[
+    `<span class="h">English Elm. <i>Ulmus procera.</i></span>`,
+    `The tree of the hedgerow and the field's edge, tall and billowing: the true outline of an English summer.`,
+    `The leaf is rough to the touch and lopsided at its base, one side beginning lower on the stalk than the other, which is a sure mark of the elm.`,
+    `It seldom sets good seed with us, but sends up suckers freely, so that ${m('R',1977,'a hedge of elms may be, in truth, a single tree')}.`,
+    `Countrymen say one should not shelter beneath an elm, for it will drop a great limb on a still day without warning.`
+  ],
+  notes:[
+    n('T',1931,1,'the elms by the beck. Dad says oldest in the parish. rooks',-2),
+    n('E',1952,1,'The beck elms. The rooks are still at them.\nLooked in the old register: Thomas Arkwright, born 1920, Beck Cottage. Left January 1934, "family removed to Canada". So that is where you went.',1),
+    n('R',1977,1,'Beck elms: Dutch elm disease (fungus, carried by the bark beetle). Council painted X on all 11, Aug 77. Felled Sept.\nBeetle galleries under the bark: one line down, little ones off it like a centipede.',-1),
+    n('R',1977,3,'= a clone. Every English elm is near enough the same tree. Which is why it goes through them like this.',.5),
+    n('N',2019,3,'Suckers in the hedge by the beck, head high. Rough leaves, lopsided. They get to about fifteen and then the beetle finds them. Still trying, though.',-1),
+    n('T',1931,4,'Billy Hey sat under one all dinner time to show. nothing fell',-2.5),
+    n('E',1953,4,'Wrote to the forwarding address in the register. Twenty years old. Foolish.',1),
+    n('R',1978,4,'No limb fell on Billy Hey. In the end the whole lot came down at once.',-.5)
+  ]},
+{ kind:'tree', run:['Wayside trees','23'], leaf:'oak', cap:'Fig. 9. Common oak, leaf',
+  printed:[
+    `<span class="h">Oak. <i>Quercus robur.</i></span>`,
+    `Our great tree, which may stand five hundred years and more, and harbours more creatures than any other.`,
+    `The leaf is deeply lobed, with two small ears where it meets its very short stalk; the acorns, by contrast, hang upon long stalks.`,
+    `Upon the twigs in spring are found the round, spongy oak apples, which are no fruit at all but ${m('R',1977,'the house of a small wasp')}.`,
+    `To guess the age of a tree that stands alone, measure its girth at the height of a man's chest. An inch for every year is near enough.`
+  ],
+  notes:[
+    n('E',1953,1,'Took Standard III up to the Top Field oak. It took five of them, holding hands, to go round.',-1),
+    n('T',1931,3,'Oak Apple Day 29 May. no oak leaf in your cap = nettles',-2),
+    n('E',1953,3,'They still do the nettles. I have stopped it twice, and been stung once.',1),
+    n('R',1977,3,'Gall wasp. Pell knew it wasn\'t an apple and called it one anyway. Fair enough.',-.5),
+    n('R',1977,4,'Top Field oak: 5.4 m = 213 in. ≈ 213 yrs → c. 1764',1),
+    n('N',2019,4,'Top Field oak: I hugged it. Three of me and a bit. Raj\'s 5.4 m and 42 years on. Still there. It was there before the school, before Mr Pell, before any of us.',-1)
+  ]},
+{ kind:'tree', run:['Wayside trees','31'], leaf:'rowan', cap:'Fig. 13. Rowan, leaf',
+  printed:[
+    `<span class="h">Rowan, or Mountain Ash. <i>Sorbus aucuparia.</i></span>`,
+    `A slender tree of the hills, at home among rocks, with leaves like an ash's, of many leaflets in pairs.`,
+    `Its clusters of scarlet berries in August are the delight of thrushes, and are gone well before the frosts.`,
+    `It was long planted by the cottage door, for the old belief held that no witch could pass a rowan.`
+  ],
+  notes:[
+    n('T',1931,3,'Grandma has one',-2),
+    n('E',1958,3,'Planted one at the schoolhouse door on my last day, 25 July 1958. We shall see about witches.',1),
+    n('R',1977,3,'Rowan by the old schoolhouse door, approx 20 yrs. Heavy crop.',-.5),
+    n('N',2019,3,'Hollin Court\'s front door was the schoolhouse door. The rowan is there, taller than the gutter. Edith\'s. Thrushes at it this morning.',-1)
+  ]},
+{ kind:'end', run:['',''],
+  printed:[`<span class="h" style="color:var(--mute)">Back endpaper</span>`],
+  notes:[
+    n('T',1931,0,'leaf off the gate tree ↓',-3)
+  ],
+  after:[
+    n('E',1953,0,'He wrote back. I have kept the book instead. Forgive me, Thomas.',1),
+    n('R',1977,0,'Found this letter in the back. Put it back. Who was E. Mardle?',-.5),
+    n('N',2019,0,'Edith Mardle, 1897–1976. In the churchyard, under the yew. I found her. I\'m putting the letter back too.',.8),
+    n('N',2019,0,'Planted a conker from the park in a pot on the balcony. If it takes, it\'s going by the gate.',-1),
+    n('N',2021,0,'It took.',1),
+    n('N',2024,0,'It\'s by the gate. Waist high. They moved the bins for it. Give it two hundred years.',-.5)
+  ]}
+];
+const LETTER = `<p class="hd">Powell River, B.C.<br>4th May 1953</p>
+<p>Dear Miss Mardle,</p>
+<p>Your letter took the long way round: my uncle's old address, then the camp, then here. So forgive the delay. Yes, I am that Thomas Arkwright, and yes, that was my book. I thought it lost the week we sailed.</p>
+<p>The gate tree. I can see it now. I'd swear to the twenty-three, though I may have counted some that only cracked.</p>
+<p>I work in the woods here, up the coast. The trees are so big you could stand Hollin Lane School on one stump and have room left for the bicycle shed. Mr Pell would need another book. I have never once thought them better than the chestnut.</p>
+<p>If the book's any use, give it to a child who will write in it. It wants writing in. It says so at the front.</p>
+<p>Yours sincerely,<br>Thomas Arkwright</p>`;
+// ---- END BOOK ----
+
+// ---- DRAWINGS ----
+// a leaflet as a closed path along -y from (0,0): w(t) half-width, teeth count, asym start
+function leaflet(L, w, teeth, startL=0, startR=0){
+  const N=120, pl=[], pr=[];
+  for(let i=0;i<=N;i++){
+    const t=i/N, tooth=teeth? (1+0.07*Math.max(0,Math.sin(t*teeth*Math.PI*2))) : 1;
+    const y=-t*L;
+    if(t>=startL) pl.push([-w(t)*tooth, y]);
+    if(t>=startR) pr.push([ w(t)*tooth, y]);
+  }
+  const pts=[[0,-startL*L],...pl,...pr.reverse(),[0,-startR*L]];
+  return 'M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')+'Z';
+}
+function veins(L, w, k, startL=0){
+  let d=`M0,0L0,${-L}`;
+  for(let i=1;i<k;i++){const t=i/k; const y=-t*L, ww=w(t)*.72;
+    if(t>startL) d+=`M0,${y}Q${-ww*.5},${y-ww*.25} ${-ww},${y-ww*.45}`;
+    d+=`M0,${y}Q${ww*.5},${y-ww*.25} ${ww},${y-ww*.45}`;}
+  return d;
+}
+const g = (d, tr, fill) => `<g transform="${tr}"><path d="${d}" fill="${fill||'none'}" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/></g>`;
+function drawLeaf(kind){
+  const ob = t => Math.pow(Math.sin(Math.PI*Math.pow(t,0.75)),1.1);
+  let s='';
+  if(kind==='chestnut'){
+    const angs=[-86,-56,-28,0,28,56,86], Ls=[58,80,96,106,96,80,58];
+    angs.forEach((a,i)=>{const L=Ls[i], w=t=>L*.19*Math.pow(Math.sin(Math.PI*Math.pow(t,1.5)),.9);
+      s+=g(leaflet(L,w,14), `translate(120,178) rotate(${a}) translate(0,-8)`)+g(veins(L,w,10), `translate(120,178) rotate(${a}) translate(0,-8)`);});
+    s+=`<path d="M120,178 L120,232" stroke="currentColor" stroke-width="2.2" fill="none"/>`;
+    return `<svg viewBox="0 0 240 240" aria-hidden="true">${s}</svg>`;
+  }
+  if(kind==='elm'){
+    const L=150, w=t=>52*Math.pow(Math.sin(Math.PI*Math.pow(t,.85)),.9);
+    s+=g(leaflet(L,w,22,0,.09), 'translate(120,190) rotate(-8)')+g(veins(L,w,13,.09), 'translate(120,190) rotate(-8)');
+    s+=`<path d="M117,190 L113,222" stroke="currentColor" stroke-width="1.8" fill="none"/>`;
+    return `<svg viewBox="0 0 240 230" aria-hidden="true">${s}</svg>`;
+  }
+  if(kind==='oak'){
+    const L=150, base=t=>46*Math.pow(Math.sin(Math.PI*Math.pow(t,.7)),.8);
+    const w=t=> t<.06? 10*Math.sin(t/.06*Math.PI) : base(t)*(.55+.45*Math.abs(Math.cos((t-.06)*Math.PI*4.6)));
+    s+=g(leaflet(L,w,0), 'translate(120,196) rotate(6)')+g(`M0,0L0,${-L}`+[.25,.42,.6,.78].map(t=>`M0,${-t*L}L${-base(t)*.85},${-t*L-14}M0,${-t*L}L${base(t)*.85},${-t*L-14}`).join(''), 'translate(120,196) rotate(6)');
+    s+=`<path d="M120,196 L121,210" stroke="currentColor" stroke-width="1.8" fill="none"/>`;
+    s+=`<g transform="translate(184,120)"><path d="M0,0 Q4,40 2,78" stroke="currentColor" fill="none" stroke-width="1.2"/><ellipse cx="2" cy="94" rx="8" ry="13" fill="none" stroke="currentColor"/><path d="M-8,86 Q2,78 10,86 L9,92 Q2,88 -7,92Z" fill="currentColor" opacity=".55"/></g>`;
+    return `<svg viewBox="0 0 240 230" aria-hidden="true">${s}</svg>`;
+  }
+  if(kind==='rowan'){
+    s+=`<path d="M120,222 L120,40" stroke="currentColor" stroke-width="1.6" fill="none"/>`;
+    const w=t=>9*Math.sin(Math.PI*Math.pow(t,.8));
+    for(let i=0;i<5;i++){const y=196-i*36;
+      s+=g(leaflet(44,w,16), `translate(120,${y}) rotate(-72)`)+g(leaflet(44,w,16), `translate(120,${y}) rotate(72)`);}
+    s+=g(leaflet(44,w,16), 'translate(120,40)');
+    s+=[[152,214],[160,206],[146,204],[156,196],[166,214]].map(([x,y])=>`<circle cx="${x+40}" cy="${y-6}" r="5" fill="none" stroke="currentColor"/>`).join('');
+    return `<svg viewBox="0 0 240 236" aria-hidden="true">${s}</svg>`;
+  }
+  return '';
+}
+function pressedLeaf(){
+  const L=110, w=t=>22*Math.pow(Math.sin(Math.PI*Math.pow(t,.75)),1.1);
+  return `<svg viewBox="0 0 120 150" aria-hidden="true"><g transform="translate(60,140) rotate(14)"><path d="${leaflet(L,w,12)}" fill="#a77a43" fill-opacity=".45" stroke="#7a5228" stroke-width="1"/><path d="${veins(L,w,9)}" stroke="#7a5228" stroke-width=".8" fill="none" opacity=".8"/></g></svg>`;
+}
+// ---- END DRAWINGS ----
+
+// ---- READER ----
+const KEY='wayside-you-v1';
+let mine=null; try{ mine=JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){}
+const S = { page:0, year:2026, off:new Set(), solo:null };
+const $ = id => document.getElementById(id);
+const book=$('book'), yr=$('yr'), yrl=$('yrl');
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function noteEl(o){
+  const d=document.createElement('div');
+  d.className='n '+o.h; d.dataset.h=o.h; d.dataset.y=o.y;
+  d.style.setProperty('--r',(o.r||0)+'deg');
+  d.innerHTML=esc(o.t);
+  return d;
+}
+function render(){
+  const P=PAGES[S.page];
+  book.innerHTML='';
+  if(P.run[0]){ const r=document.createElement('div'); r.className='run'; r.innerHTML=`<span>${P.run[0]}</span><span>${P.run[1]}</span>`; book.appendChild(r); }
+  if(P.leaf){
+    const f=document.createElement('div'); f.className='fig'; f.innerHTML=drawLeaf(P.leaf); book.appendChild(f);
+    const c=document.createElement('div'); c.className='cap'; c.textContent=P.cap; book.appendChild(c);
+  }
+  P.printed.forEach((html,i)=>{
+    const row=document.createElement('div'); row.className='row';
+    const t=document.createElement('div'); t.className='t'+(html.startsWith('<span class="h"')?' h':''); t.innerHTML=html;
+    const mg=document.createElement('div'); mg.className='mg';
+    P.notes.filter(o=>o.p===i).forEach(o=>mg.appendChild(noteEl(o)));
+    row.append(t,mg); book.appendChild(row);
+  });
+  if(P.kind==='end'){
+    const lf=document.createElement('div'); lf.className='leaf'; lf.dataset.h='T'; lf.dataset.y=1931; lf.innerHTML=pressedLeaf(); book.appendChild(lf);
+    const env=document.createElement('div'); env.className='env'; env.dataset.y=1953; env.dataset.h='E'; env.setAttribute('role','button'); env.tabIndex=0;
+    env.setAttribute('aria-label','An envelope from Canada, 1953. Open the letter');
+    env.innerHTML=`<div class="stamp">CANADA<br>5¢</div><div class="pm">POWELL RIVER<br>MAY 5<br>1953<br>B.C.</div><div class="ad">Miss E. Mardle<br>Hollin Lane School<br>England</div><div class="tap">tap to read</div>`;
+    const let_=document.createElement('div'); let_.className='letter'; let_.dataset.y=1953; let_.dataset.h='E'; let_.innerHTML=LETTER;
+    const toggle=()=>{ let_.classList.toggle('open'); env.querySelector('.tap').textContent=let_.classList.contains('open')?'tap to fold':'tap to read'; };
+    env.onclick=toggle; env.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } };
+    book.append(env, let_);
+    const after=document.createElement('div'); after.className='mg'; after.style.paddingLeft='0'; after.style.maxWidth='34em'; after.style.gap='10px';
+    P.after.forEach(o=>after.appendChild(noteEl(o)));
+    if(mine && mine.t) after.appendChild(noteEl({h:'Y',y:mine.y,t:mine.t+'  — '+mine.y,r:-1.2}));
+    book.appendChild(after);
+    const yours=document.createElement('div'); yours.className='yours';
+    yours.innerHTML=`<label for="yl">Write in it. One line, kept in this browser only.</label><div class="w"><input id="yl" maxlength="140" autocomplete="off" placeholder="where you met a tree, and when"><button class="btn" id="ys">write</button></div>`;
+    book.appendChild(yours);
+    const inp=yours.querySelector('input'); if(mine) inp.value=mine.t;
+    const save=()=>{ const t=inp.value.trim(); mine=t?{t,y:new Date().getFullYear()}:null;
+      try{ t?localStorage.setItem(KEY,JSON.stringify(mine)):localStorage.removeItem(KEY); }catch(e){}
+      if(S.year<2026){ S.year=2026; yr.value=2026; }
+      render(); };
+    yours.querySelector('#ys').onclick=save; inp.onkeydown=e=>{ if(e.key==='Enter') save(); };
+  }
+  $('pg').textContent = S.page===0?'flyleaf':S.page===PAGES.length-1?'endpaper':`page ${P.run[1]}`;
+  $('prev').disabled=S.page===0; $('next').disabled=S.page===PAGES.length-1;
+  chips(); apply();
+}
+function visible(h,y){ return y<=S.year && !S.off.has(h); }
+function apply(){
+  yrl.textContent = S.year>=2026?'now':S.year;
+  book.querySelectorAll('[data-y]').forEach(el=>{
+    const v=visible(el.dataset.h, +el.dataset.y);
+    if(el.classList.contains('m')){ el.classList.toggle('on',v); el.style.setProperty('--hc',`var(--${el.dataset.h})`); }
+    else if(el.classList.contains('n')) el.classList.toggle('hide',!v);
+    else { el.classList.toggle('ghost', !(+el.dataset.y<=S.year)); if(el.classList.contains('letter') && !(+el.dataset.y<=S.year)) el.classList.remove('open'); }
+  });
+  book.querySelectorAll('.mg').forEach(mg=>mg.dataset.empty = [...mg.children].every(c=>c.classList.contains('hide'))?'1':'');
+}
+function chips(){
+  const box=$('hands'); box.innerHTML='';
+  Object.entries(HANDS).forEach(([k,h])=>{
+    if(k==='Y' && !(mine&&mine.t)) return;
+    const b=document.createElement('button'); b.className='chip'+(S.off.has(k)?' off':'');
+    b.innerHTML=`<b style="background:var(--${k})"></b>${h.name}${h.what?` · ${h.what} ${h.years}`:''}`;
+    b.setAttribute('aria-pressed', String(!S.off.has(k)));
+    b.onclick=()=>{
+      // tap: show this hand alone; tap the lone hand again: show all
+      const all=Object.keys(HANDS);
+      if(S.solo===k){ S.solo=null; S.off.clear(); }
+      else { S.solo=k; S.off=new Set(all.filter(x=>x!==k)); }
+      chips(); apply();
+    };
+    box.appendChild(b);
+  });
+}
+yr.oninput=()=>{ S.year=+yr.value; apply(); };
+let timer=null;
+$('play').onclick=()=>{
+  if(timer){ clearInterval(timer); timer=null; $('play').textContent='▶ years'; return; }
+  S.year=1928; yr.value=1928; apply(); $('play').textContent='❚❚ years';
+  timer=setInterval(()=>{ S.year+= (S.year<1960||S.year>2015)?1:3; if(S.year>=2026){ S.year=2026; clearInterval(timer); timer=null; $('play').textContent='▶ years'; }
+    yr.value=S.year; apply(); }, 140);
+};
+const go=d=>{ const p=Math.max(0,Math.min(PAGES.length-1,S.page+d)); if(p!==S.page){ S.page=p; render(); window.scrollTo({top:0,behavior:'smooth'}); } };
+$('prev').onclick=()=>go(-1); $('next').onclick=()=>go(1);
+document.addEventListener('keydown',e=>{ if(e.target.tagName==='INPUT') return; if(e.key==='ArrowRight') go(1); if(e.key==='ArrowLeft') go(-1); });
+let sx=null, sy=null;
+book.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+book.addEventListener('touchend',e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+  if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5) go(dx<0?1:-1); sx=null; },{passive:true});
+window.__wayside={S,PAGES,render,apply,go,setYear:y=>{S.year=y;yr.value=y;apply();}};
+render();
+// ---- END READER ----
+</script>
+</body>
+</html>

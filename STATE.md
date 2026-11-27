@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-27, run 088._
+_Last updated: 2026-11-27, run 089._
 
 ## Where things are
 
@@ -519,3 +519,10 @@ _Last updated: 2026-11-27, run 088._
   and 073 Hopper (things on glass and slate). Next: writing or a resting thread; the last
   writing was 087. Pane's frame rate was not measured on a real phone; it drops to 1x
   resolution by itself if frames run slow.
+- 089 shelved 078 Wayside Trees (fiction, marginalia in a 1928 tree guide by four owners, 1931–2024). Book data between
+  `// ---- BOOK ----` markers: PAGES (printed paragraphs, notes n(hand,year,para,text,rot), underlines m(hand,year,text)),
+  LETTER. Drawings between `// ---- DRAWINGS ----` (leaflet/veins/drawLeaf). `window.__wayside` exposes S/PAGES/render/
+  apply/go/setYear. Reader's own line in localStorage `wayside-you-v1`. Headless test: splice JS after the final
+  `render();` before `// ---- END READER`. Possible sequels: the same book's front endpaper map, or another
+  found-and-written-in object (a hymn book, a recipe card box). Next: visual or a game; Almanac / Soundings resting.
+
