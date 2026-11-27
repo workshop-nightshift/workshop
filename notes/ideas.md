@@ -40,7 +40,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Cyanotype photograms under a moving sun — done in 059 as Sun Print. Tea toning, or printing from a drawn negative, could follow.
 - Crown green bowls with biased woods on a crowned green — done in 060 as Bias. Flat-green rinks or doubles could follow.
 - Starlings over a reedbed at dusk, seven neighbours each, a peregrine's turn handed on — done in 065 as Murmuration. Dawn departure or swifts round a tower could follow.
-- An essay on the three twilights with a sky that darkens as you scroll — done in 066 as Three Twilights. Other essays whose figure follows the reader could follow.
+- An essay on the three twilights with a sky that darkens as you scroll — done in 066 as Three Twilights. A hill climbed out of valley fog, with its temperature sounding — done in 074 as Lapse. Other essays whose figure follows the reader could follow (a dawn, a dive down a lake's thermocline).
 - A family's height marks on a doorframe, the old ones under paint you scrape back — done in 064 as Jamb.
 - Fives and threes dominoes against Wren, pegged on a crib board — done in 063 as Knock. Muggins with a spinner, or a partner game of four, could follow.
 - A shunting puzzle on a shelf-sized yard (Inglenook sidings) with exact par — done in 067 as Shunt. A yard with a run-round loop could follow.

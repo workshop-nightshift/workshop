@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lapse</title>
+<style>
+:root{
+  --bg:#f3f2ec; --ink:#24262a; --soft:#676a6e; --rule:#d6d5cc; --accent:#7d4a6b; --card:#faf9f4;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#14161a; --ink:#e2e0d8; --soft:#9a9a94; --rule:#2c2f35; --accent:#d29cc0; --card:#1a1d22; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:18px/1.62 Georgia,"Iowan Old Style","Palatino Linotype",serif;}
+#figwrap{position:sticky;top:0;z-index:2;height:min(38vh,260px);min-height:200px;background:#9fb4c6;border-bottom:1px solid var(--rule)}
+#fig{display:block;width:100%;height:100%}
+#gauge{position:absolute;left:10px;top:7px;font:12px/1.35 ui-monospace,Menlo,monospace;color:#1d2228;
+  background:rgba(246,246,242,.78);padding:4px 7px;border-radius:6px;pointer-events:none;max-width:calc(100% - 130px)}
+#gauge b{font-weight:600;font-size:14px}
+@media (prefers-color-scheme: dark){ #gauge{background:rgba(18,20,26,.78);color:#e8e4da} }
+main{max-width:36rem;margin:0 auto;padding:0 16px 4rem}
+h1{font-weight:normal;font-size:2.1rem;letter-spacing:.01em;margin:2.2rem 0 .2rem}
+.sub{color:var(--soft);font-style:italic;margin:0 0 2rem}
+h2{font-weight:normal;font-size:1.05rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:3.2rem 0 .6rem}
+h2 span{letter-spacing:0;text-transform:none;color:var(--soft);font-style:italic;font-size:.95rem;margin-left:.4em}
+p{margin:0 0 1.05rem}
+.sec{min-height:70vh}
+.sec.last{min-height:45vh}
+hr{border:0;border-top:1px solid var(--rule);margin:3rem 0}
+#tool{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:16px;margin-top:1rem}
+#tool label{display:block;font-size:.9rem;color:var(--soft);margin:.2rem 0}
+#tool .row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+#tool .row>div{flex:1 1 12rem}
+#tool output{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+td{padding:5px 4px;border-bottom:1px solid var(--rule);vertical-align:top}
+td:nth-child(2){text-align:right;white-space:nowrap}
+td i{color:var(--soft)}
+.note{font-size:.85rem;color:var(--soft);margin-top:.7rem}
+</style>
+</head>
+<body>
+<div id="figwrap"><canvas id="fig" aria-label="A hill in profile with fog in the valley, a walker on the path, and a chart of temperature against height"></canvas><div id="gauge"></div></div>
+<main>
+<h1>Lapse</h1>
+<p class="sub">An essay in metres. The walk above climbs as you read.</p>
+
+<section class="sec" data-h="60" data-t="0">
+<p>The forecast had said fog in the valleys, clearing by midday, and it was right about the fog. At seven the lane outside the door ended forty metres off in a grey wall. The hedge dripped, though it hadn't rained. The far side of the field, the farm, the road beyond it and the whole of the hill were gone.</p>
+<p>Everyone is taught early that it gets colder the higher you go. On this morning it was the wrong way round, and the way to find that out was to walk up through it.</p>
+</section>
+
+<section class="sec" data-h="190" data-t="0">
+<h2>In the fog <span>valley floor to 290 m</span></h2>
+<p>Fog is a cloud sitting on the ground, and usually one that was made there. On a clear, still night the ground gives its warmth away to the sky, and the air touching the ground cools with it. Cold air is heavier than warm, so it does what water would do: it slides off the slopes and gathers in the bottoms. By dawn the valley holds a pool of the coldest air for miles around, and if that air has cooled past the point where it can keep its water as vapour, the water comes out as droplets too small to fall. That is the grey.</p>
+<p>It is cold in it, a degree above freezing, and quiet the way a room is quiet with the curtains drawn. Sound goes oddly. A dog barks somewhere and could be anywhere. The track climbs between trees whose trunks are dark and whose tops are missing, so that the wood seems to be made only of its lower half.</p>
+</section>
+
+<section class="sec" data-h="345" data-t="0.04">
+<h2>The lid <span>290 to 350 m</span></h2>
+<p>Then, all at once, it gets brighter. The grey goes white, then thin, and you walk out of the top of it the way you'd climb out of a pool, into sun, with your shadow suddenly sharp beside you on the track.</p>
+<p>And it is warm. In sixty metres of climbing the air has gone from one degree to nine. This is an inversion: a layer where the usual order is turned over and the warmer air sits on top. It works like a lid. The cold pool beneath can't rise through it, because the cold air is heavier than what lies above, and so the fog stays put, and so does anything else that rises from the valley. Smoke from a farm chimney comes up through the grey and, meeting the lid, flattens and spreads sideways like a hand laid on a table.</p>
+<p>The air above the lid never touched the cold ground in the night. It is just the day's air, waiting.</p>
+</section>
+
+<section class="sec" data-h="600" data-t="0.1">
+<h2>The lapse <span>350 to 600 m</span></h2>
+<p>Above the lid the old rule takes over. Its name is the lapse rate: how fast the temperature lapses, falls away, with height. On average, through the lowest ten kilometres of the sky, it is about six and a half degrees for every thousand metres.</p>
+<p>The reason is pressure. Every litre of air is pressed on by all the air above it, and the higher you go the less air there is above. A parcel of air carried upward finds itself less squeezed and spreads out, and spreading out is work: pushing its neighbours back costs it some of its own warmth. Dry air rising cools by almost ten degrees a kilometre this way. Damp air cools more slowly, because as it cools its water condenses and gives the heat back, and the real sky, stirred and mixed, averages out at the six and a half.</p>
+<p>You can see it on the hill. The wood thins. Oak gives way to birch and rowan, smaller, then to single trees leaning away from the wind, then to none. Every hundred metres up, the growing season is shorter by a week or more, and the wind and the sheep have more of a say. A tree line is not a line anyone drew. It is roughly the height at which a seedling can no longer put on enough wood in a summer to carry it through a winter.</p>
+</section>
+
+<section class="sec" data-h="900" data-t="0.18">
+<h2>Thin <span>600 to 900 m</span></h2>
+<p>Something else is thinning, though mostly you can't feel it. At nine hundred metres the air presses with about nine tenths of the force it had at the bottom, and each breath brings in about a tenth less oxygen, which a body at walking pace makes up without mentioning. Your ears might mention it, with a small click on a steep stretch.</p>
+<p>A sealed bag in your pack will say it more plainly. Whatever was packed in the valley, a bag of crisps or a tub with a tight lid, shut in its own small share of valley air. As the air outside thins, the bag goes on pushing out with what it had, and nothing pushes back as hard. The bag swells. By the top it is round and taut, as if it had been holding its breath the whole way up.</p>
+<p>The sky is a shade deeper, too. With less air overhead there is less to scatter light back down, so the blue darkens a little and the shadow side of every stone turns a little bluer. It is slight at this height. On high mountains it is one of the first things people describe.</p>
+</section>
+
+<section class="sec" data-h="1100" data-t="0.3">
+<h2>The top <span>1,100 m</span></h2>
+<p>On the top there is a cairn, a wind and a view. You light the stove behind the cairn, and the water boils sooner than it should, at a little over ninety-six degrees.</p>
+<p>Water boils when its vapour can push back as hard as the air is pushing down on it. Up here the air pushes less, so the water gets there with less heat. You would hardly notice it in tea. At real heights it is why eggs take longer, bread recipes change, and a pot can be boiling hard and still not hot enough to cook rice through.</p>
+<p>For an eye at this height, the horizon is a little under a hundred and twenty kilometres away, if nothing stood in the way.</p>
+</section>
+
+<section class="sec" data-h="1100" data-t="0.42">
+<h2>Below</h2>
+<p>Below is the fog. From above it isn't grey but white, brilliant and flat as a floor, filling every valley to the same level, as though it had been poured. It is level for the same reason a lake is: it fills its basin up to where the lid is. Other hills stand out of it like islands, tops in the sun and cloud lapping at their shoulders. A road runs down into it and stops. Somewhere under it are the lane, the door and the dog.</p>
+<p>You have climbed out of the cold into the warm, and then on into the cold again, and the cold up here is a different thing from the cold down there. One is the night's cold, pooled and held in the bottoms by a lid. The other belongs to height. It is always there, and a cloudless noon in August won't take it away.</p>
+</section>
+
+<section class="sec last" data-h="60" data-t="1">
+<h2>Down <span>back to the floor, at noon</span></h2>
+<p>By the time you come down, the sun has done what the forecast said. It warmed the top of the fog and the ground under it, the lid weakened, and the cold pool stirred and mixed upward until there was nothing left to hold it in. The fog thinned to haze, and the haze to nothing. The valley is the warmest place on the hill now, as the rule says it ought to be, and from the floor to the cairn the air falls away steadily, degree by degree, the lapse unbroken.</p>
+<p>At the bottom of the pack the bag has gone slack again, near enough the shape it started, a touch rounder for the day's warmth.</p>
+</section>
+
+<hr>
+<h2>Your own hill</h2>
+<p>Set a height and the temperature at the bottom. The numbers assume the average lapse of 6.5 °C per kilometre and a standard sky, starting from sea level, with no fog and no lid.</p>
+<div id="tool">
+  <div class="row">
+    <div><label for="hh">Height above sea level: <output id="hhv"></output></label><input id="hh" type="range" min="0" max="5000" step="50" value="1100"></div>
+    <div><label for="tt">Temperature at sea level: <output id="ttv"></output></label><input id="tt" type="range" min="-10" max="35" step="1" value="12"></div>
+  </div>
+  <table id="tab"></table>
+  <p class="note">Pressure from the standard atmosphere; boiling point from the Clausius–Clapeyron relation; the bag is sealed at sea level and its swelling assumes it's free to stretch; the horizon is the geometric one over a smooth earth; the bending of light near the ground adds a few per cent.</p>
+</div>
+</main>
+
+<script>
+(function(){
+'use strict';
+var D=Math.PI/180;
+function clamp(x,a,b){return x<a?a:x>b?b:x;}
+function lerp(a,b,t){return a+(b-a)*t;}
+function sstep(a,b,x){var t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);}
+
+/* ---- PHYSICS ---- */
+var FLOOR=60, FOGTOP=290, LIDTOP=350, TOP=1100;
+function tDawn(h){
+  if(h<=FOGTOP) return 1+(h-FLOOR)*0.0017;
+  if(h<=LIDTOP){var a=1+(FOGTOP-FLOOR)*0.0017;return lerp(a,9,(h-FOGTOP)/(LIDTOP-FOGTOP));}
+  return 9-(h-LIDTOP)*0.0065;
+}
+function tNoon(h){return 13.5-(h-FLOOR)*0.0085;}
+function temp(h,t){return lerp(tDawn(h),tNoon(h),sstep(0.35,1,t));}
+function pres(h){return 1013.25*Math.pow(1-2.25577e-5*h,5.25588);}          /* hPa */
+function boil(p){return 1/(1/373.15-8.314/40660*Math.log(p/1013.25))-273.15;}  /* deg C */
+function horizon(h){return 3.57*Math.sqrt(Math.max(h,0));}                     /* km, geometric */
+var SEAL_T=tDawn(FLOOR), SEAL_P=pres(FLOOR);
+function bag(h,t){return (SEAL_P/pres(h))*((temp(h,t)+273.15)/(SEAL_T+273.15));}
+function fogAlpha(t){return 1-sstep(0.5,0.9,t);}
+window.__lapse={tDawn:tDawn,tNoon:tNoon,temp:temp,pres:pres,boil:boil,horizon:horizon,bag:bag};
+/* ---- END PHYSICS ---- */
+
+var cv=document.getElementById('fig'),cx=cv.getContext('2d'),gauge=document.getElementById('gauge');
+var dark=window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches;
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(e){dark=e.matches;shown=null;});}catch(e){}
+var W=0,H=0,DPR=1;
+
+/* ground profile over u in [0,1] of the hill area */
+function gSmooth(u){
+  if(u<0.12) return FLOOR;
+  if(u<=0.66){var a=(u-0.12)/0.54;return FLOOR+(TOP-FLOOR)*Math.pow(0.5-0.5*Math.cos(Math.PI*a),1.15);}
+  var b=(u-0.66)/0.34;return TOP-560*(0.5-0.5*Math.cos(Math.PI*Math.min(b,1)));
+}
+function ground(u){
+  var s=gSmooth(u), k=sstep(0.1,0.2,u)*(1-sstep(0.6,0.66,u)*0.7);
+  return s+k*(10*Math.sin(u*41)+6*Math.sin(u*97+1));
+}
+function uAt(h){ /* ascending side, smooth */
+  if(h<=FLOOR) return 0.07;
+  var lo=0.12,hi=0.66;for(var i=0;i<30;i++){var m=(lo+hi)/2;if(gSmooth(m)<h)lo=m;else hi=m;}return (lo+hi)/2;
+}
+function ridge(u,c,w,top,base){var d=(u-c)/w;return base+(top-base)*Math.exp(-d*d);}
+
+/* trees: precomputed by u */
+var rnd=(function(s){return function(){s=(s*16807)%2147483647;return (s-1)/2147483646;};})(7);
+var TREES=[];
+for(var i=0;i<260;i++){
+  var u=0.1+rnd()*0.9, g=gSmooth(u), line=470+rnd()*60;
+  if(g<line && rnd()<1-0.55*sstep(380,line,g)) TREES.push({u:u,s:0.5+rnd()*0.6,f:1-sstep(300,line,g)*0.55,j:rnd()});
+}
+TREES.sort(function(a,b){return a.j-b.j;});
+
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  var r=cv.getBoundingClientRect();W=r.width;H=r.height;
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cx.setTransform(DPR,0,0,DPR,0,0);shown=null;
+}
+function mix(a,b,t){return 'rgb('+[0,1,2].map(function(i){return Math.round(lerp(a[i],b[i],t));}).join(',')+')';}
+
+function draw(h,t){
+  var SW=Math.round(clamp(W*0.24,86,180)), narrow=SW<120, PW=W-SW;
+  var y0=H-8, y1=narrow?66:26;
+  function Y(m){return y0-(m/1250)*(y0-y1);}
+  function X(u){return u*PW;}
+  var P=dark?{
+    skyT:[[58,80,110],[34,52,84]], skyB:[100,116,134], dawn:[140,110,100], far:[70,80,94], far2:[58,66,80],
+    wood:'#1f3326', heath:'#4a3346', grass:'#4b5440', rock:'#5b5d60', tree:'#0f1c13', fog:[150,158,170], card:'rgba(20,22,28,.9)',
+    ink:'#e2e0d8', soft:'#8f9196', line:'#d29cc0', ghost:'rgba(210,156,192,.35)', walker:'#f0eadc'
+  }:{
+    skyT:[[122,163,206],[64,108,170]], skyB:[206,220,230], dawn:[240,200,170], far:[150,164,178], far2:[132,146,160],
+    wood:'#3f6540', heath:'#7b5670', grass:'#8b9a6a', rock:'#9a9a96', tree:'#284a2c', fog:[240,242,244], card:'rgba(250,250,246,.92)',
+    ink:'#24262a', soft:'#6c6f74', line:'#7d4a6b', ghost:'rgba(125,74,107,.32)', walker:'#1d2228'
+  };
+  /* sky deepens with the walker's height */
+  var deep=clamp((h-FLOOR)/(TOP-FLOOR),0,1);
+  var sg=cx.createLinearGradient(0,0,0,H);
+  sg.addColorStop(0,mix(P.skyT[0],P.skyT[1],deep));
+  var dawnT=1-sstep(0,0.3,t);
+  sg.addColorStop(1,mix(P.skyB,P.dawn,dawnT*0.6));
+  cx.fillStyle=sg;cx.fillRect(0,0,W,H);
+  /* sun */
+  var sunU=0.08+t*0.3, sunY=lerp(Y(500),Y(1220),sstep(0,1,t));
+  var sr=cx.createRadialGradient(X(sunU),sunY,0,X(sunU),sunY,60);
+  sr.addColorStop(0,dark?'rgba(255,230,190,.55)':'rgba(255,248,225,.95)');sr.addColorStop(1,'rgba(255,240,210,0)');
+  cx.fillStyle=sr;cx.beginPath();cx.arc(X(sunU),sunY,60,0,7);cx.fill();
+  cx.fillStyle=dark?'#f3e3c0':'#fffaf0';cx.beginPath();cx.arc(X(sunU),sunY,6,0,7);cx.fill();
+
+  /* far ridges, standing out of the fog */
+  function fill(fn,col){cx.fillStyle=col;cx.beginPath();cx.moveTo(0,H);for(var x=0;x<=PW+2;x+=3){cx.lineTo(x,Y(fn(x/PW)));}cx.lineTo(PW+2,H);cx.fill();}
+  fill(function(u){return ridge(u,0.32,0.13,760,120)+ridge(u,0.92,0.12,880,140)+18*Math.sin(u*23);},mix(P.far,P.skyB,0.35));
+  fill(function(u){return ridge(u,0.05,0.10,540,100)+ridge(u,0.82,0.09,640,90)+12*Math.sin(u*31+2);},mix(P.far2,P.skyB,0.15));
+
+  /* main hill, coloured by height */
+  var hg=cx.createLinearGradient(0,Y(FLOOR),0,Y(TOP));
+  function hs(m){return clamp((m-FLOOR)/(TOP-FLOOR),0,1);}
+  hg.addColorStop(0,P.wood);hg.addColorStop(hs(460),P.wood);hg.addColorStop(hs(560),P.heath);
+  hg.addColorStop(hs(820),P.heath);hg.addColorStop(hs(930),P.grass);hg.addColorStop(hs(1020),P.grass);hg.addColorStop(1,P.rock);
+  cx.fillStyle=hg;cx.beginPath();cx.moveTo(0,H);
+  for(var x=0;x<=PW+2;x+=2){cx.lineTo(x,Y(ground(x/PW)));}
+  cx.lineTo(PW+2,H);cx.fill();
+  /* trees */
+  cx.fillStyle=P.tree;
+  TREES.forEach(function(tr){
+    var x=X(tr.u), gy=Y(ground(tr.u)), s=tr.s*tr.f;
+    var hgt=9*s+3, wid=4*s+1.5;
+    cx.beginPath();cx.moveTo(x-wid,gy+1);cx.quadraticCurveTo(x-wid*0.9,gy-hgt*0.7,x,gy-hgt);cx.quadraticCurveTo(x+wid*0.9,gy-hgt*0.7,x+wid,gy+1);cx.fill();
+  });
+  /* cairn */
+  var cu=0.66, cy=Y(ground(cu));
+  cx.fillStyle=dark?'#77797c':'#6f6e6a';cx.beginPath();cx.moveTo(X(cu)-4,cy+1);cx.lineTo(X(cu)-1.5,cy-8);cx.lineTo(X(cu)+1.5,cy-8);cx.lineTo(X(cu)+4,cy+1);cx.fill();
+
+  /* walker */
+  var wu=(h>=TOP-1)?0.655:uAt(h), wx=X(wu), wy=Y(ground(wu));
+  if(h<=FLOOR+1 && t>0.9) {wu=0.06;wx=X(wu);wy=Y(FLOOR);}
+  cx.strokeStyle=P.walker;cx.fillStyle=P.walker;cx.lineWidth=1.6;cx.lineCap='round';
+  cx.beginPath();cx.moveTo(wx,wy-1);cx.lineTo(wx,wy-8);cx.stroke();
+  cx.beginPath();cx.moveTo(wx,wy-1);cx.lineTo(wx-2,wy+0.5);cx.moveTo(wx,wy-1);cx.lineTo(wx+2,wy+0.5);cx.stroke();
+  cx.beginPath();cx.arc(wx,wy-10.5,2,0,7);cx.fill();
+  cx.fillStyle=dark?'#d98a4e':'#c4602a';cx.fillRect(wx-3.6,wy-8,2.4,4);
+
+  /* chimney smoke under the lid */
+  var fa=fogAlpha(t);
+  var chx=X(0.045), chy=Y(FLOOR);
+  cx.fillStyle=dark?'#3a3d44':'#5c5a57';cx.fillRect(chx-6,chy-7,12,7);cx.fillRect(chx+2,chy-11,2.5,4);
+  if(fa>0.02){
+    cx.fillStyle='rgba('+(dark?'196,198,204':'120,122,128')+','+(0.6*fa)+')';
+    var ly=Y(LIDTOP-14);
+    for(var k=0;k<26;k++){var q=k/25, px=chx+3+q*q*0+q*150, py=lerp(chy-12,ly,Math.min(1,k/5)), rx=2+q*14, ry=2+Math.min(q,0.3)*8;
+      if(k<5){px=chx+3;}cx.beginPath();cx.ellipse(px,py,rx,ry,0,0,7);cx.fill();}
+  }
+
+  /* fog pool */
+  if(fa>0.01){
+    var ft=Y(FOGTOP), fb=Y(FLOOR)+8, c=P.fog;
+    var fg=cx.createLinearGradient(0,ft-10,0,fb);
+    fg.addColorStop(0,'rgba('+c+',0)');fg.addColorStop(0.08,'rgba('+c+','+(0.86*fa)+')');fg.addColorStop(1,'rgba('+c+','+(0.95*fa)+')');
+    cx.fillStyle=fg;cx.beginPath();cx.moveTo(0,H);
+    for(var x2=0;x2<=PW+2;x2+=4){cx.lineTo(x2,ft-10+2.5*Math.sin(x2*0.045+t*20)+1.5*Math.sin(x2*0.13));}
+    cx.lineTo(PW+2,H);cx.fill();
+  }
+
+  /* sealed bag */
+  var bv=bag(h,t);
+  if(!narrow){var bx=PW-50, by=y1+46, bw=34, bh=10+(bv-1)*90;
+  cx.fillStyle=dark?'#c9a85a':'#d8b664';cx.strokeStyle=dark?'#8a7238':'#9c7f36';cx.lineWidth=1;
+  cx.beginPath();cx.moveTo(bx,by);
+  cx.bezierCurveTo(bx+bw*0.25,by-bh*0.62,bx+bw*0.75,by-bh*0.62,bx+bw,by);
+  cx.bezierCurveTo(bx+bw*0.75,by+bh*0.62,bx+bw*0.25,by+bh*0.62,bx,by);cx.fill();cx.stroke();
+  cx.fillStyle=dark?'#8a7238':'#9c7f36';cx.fillRect(bx-1,by-3,2,6);cx.fillRect(bx+bw-1,by-3,2,6);
+  cx.font='11px ui-monospace,Menlo,monospace';cx.textAlign='center';cx.fillStyle=dark?'#e8e4da':'#1d2228';
+  cx.fillText('bag ×'+bv.toFixed(2),bx+bw/2,by+bh*0.5+14);}
+
+  /* sounding: temperature against the same height axis */
+  var x0=PW;
+  cx.fillStyle=P.card;cx.fillRect(x0,0,SW,H);
+  cx.strokeStyle=dark?'rgba(255,255,255,.08)':'rgba(0,0,0,.08)';cx.beginPath();cx.moveTo(x0+.5,0);cx.lineTo(x0+.5,H);cx.stroke();
+  var TL=-4,TR=16, pad=30;
+  function TX(c){return x0+pad+(c-TL)/(TR-TL)*(SW-pad-8);}
+  /* fog band */
+  if(fa>0.01){cx.fillStyle='rgba('+P.fog+','+(0.5*fa)+')';cx.fillRect(x0+pad,Y(FOGTOP),SW-pad-8,Y(FLOOR)-Y(FOGTOP));}
+  cx.font='10px ui-monospace,Menlo,monospace';cx.fillStyle=P.soft;cx.textAlign='right';
+  [200,400,600,800,1000,1200].forEach(function(m){var yy=Y(m);cx.fillText(m,x0+pad-3,yy+3);
+    cx.strokeStyle=dark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';cx.beginPath();cx.moveTo(x0+pad,yy);cx.lineTo(x0+SW-8,yy);cx.stroke();});
+  cx.textAlign='center';
+  (narrow?[0,10]:[0,5,10,15]).forEach(function(c){cx.fillText(c+'°',TX(c),H-2);});
+  cx.strokeStyle=P.soft;cx.setLineDash([2,3]);cx.beginPath();cx.moveTo(TX(0),y1-6);cx.lineTo(TX(0),y0-6);cx.stroke();cx.setLineDash([]);
+  function curve(f,st,w){cx.strokeStyle=st;cx.lineWidth=w;cx.beginPath();for(var m=FLOOR;m<=TOP;m+=10){var xx=TX(f(m)),yy=Y(m);if(m===FLOOR)cx.moveTo(xx,yy);else cx.lineTo(xx,yy);}cx.stroke();}
+  if(t>0.02) curve(tDawn,P.ghost,1.2);
+  curve(function(m){return temp(m,t);},P.line,2);
+  var tc=temp(h,t);
+  cx.fillStyle=P.line;cx.beginPath();cx.arc(TX(tc),Y(h),3.6,0,7);cx.fill();
+  cx.textAlign='left';cx.font='11px ui-monospace,Menlo,monospace';cx.fillStyle=P.ink;
+  cx.fillText(narrow?'air °C':'air temperature',x0+pad,13);
+
+  /* gauge */
+  var p=pres(h);
+  var hs1='<b>'+Math.round(h).toLocaleString('en')+' m</b> · '+tc.toFixed(1)+' °C', pb=Math.round(p)+' hPa · boils at '+boil(p).toFixed(1)+' °C', hz='horizon '+Math.round(horizon(h))+' km';
+  gauge.innerHTML=narrow ? hs1+'<br>'+pb+'<br>'+hz+' · bag ×'+bv.toFixed(2)
+    : hs1+' · '+(t<0.5?'early morning':t<0.95?'late morning':'noon')+'<br>'+pb+' · '+hz;
+}
+
+/* scroll → height and time */
+var secs=[].slice.call(document.querySelectorAll('.sec'));
+function fromScroll(){
+  if(window.__lapse.force)return window.__lapse.force.slice();
+  var mid=window.innerHeight*0.6, pts=[];
+  secs.forEach(function(s){var r=s.getBoundingClientRect();pts.push([r.top+r.height*0.35,+s.dataset.h,+s.dataset.t]);});
+  if(mid<=pts[0][0])return [pts[0][1],pts[0][2]];
+  for(var i=0;i<pts.length-1;i++){
+    if(mid>=pts[i][0]&&mid<=pts[i+1][0]){var k=(mid-pts[i][0])/(pts[i+1][0]-pts[i][0]);
+      return [lerp(pts[i][1],pts[i+1][1],k),lerp(pts[i][2],pts[i+1][2],k)];}
+  }
+  var l=pts[pts.length-1];return [l[1],l[2]];
+}
+var cur=null, shown=null, tick=0;
+function frame(){
+  tick++;
+  var tg=fromScroll();
+  if(!cur||tick<4)cur=tg.slice();else{cur[0]+=(tg[0]-cur[0])*0.12;cur[1]+=(tg[1]-cur[1])*0.12;}
+  if(Math.abs(tg[0]-cur[0])<0.3)cur[0]=tg[0];
+  if(Math.abs(tg[1]-cur[1])<0.001)cur[1]=tg[1];
+  var key=cur[0].toFixed(1)+'/'+cur[1].toFixed(3);
+  if(shown!==key||tick%30===0){draw(cur[0],cur[1]);shown=key;}
+  requestAnimationFrame(frame);
+}
+window.addEventListener('resize',resize);
+resize();
+window.__lapse.draw=draw;
+requestAnimationFrame(frame);
+
+/* ---- the tool ---- */
+var hh=document.getElementById('hh'),tt=document.getElementById('tt'),hhv=document.getElementById('hhv'),ttv=document.getElementById('ttv'),tab=document.getElementById('tab');
+function row(a,b,c){return '<tr><td>'+a+(c?'<br><i>'+c+'</i>':'')+'</td><td>'+b+'</td></tr>';}
+function tool(){
+  var h=+hh.value, t0=+tt.value, tc=t0-0.0065*h, p=pres(h), p0=pres(0);
+  hhv.textContent=h.toLocaleString('en')+' m';ttv.textContent=t0+' °C';
+  var o2=100*(p/p0)*((t0+273.15)/(tc+273.15));
+  var bv=(p0/p)*((tc+273.15)/(t0+273.15));
+  tab.innerHTML=
+    row('Temperature',tc.toFixed(1)+' °C',tc<0?'below freezing':null)+
+    row('Air pressure',Math.round(p)+' hPa',Math.round(100*p/p0)+'% of sea level')+
+    row('Oxygen in each breath',Math.round(o2)+'%','of a breath at the bottom')+
+    row('Water boils at',boil(p).toFixed(1)+' °C')+
+    row('A bag sealed at the bottom','×'+bv.toFixed(2),'its volume, if free to swell')+
+    row('Horizon',Math.round(horizon(h))+' km','over a smooth earth');
+}
+hh.addEventListener('input',tool);tt.addEventListener('input',tool);tool();
+})();
+</script>
+</body>
+</html>
