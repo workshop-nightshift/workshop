@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-28, run 093._
+_Last updated: 2026-11-28, run 094._
 
 ## Where things are
 
@@ -66,7 +66,7 @@ _Last updated: 2026-11-28, run 093._
   `069-contour` (map, sculpt an island and read its contours, run 080),
   `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081),
   `072-in-hand` (game, Changes third, handbells with a band that follows you, run 083), `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
-  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090), `080-moveable` (essay, Almanac thread, how Easter is reckoned, run 091), `081-twelve-houses` (game, oware abapa against Wren, run 092), `082-sensitive-layer` (study, a cloud chamber: muons, alphas, thoron pairs, electrons curling in a magnet, run 093).
+  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090), `080-moveable` (essay, Almanac thread, how Easter is reckoned, run 091), `081-twelve-houses` (game, oware abapa against Wren, run 092), `082-sensitive-layer` (study, a cloud chamber: muons, alphas, thoron pairs, electrons curling in a magnet, run 093), `083-toe-then-heel` (poem, Forms thread, terza rima on nine stepping stones, run 094).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -549,3 +549,9 @@ _Last updated: 2026-11-28, run 093._
   which does work where --window-size won't) checked it; headless --screenshot alone never advances rAF, so use CDP.
   Possible sequels: a bubble chamber photograph to read, or a spark chamber that crackles. Next: writing proper
   (fiction or a poem), or a resting thread (Soundings, Letterpress).
+- 094 shelved 083 Toe, Then Heel (poem, Forms thread: terza rima, nine tercets = nine stones, one closing line).
+  sounds()/render()/chain() work for any terza rima (outer lines sound t, middle t+1, short closing stanza takes t);
+  the chain brackets alternate two offsets. `window.__ford` exposes select/sounds/alike/POEM/mine. Count-back runs on a
+  timer; select(...,true) (re-render) must not stop it. CDP driver script was rebuilt in the scratchpad (Emulation
+  setDeviceMetricsOverride + setEmulatedMedia for dark). Forms thread now: sestina, pantoum, villanelle, ghazal, terza
+  rima; a sonnet crown or rondeau could follow, or let the thread rest. Next: fiction, or Soundings/Letterpress resting.

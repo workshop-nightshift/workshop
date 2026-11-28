@@ -36,7 +36,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - Reverso poems that turn over (same lines, read upward) — done in 046 as Both Ways. A two-voice reverso could follow.
 
 - Tree-ring dating of an old building's timbers — done in 051 as Crossdating. Building a chronology back by bridging could follow.
-- A sestina with its end-word turn drawn — done in 052 as Proving. A pantoum — done in 055 as Cleared. A villanelle — done in 062 as Right Here. A ghazal could follow.
+- A sestina with its end-word turn drawn — done in 052 as Proving. A pantoum — done in 055 as Cleared. A villanelle — done in 062 as Right Here. A ghazal — done in 070 as At This Hour. Terza rima — done in 083 as Toe, Then Heel. A rondeau or a crown of sonnets could follow.
 - Cyanotype photograms under a moving sun — done in 059 as Sun Print. Tea toning, or printing from a drawn negative, could follow.
 - Crown green bowls with biased woods on a crowned green — done in 060 as Bias. Flat-green rinks or doubles could follow.
 - Starlings over a reedbed at dusk, seven neighbours each, a peregrine's turn handed on — done in 065 as Murmuration. Dawn departure or swifts round a tower could follow.

@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Toe, Then Heel</title>
+<style>
+:root{--bg:#e8e6df;--paper:#fbfaf6;--fg:#24221f;--mute:#76706a;--rule:#d8d3c9;--back:#3f6f86;--front:#b0573a;--chain:#a59886;--shadow:rgba(40,30,20,.2)}
+@media (prefers-color-scheme:dark){:root{--bg:#111318;--paper:#1a1c22;--fg:#e8e6df;--mute:#99949c;--rule:#33343c;--back:#8cc0d8;--front:#e8a07f;--chain:#7a7468;--shadow:rgba(0,0,0,.7)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:17px/1.6 Georgia,"Iowan Old Style","Palatino Linotype",serif;padding:22px 16px 96px;display:flex;justify-content:center}
+main{width:100%;max-width:660px}
+header h1{font-size:25px;font-weight:normal;margin:0;letter-spacing:.04em}
+header p{margin:3px 0 14px;color:var(--mute);font-style:italic;font-size:15px}
+nav{display:flex;gap:4px;margin:0 0 10px;flex-wrap:wrap}
+nav button{font:inherit;font-size:14.5px;background:none;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:4px 10px 5px;cursor:pointer;touch-action:manipulation;letter-spacing:.05em}
+nav button.cur{color:var(--fg);border-bottom-color:var(--front)}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--front);outline-offset:2px}
+.card{background:var(--paper);border:1px solid var(--rule);box-shadow:0 18px 34px -28px var(--shadow)}
+.ford{display:block;width:100%;height:auto;border:1px solid var(--rule);border-bottom:0;cursor:pointer}
+.poem{position:relative;padding:24px 18px 28px 22px}
+.poem h2{font-size:20px;font-weight:normal;font-style:italic;margin:0 0 16px}
+svg.ch{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
+.ch path{fill:none;stroke:var(--chain);stroke-width:1.2;stroke-linecap:round;opacity:.7;transition:stroke .3s,opacity .3s}
+.ch path.b{stroke:var(--back);stroke-width:2;opacity:1}
+.ch path.f{stroke:var(--front);stroke-width:2;opacity:1}
+.st{position:relative;z-index:1;margin:0 0 14px;padding:3px 4px;border-radius:3px;cursor:pointer;transition:opacity .3s,background .3s}
+.st .l{display:grid;grid-template-columns:1fr 2.6em;column-gap:8px;align-items:last baseline}
+.st .t{padding-left:1em;text-indent:-1em}
+.st .n{position:absolute;left:-16px;top:4px;font-size:11px;color:var(--mute);font-style:italic}
+.k{justify-self:start;font-style:italic;font-size:.85em;color:var(--mute);width:1.4em;text-align:center}
+.sel .st{opacity:.35}
+.sel .st.on{opacity:1;background:color-mix(in srgb,var(--back) 7%,transparent)}
+.st.on .w.b{color:var(--back);border-bottom:1.5px solid var(--back)}
+.st.on .w.f{color:var(--front);border-bottom:1.5px solid var(--front)}
+.st.on .k.b{color:var(--back)}
+.st.on .k.f{color:var(--front)}
+.cap{color:var(--mute);font-size:13.5px;font-style:italic;margin:10px 2px;min-height:4em}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0 0;flex-wrap:wrap}
+.row .g{display:flex;gap:6px}
+.row button{font:inherit;font-size:14px;background:none;color:var(--fg);border:1px solid var(--rule);border-radius:16px;padding:4px 14px;cursor:pointer;touch-action:manipulation}
+.row button:hover{border-color:var(--front)}
+.row button:disabled{opacity:.4;cursor:default}
+.yours{display:none}
+.yours.on{display:block}
+.maker{padding:18px 16px 14px}
+.maker label{display:block;font-size:12.5px;color:var(--mute);letter-spacing:.06em;margin:0 0 4px}
+textarea{font:inherit;font-size:16px;background:transparent;color:var(--fg);border:1px solid var(--rule);border-radius:0;padding:8px;width:100%;line-height:1.55;min-height:260px;resize:vertical}
+.chk{font-size:13.5px;color:var(--mute);margin:8px 0 0}
+.chk p{margin:0 0 3px}
+.chk .ok{color:color-mix(in srgb,var(--back) 70%,var(--mute))}
+.chk .ear{color:var(--front)}
+.out{margin-top:16px}
+.out .poem{min-height:60px}
+.about{color:var(--mute);font-size:14.5px;margin:22px 2px 0}
+.about p{margin:0 0 8px}
+@media (max-width:480px){body{font-size:15.5px}.poem{padding:22px 8px 24px 18px}.st .l{grid-template-columns:1fr 2.2em;column-gap:4px}.st .n{left:-14px}}
+@media (prefers-reduced-motion:reduce){.st,.ch path{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Toe, Then Heel</h1>
+  <p>Terza rima: each stanza stands on the one before and puts a foot out.</p>
+</header>
+<nav id="tabs">
+  <button class="cur" data-t="poem">the poem</button>
+  <button data-t="yours">one of your own</button>
+</nav>
+
+<section id="poem" class="tab">
+  <svg class="ford" id="F" viewBox="0 0 400 150" role="img" aria-label="A river seen from downstream, nine stepping stones across it, and someone crossing"></svg>
+  <div class="card poem" id="P"><svg class="ch" id="C"></svg><h2>Toe, Then Heel</h2><div id="body"></div></div>
+  <div class="row"><div class="g"><button id="prev" aria-label="step back">&larr; back</button><button id="next">step &rarr;</button></div><button id="count" disabled>count them back</button></div>
+  <p class="cap" id="cap" aria-live="polite"></p>
+</section>
+
+<section id="yours" class="tab yours">
+  <div class="card maker">
+    <label for="txt">tercets: three lines each, a blank line between; one or two lines to close</label>
+    <textarea id="txt" spellcheck="true" placeholder="A first line, rhyme a&#10;a middle line, rhyme b, left hanging&#10;a third line, rhyme a&#10;&#10;a line that picks up b&#10;a middle line, rhyme c&#10;a line on b again&#10;&#10;and on, until one line that rhymes with the last loose end"></textarea>
+    <div class="chk" id="chk"></div>
+  </div>
+  <div class="out"><div class="card poem" id="P2"><svg class="ch" id="C2"></svg><div id="body2"></div></div></div>
+  <div class="row"><span style="color:var(--mute);font-size:13.5px;font-style:italic">Saved in this browser only.</span></div>
+</section>
+
+<div class="about">
+  <p>Terza rima is Dante&rsquo;s: the whole of the <i>Commedia</i> is written in it, three-line stanzas rhyming <i>aba bcb cdc</i>, each middle line handing its rhyme on to the stanza after. Nothing ever quite closes until the end, where one line by itself catches the last loose rhyme.</p>
+  <p>Italian has rhymes to spare and English doesn&rsquo;t, so the form has always been a stretch here. Shelley built the &ldquo;Ode to the West Wind&rdquo; out of it, and Frost&rsquo;s &ldquo;Acquainted with the Night&rdquo; is a short one. The chain on the right of the poem draws each rhyme sound from the line that puts it out to the two that pick it up; the step you are on shows the foot behind in blue and the foot ahead in red.</p>
+</div>
+</main>
+
+<script>
+(function(){
+const POEM=[
+ ['The river’s up a hand since Tuesday’s rain.','The stones still show, just barely, their round backs','like sheep caught crossing, nine in a broken chain'],
+ ['my father laid one August. No one tracks','who laid a ford. You trust it. That’s the deal.','You read the water where it pleats and slacks,'],
+ ['put down your weight before you’ve time to feel','for whether it will hold. And it will hold,','or hasn’t yet not held. So: toe, then heel,'],
+ ['and don’t look down at all. The water’s cold','the way a stair is dark at night: you know','it’s there, and leave it be. The fifth stone’s rolled'],
+ ['a little since I crossed in March. Below,','the gravel shifts its whole pale floor along','a finger’s width a year. Most things are slow'],
+ ['enough to call them still. I had it wrong','for years: that standing’s what you do instead','of being carried. Six. And not for long.'],
+ ['Nobody stands. The water past my tread','is all one muscle, leaning on the stone','he set here, and the stone holds, and the bed'],
+ ['beneath it gives a little, and has grown','a little crooked by it. On the far','bank, alder roots. The last one. Then my own'],
+ ['weight on the grass. I turn round. Where they are','the light is going off them, black on black,','and low above the first one, the first star'],
+ ['stands in the water too. I count them back.']
+];
+const CAP=[
+ 'Three lines. The first and last rhyme, rain and chain. The middle one, backs, is left hanging: the next stanza has to pick it up.',
+ 'tracks and slacks answer backs. The new loose end is deal. Every stanza stands on the one before and puts a foot out.',
+ 'feel and heel. The middle line puts down hold before it knows whether anything will answer it.',
+ 'cold and rolled. The fifth stone has moved. The new foot ahead is know.',
+ 'below and slow, on the fifth stone. Halfway across, and halfway down the chain.',
+ 'wrong and long. Past halfway, the poem says what it thought it knew, and the next stanza says it again, otherwise.',
+ 'tread and bed. The middle rhyme is stone itself, the one held out.',
+ 'known and own. far is left over, and the far bank is close.',
+ 'are and star. The last tercet’s middle rhyme, black, has no stanza after it to land in.',
+ 'Dante ended each canto like this: one line alone, rhyming with the last loose end. This one also reaches back to backs, at the start.'
+];
+const L='abcdefghijklmnopqrstuvwxyz';
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mq=matchMedia('(prefers-color-scheme: dark)');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---- rhyme bookkeeping (works for any terza rima) ----
+// a stanza t of three lines: outer lines take sound t, middle sound t+1.
+// a closing stanza (1 or 2 lines) takes the last middle sound.
+function sounds(st){
+  let n=0;
+  return st.map((s,t)=>{
+    if(s.length===3){n=t;return [t,t+1,t];}
+    const k=t; return s.map(()=>k);
+  });
+}
+function wrapLast(line,cls){
+  const m=line.match(/^(.*?)([A-Za-zÀ-ɏ’']+)([^A-Za-zÀ-ɏ]*)$/);
+  if(!m)return esc(line);
+  return esc(m[1])+'<span class="w '+cls+'">'+esc(m[2])+'</span>'+esc(m[3]);
+}
+function render(body,st,svg,host,numbered){
+  const S=sounds(st);
+  body.innerHTML=st.map((s,t)=>'<div class="st" data-t="'+t+'">'+(numbered&&t<9?'<span class="n">'+(t+1)+'</span>':'')+
+    s.map((ln,i)=>{const k=S[t][i];const cls=(s.length===3&&i===1)?'f':'b';
+      return '<div class="l"><span class="t">'+wrapLast(ln,cls)+'</span><span class="k '+cls+'" data-s="'+k+'">'+L[k%26]+'</span></div>';}).join('')+'</div>').join('');
+  chain(host,svg);
+}
+// draw a bracket for every sound, joining its letters; alternate sounds sit at two offsets so neighbours don't cross
+function chain(host,svg){
+  const hb=host.getBoundingClientRect();
+  const ks=[...host.querySelectorAll('.k')];
+  const by={};
+  ks.forEach(k=>{const r=k.getBoundingClientRect();(by[k.dataset.s]=by[k.dataset.s]||[]).push({x:r.right-hb.left,y:r.top-hb.top+r.height*.55});});
+  svg.setAttribute('viewBox','0 0 '+hb.width+' '+hb.height);
+  let out='';
+  Object.keys(by).forEach(s=>{
+    const p=by[s];if(p.length<2)return;
+    const off=(s%2?7:15),x0=p[0].x-2,xm=Math.min(hb.width-3,x0+off);
+    let d='M'+x0+' '+p[0].y+' C'+xm+' '+p[0].y+' '+xm+' '+p[0].y+' '+xm+' '+(p[0].y+6);
+    d+=' L'+xm+' '+(p[p.length-1].y-6)+' C'+xm+' '+p[p.length-1].y+' '+xm+' '+p[p.length-1].y+' '+x0+' '+p[p.length-1].y;
+    for(let i=1;i<p.length-1;i++)d+=' M'+xm+' '+p[i].y+' L'+x0+' '+p[i].y;
+    out+='<path data-s="'+s+'" d="'+d+'"/>';
+  });
+  svg.innerHTML=out;
+}
+
+// ---- the ford ----
+const F=document.getElementById('F');
+const SX=[...Array(9)].map((_,i)=>62+i*34.5);
+SX[4]+=5; // the fifth stone has rolled
+let cur=-1, counting=null, countN=-1, starOn=0;
+function lerp(a,b,t){return a+(b-a)*t}
+function mix(c1,c2,t){const a=c1.match(/\w\w/g).map(h=>parseInt(h,16)),b=c2.match(/\w\w/g).map(h=>parseInt(h,16));return '#'+a.map((v,i)=>Math.round(lerp(v,b[i],t)).toString(16).padStart(2,'0')).join('');}
+function pal(){
+  return mq.matches?
+   {skyT:['#2a3550','#0b0f1c'],skyB:['#7a5a52','#1a1d2a'],hill:['#20242c','#0c0e13'],water:['#2c3a48','#0d1219'],stone:['#4a4844','#2a2a2d'],wet:['#2e2c2a','#161618'],bank:['#2a2c24','#0e100d'],fig:'#e8e6df',line:'#9fb6c6'}:
+   {skyT:['#9fb4c8','#33405e'],skyB:['#f1c9a0','#8a6f78'],hill:['#7d8a7a','#2f3540'],water:['#8aa2ad','#3a4a58'],stone:['#8a857c','#4a4744'],wet:['#5a5650','#2d2b2a'],bank:['#6f7a58','#2e3428'],fig:'#24221f',line:'#e8eef0'};
+}
+let phase=0;
+function drawFord(){
+  const P=pal();
+  const p=Math.max(0,Math.min(1,(cur+1)/10));
+  const c=k=>mix(P[k][0],P[k][1],p);
+  let s='<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c('skyT')+'"/><stop offset="1" stop-color="'+c('skyB')+'"/></linearGradient>'+
+    '<linearGradient id="wat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c('skyB')+'" stop-opacity=".55"/><stop offset=".5" stop-color="'+c('water')+'"/></linearGradient></defs>';
+  s+='<rect width="400" height="100" fill="url(#sky)"/>';
+  s+='<path d="M0 84 C60 74 110 80 170 76 C230 72 290 82 400 74 L400 100 L0 100Z" fill="'+c('hill')+'"/>';
+  s+='<rect y="100" width="400" height="50" fill="'+c('water')+'"/><rect y="100" width="400" height="50" fill="url(#wat)"/>';
+  // star and its reflection
+  if(starOn>0){
+    s+='<circle cx="'+SX[0]+'" cy="56" r="1.8" fill="#fff8e0" opacity="'+starOn+'"/>';
+    s+='<circle cx="'+SX[0]+'" cy="'+(144+Math.sin(phase*2)*0.6)+'" r="1.5" fill="#fff8e0" opacity="'+(starOn*.75)+'"/>';
+    s+='<line x1="'+(SX[0]-3)+'" x2="'+(SX[0]+3)+'" y1="144" y2="144" stroke="#fff8e0" stroke-width=".5" opacity="'+(starOn*.4)+'"/>';
+  }
+  // ripples, drifting
+  const lc=P.line;
+  for(let i=0;i<14;i++){
+    const y=104+i*3.3, sp=.4+i*.06, w=18+(i*13%22);
+    for(let j=0;j<3;j++){
+      const x=((i*71+j*140+phase*sp*30)%460)-40;
+      s+='<line x1="'+x.toFixed(1)+'" x2="'+(x+w).toFixed(1)+'" y1="'+y+'" y2="'+y+'" stroke="'+lc+'" stroke-width=".6" opacity="'+(0.25*(1-p*.6))+'"/>';
+    }
+  }
+  // banks
+  s+='<path d="M0 96 C18 95 30 97 42 101 L44 150 L0 150Z" fill="'+c('bank')+'"/>';
+  s+='<path d="M400 94 C384 94 370 96 358 101 L356 150 L400 150Z" fill="'+c('bank')+'"/>';
+  // alders on the far bank
+  const al=c('hill');
+  [[372,58,14],[388,50,16],[360,68,10]].forEach(([x,y,r])=>{s+='<ellipse cx="'+x+'" cy="'+y+'" rx="'+r+'" ry="'+(r*1.6)+'" fill="'+mix(al.slice(1),'000000',.25)+'"/><line x1="'+x+'" x2="'+x+'" y1="'+(y+r)+'" y2="98" stroke="'+mix(al.slice(1),'000000',.4)+'" stroke-width="1.6"/>';});
+  // stones
+  SX.forEach((x,i)=>{
+    const tilt=i===7?-9:0, dy=i===4?1.5:0;
+    const hl=(countN===i)||(cur===i);
+    s+='<g transform="translate('+x+' '+(101+dy)+') rotate('+tilt+')">'+
+      '<ellipse cx="0" cy="4" rx="13" ry="3.5" fill="'+c('wet')+'" opacity=".5"/>'+
+      '<path d="M-12 1 C-10 -6 10 -6 12 1 Z" fill="'+c('stone')+'"/>'+
+      '<path d="M-12 1 C-6 3 6 3 12 1" fill="none" stroke="'+c('wet')+'" stroke-width="1.4"/>'+
+      (hl?'<path d="M-9 -3 C-4 -5.5 4 -5.5 9 -3" fill="none" stroke="'+(countN===i?'#e8b04a':P.fig)+'" stroke-width="1" opacity=".8"/>':'')+
+      '</g>';
+    if(counting!==null&&countN<=i&&countN>=0) s+='<text x="'+x+'" y="93" text-anchor="middle" font-size="9" font-style="italic" fill="'+P.fig+'" font-family="Georgia,serif" opacity=".8">'+(9-i)+'</text>';
+  });
+  if(counting!==null&&countN===-2) {
+    SX.forEach((x,i)=>{s+='<text x="'+x+'" y="93" text-anchor="middle" font-size="9" font-style="italic" fill="'+P.fig+'" font-family="Georgia,serif" opacity=".8">'+(9-i)+'</text>';});
+    s+='<text x="'+(SX[0]+9)+'" y="139" font-size="9" font-style="italic" fill="#fff0c8" font-family="Georgia,serif">10</text>';
+  }
+  // the walker
+  let wx, wy;
+  if(cur<0){wx=22;wy=96;} else if(cur>=9){wx=380;wy=95;} else {wx=SX[cur];wy=96+(cur===4?1.5:0)+(cur===7?-1:0);}
+  walkX=walkX==null?wx:walkX+(wx-walkX)*(reduce?1:.18);
+  walkY=walkY==null?wy:walkY+(wy-walkY)*(reduce?1:.18);
+  const fx=walkX, fy=walkY, facing=cur>=9?-1:1;
+  s+='<g stroke="'+P.fig+'" stroke-width="1.6" stroke-linecap="round" fill="none">'+
+    '<line x1="'+fx+'" y1="'+(fy-14)+'" x2="'+fx+'" y2="'+(fy-6)+'"/>'+
+    '<line x1="'+fx+'" y1="'+(fy-6)+'" x2="'+(fx-2.5)+'" y2="'+fy+'"/><line x1="'+fx+'" y1="'+(fy-6)+'" x2="'+(fx+2.5)+'" y2="'+fy+'"/>'+
+    '<line x1="'+fx+'" y1="'+(fy-12)+'" x2="'+(fx-4*facing)+'" y2="'+(fy-8)+'"/><line x1="'+fx+'" y1="'+(fy-12)+'" x2="'+(fx+4.5*facing)+'" y2="'+(fy-9)+'"/>'+
+    '</g><circle cx="'+fx+'" cy="'+(fy-16.5)+'" r="2.4" fill="'+P.fig+'"/>';
+  F.innerHTML=s;
+}
+let walkX=null, walkY=null;
+function loop(t){
+  if(!reduce){phase=t/1000;}
+  const target=cur>=9?1:0;
+  starOn+=(target-starOn)*(reduce?1:.04);
+  drawFord();
+  requestAnimationFrame(loop);
+}
+
+// ---- the poem view ----
+const body=document.getElementById('body'),P=document.getElementById('P'),C=document.getElementById('C');
+const cap=document.getElementById('cap');
+const prev=document.getElementById('prev'),next=document.getElementById('next'),count=document.getElementById('count');
+function show(){render(body,POEM,C,P,true);bind();select(cur,true);}
+function bind(){body.querySelectorAll('.st').forEach(el=>el.addEventListener('click',()=>select(+el.dataset.t)));}
+function select(t,quiet){
+  if(!quiet)stopCount();
+  cur=Math.max(-1,Math.min(9,t));
+  body.classList.toggle('sel',cur>=0);
+  body.querySelectorAll('.st').forEach(el=>el.classList.toggle('on',+el.dataset.t===cur));
+  const S=sounds(POEM);
+  C.querySelectorAll('path').forEach(p=>{
+    const s=+p.dataset.s;
+    p.classList.toggle('b',cur>=0&&s===S[cur][0]);
+    p.classList.toggle('f',cur>=0&&cur<9&&s===S[cur][1]);
+  });
+  if(counting===null)cap.textContent=cur<0?'On the near bank. Tap a stanza, the river, or step. Each stanza is a stone.':CAP[cur];
+  if(counting!==null)return;
+  prev.disabled=cur<0; next.disabled=cur>=9; count.disabled=cur<9;
+  drawFord();
+}
+prev.onclick=()=>select(cur-1);
+next.onclick=()=>select(cur+1);
+F.addEventListener('click',e=>{
+  const r=F.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*400;
+  if(x<45)return select(-1);
+  if(x>352)return select(9);
+  let best=0;SX.forEach((sx,i)=>{if(Math.abs(sx-x)<Math.abs(SX[best]-x))best=i;});select(best);
+});
+document.addEventListener('keydown',e=>{
+  if(document.activeElement&&document.activeElement.tagName==='TEXTAREA')return;
+  if(!document.getElementById('poem').classList.contains('tab')||document.getElementById('poem').style.display==='none')return;
+  if(e.key==='ArrowRight'){select(cur+1);e.preventDefault();}
+  if(e.key==='ArrowLeft'){select(cur-1);e.preventDefault();}
+});
+function stopCount(){if(counting){clearTimeout(counting);}counting=null;countN=-1;}
+count.onclick=()=>{
+  stopCount();
+  let i=8;
+  cap.textContent='';
+  const stepc=()=>{
+    if(i>=0){countN=i;cap.textContent=String(9-i)+(i>0?'…':'.');i--;counting=setTimeout(stepc,reduce?250:650);}
+    else{countN=-2;cap.textContent='Nine stones, and one more standing in the water by the first. Not one to put a foot on.';counting=0;}
+  };
+  counting=setTimeout(stepc,100);
+};
+
+// ---- tabs ----
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('cur',x===b));
+  const y=b.dataset.t==='yours';
+  document.getElementById('poem').style.display=y?'none':'';
+  document.getElementById('yours').classList.toggle('on',y);
+  if(y)mine(); else show();
+});
+
+// ---- one of your own ----
+const KEY='toe-then-heel-v1';
+const txt=document.getElementById('txt'),chk=document.getElementById('chk'),body2=document.getElementById('body2'),P2=document.getElementById('P2'),C2=document.getElementById('C2');
+try{txt.value=localStorage.getItem(KEY)||'';}catch(e){}
+function word(line){const m=line.toLowerCase().replace(/[’']/g,'').match(/([a-zà-ɏ]+)[^a-zà-ɏ]*$/);return m?m[1]:'';}
+function rime(w){
+  const m=w.match(/[aeiouy]+[^aeiouy]+e$/)||w.match(/[aeiouy]+[^aeiouy]*$/);
+  return m?m[0]:w;
+}
+function tail(w){const m=w.replace(/e$/,'').match(/[^aeiouy]*$/);return m?m[0]:'';}
+function alike(a,b){
+  if(!a||!b)return 0;
+  if(a===b)return 3;
+  if(rime(a)===rime(b))return 2;
+  if(tail(a)&&tail(a)===tail(b))return 1;
+  return 0;
+}
+function mine(){
+  const st=txt.value.replace(/\r/g,'').split(/\n\s*\n/).map(s=>s.split('\n').map(x=>x.trim()).filter(Boolean)).filter(s=>s.length);
+  try{localStorage.setItem(KEY,txt.value);}catch(e){}
+  if(!st.length){chk.innerHTML='<p>Write a tercet or two and the chain appears below.</p>';body2.innerHTML='';C2.innerHTML='';return;}
+  const notes=[];
+  const S=sounds(st);
+  const by={};
+  st.forEach((s,t)=>s.forEach((ln,i)=>{(by[S[t][i]]=by[S[t][i]]||[]).push(word(ln));}));
+  st.forEach((s,t)=>{
+    if(s.length!==3&&t<st.length-1)notes.push('<p class="ear">Stanza '+(t+1)+' has '+s.length+' line'+(s.length>1?'s':'')+'; only the last may be shorter than three.</p>');
+    if(s.length>3)notes.push('<p class="ear">Stanza '+(t+1)+' has '+s.length+' lines.</p>');
+  });
+  Object.keys(by).forEach(k=>{
+    const w=by[k];if(w.length<2)return;
+    const lv=Math.min(...w.slice(1).map(x=>alike(w[0],x)));
+    const ws=w.map(esc).join(', ');
+    notes.push(lv>=2?'<p class="ok">'+L[k%26]+': '+ws+'</p>':lv===1?'<p class="ear">'+L[k%26]+': '+ws+' — close; say them aloud</p>':'<p class="ear">'+L[k%26]+': '+ws+' — these look unlike; trust your ear</p>');
+  });
+  const lastS=st[st.length-1];
+  if(lastS.length===3)notes.push('<p>The last middle rhyme is still hanging. A line or two on its own will close it.</p>');
+  chk.innerHTML=notes.join('');
+  render(body2,st,C2,P2,false);
+}
+let tm;txt.addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(mine,300);});
+
+addEventListener('resize',()=>{if(document.getElementById('yours').classList.contains('on'))mine();else show();});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>show());
+show();
+requestAnimationFrame(loop);
+window.__ford={select,sounds,alike,get cur(){return cur},POEM,mine};
+})();
+</script>
+</body>
+</html>
