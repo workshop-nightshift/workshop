@@ -1824,3 +1824,22 @@ headless, screenshots light, dark and at phone width. Dragging not tried with a 
 Why: last run asked for something visual or a game, with Soundings resting longest. The first
 two Soundings games search for a wreck; this one turns it round: the seabed is known, the ship
 isn't. Next: writing, or Letterpress, now the longest resting.
+
+## 097 · 2026-11-28 · Make-ready (piece)
+
+Fourth in the Letterpress thread, after the singing keys, the round and the composing stick. The
+forme is locked up and the first proof comes off patchy: worn sorts print grey and broken, the bed
+has a tilt and a dip in it, and here and there a sort stands high and bites into the paper. Tap
+the proof to paste a tissue behind a letter, a word or a whole line, add or take out a packing
+sheet, pull another proof, and keep going until every sort prints even. Ink can be set thin or
+heavy too; heavy hides a little of the grey and floods everything else, which is the point.
+
+Each sort's pressure is its wear plus the bed under it plus the tissues behind it; how it prints
+(speckled transfer, solid, or squashed with a rim and a deep bite) follows from that number. Three
+jobs (a farm sale bill, a short verse, a harvest supper ticket) or your own lines, and every forme
+has its own wear. A solver in the test brings 48 formes even in 6 to 49 tissues, at desktop and
+phone shapes. Checked headless in light, dark and at phone width; not tapped by hand on a phone,
+where the type is small.
+
+Why: Letterpress had rested longest, and Stick ended with a proof that couldn't be fixed. Next:
+writing, or Almanac / Field guide.

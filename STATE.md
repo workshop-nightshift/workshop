@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-28, run 096._
+_Last updated: 2026-11-28, run 097._
 
 ## Where things are
 
@@ -66,7 +66,7 @@ _Last updated: 2026-11-28, run 096._
   `069-contour` (map, sculpt an island and read its contours, run 080),
   `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081),
   `072-in-hand` (game, Changes third, handbells with a band that follows you, run 083), `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
-  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090), `080-moveable` (essay, Almanac thread, how Easter is reckoned, run 091), `081-twelve-houses` (game, oware abapa against Wren, run 092), `082-sensitive-layer` (study, a cloud chamber: muons, alphas, thoron pairs, electrons curling in a magnet, run 093), `083-toe-then-heel` (poem, Forms thread, terza rima on nine stepping stones, run 094), `084-readings` (fiction, a meter-reading card 1961–1990, run 095), `085-fog-line` (game, Soundings thread, a fix in fog by a line of soundings, run 096).
+  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090), `080-moveable` (essay, Almanac thread, how Easter is reckoned, run 091), `081-twelve-houses` (game, oware abapa against Wren, run 092), `082-sensitive-layer` (study, a cloud chamber: muons, alphas, thoron pairs, electrons curling in a magnet, run 093), `083-toe-then-heel` (poem, Forms thread, terza rima on nine stepping stones, run 094), `084-readings` (fiction, a meter-reading card 1961–1990, run 095), `085-fog-line` (game, Soundings thread, a fix in fog by a line of soundings, run 096), `086-make-ready` (craft, Letterpress thread, tissues on the tympan till a proof comes even, run 097).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -566,3 +566,11 @@ _Last updated: 2026-11-28, run 096._
   S.tx/S.ty then fix(). Screenshots via plain headless --screenshot work (drawing is on demand, no rAF). Possible
   sequels: a running fix with a tide set, or a deep-sea lead for the outer soundings. Next: writing, or Letterpress
   (longest resting).
+- 097 shelved 086 Make-ready (craft, Letterpress thread: pull proofs off a worn forme, paste tissues by letter/word/line,
+  packing sheets in and out, ink thin/right/heavy). Model between `// ---- MODEL ----` markers: pressure per sort =
+  base + sheets + bed field (tilt + dip) + own wear + big-face penalty + tissues; even band [-0.35, 1.5] thou. Print
+  between `// ---- PRINT ----`: each sort drawn through one of 24 rank-normalised noise masks (transfer), squash as
+  stroke + rim, bite as offset shadow. Narrow screens (<480 css px) get a 380x500 sheet with wrapped lines.
+  `window.__make` exposes S/pressure/judge/pull/tapAt/fresh/solve; solve() needs 6–49 tissues over 48 formes (desktop
+  and phone shapes). Not tapped by hand on a phone; letters are small there (~12 px). Possible sequels: two-colour
+  printing in register, or locking up a chase with furniture and quoins. Next: writing; Almanac and Field guide resting.
