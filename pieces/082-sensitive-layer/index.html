@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sensitive Layer</title>
+<style>
+:root{--bg:#e8e5de;--fg:#1e2023;--mute:#5b5e62;--line:#1e202333;--on:#1e2023;--onfg:#efece5;--rim:#2b2a27;--card:#f3f1ec}
+@media (prefers-color-scheme:dark){:root{--bg:#0c0e11;--fg:#e1dfd9;--mute:#a09d96;--line:#e1dfd933;--on:#e1dfd9;--onfg:#0c0e11;--rim:#24272b;--card:#15181c}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:16px/1.55 Georgia,"Iowan Old Style",serif;padding:20px 16px 80px}
+main{max-width:880px;margin:0 auto}
+h1{font-size:24px;font-weight:normal;font-style:italic;margin:0 0 2px;letter-spacing:.02em}
+.sub{margin:0 0 14px;color:var(--mute);font-style:italic}
+.box{position:relative;border:7px solid var(--rim);border-radius:6px;background:#000;line-height:0}
+canvas{width:100%;display:block;touch-action:manipulation;cursor:crosshair}
+#warm{position:absolute;left:0;right:0;top:46%;text-align:center;line-height:1.4;color:#8c949c;font-style:italic;font-size:15px;pointer-events:none;transition:opacity 1.2s}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;align-items:center}
+.ctl{gap:10px 20px}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lab{font-size:15px;color:var(--mute);font-style:italic;margin-right:2px}
+button{font:inherit;font-size:15px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:4px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--on);color:var(--onfg);border-color:var(--on)}
+#tally{margin:10px 0 0;color:var(--mute);font-size:14px;font-variant-numeric:tabular-nums}
+#note{margin:12px 0 0;min-height:5.5em;max-width:40em;background:var(--card);border-left:3px solid var(--line);padding:10px 14px;border-radius:2px}
+#note b{font-weight:normal;font-style:italic}
+.how{margin:26px 0 0;max-width:40em}
+.how p{margin:0 0 .9em}
+.how h2{font-size:17px;font-weight:normal;font-style:italic;margin:0 0 8px}
+.small{color:var(--mute);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+<h1>Sensitive Layer</h1>
+<p class="sub">A cloud chamber: a box of alcohol mist over dry ice, where anything charged that passes through leaves a trail of droplets. Tap a trail to ask what made it.</p>
+<div class="box"><canvas id="c" aria-label="a cloud chamber seen from above, black, with thin and thick white trails of mist appearing and fading; tap a trail to identify it"></canvas><div id="warm">the layer is forming&hellip;</div></div>
+<div class="row ctl">
+  <div class="grp" role="group" aria-label="in the chamber" id="src">
+    <span class="lab">in the chamber:</span>
+    <button data-s="none" aria-pressed="true">only air</button>
+    <button data-s="mantle" aria-pressed="false">an old lantern mantle</button>
+    <button data-s="salt" aria-pressed="false">a dish of low-sodium salt</button>
+  </div>
+  <div class="grp">
+    <button id="mag" aria-pressed="false">magnet underneath</button>
+    <button id="pause" aria-pressed="false">hold</button>
+  </div>
+</div>
+<div id="tally"></div>
+<div id="note" aria-live="polite">Watch for a while. The short straight scratches are mostly muons, come down from the top of the sky. Thick stubby ones are alpha particles. Wandering threads are electrons.</div>
+
+<section class="how">
+<h2>How it works</h2>
+<p>A felt strip round the top of the box is soaked in isopropyl alcohol. The floor sits on a slab of dry ice, at about seventy-eight degrees below. Alcohol evaporates at the top, sinks, and cools as it falls, until just above the floor there is a layer of vapour colder than it ought to be while still vapour: supersaturated, ready to condense, with nothing yet to condense on.</p>
+<p>A charged particle crossing that layer knocks electrons off the air molecules along its path. The ions it leaves are what the vapour has been waiting for. Droplets form on them within a fraction of a second, a line of mist marking where the particle went, and then fall, spread and fade. The layer is only a centimetre or two deep, so a muon coming steeply down crosses it in a short scratch; only one arriving nearly sideways draws a long line across the box.</p>
+<p>The shape of a trail tells you what made it. Alphas are heavy and doubly charged: they ionise densely, go straight, and stop within a few centimetres of air. Muons are heavy but fast, and barely notice the air: thin, straight, and gone out of the layer. Electrons are light, and every molecule they pass nudges them, more so as they slow, so they wander. With a magnet under the floor, the electrons curl into hooks and spirals, all turning the same way; the alphas and muons, with far more momentum, go on as if it were not there.</p>
+<p class="small">The rates here are a little brisker than a real chamber's, and the shapes are drawn from the physics rather than measured. Thorium mantles are an old thing: most sold now have none. Low-sodium salt is mostly potassium chloride, and about one potassium atom in eight thousand is the radioactive kind.</p>
+</section>
+</main>
+<script>
+(function(){
+"use strict";
+const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+const warmEl=document.getElementById('warm'), noteEl=document.getElementById('note'), tallyEl=document.getElementById('tally');
+const CW=30, CH=21; // chamber in cm
+let W=0,H=0,K=1,dpr=1;
+function resize(){
+  dpr=Math.min(2,window.devicePixelRatio||1);
+  const w=cv.clientWidth; W=w; H=Math.round(w*CH/CW); K=W/CW;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); cv.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  makeLight();
+}
+let lightGrad=null;
+function makeLight(){
+  lightGrad=ctx.createLinearGradient(0,0,W,H*0.4);
+  lightGrad.addColorStop(0,'#ffffff');lightGrad.addColorStop(0.55,'#d4d8dc');lightGrad.addColorStop(1,'#9ba1a8');
+}
+
+// ---------- random ----------
+const R=Math.random;
+function gauss(){let u=0,v=0;while(!u)u=R();while(!v)v=R();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function expo(m){return -Math.log(1-R())*m}
+
+// ---------- state ----------
+let source='none', magnet=false, paused=false;
+const B=0.1; // tesla
+let tracks=[], t=0, sens=0, nextId=1, selected=null, selUntil=0;
+const pending=[]; // delayed spawns
+const tally={muon:0,alpha:0,electron:0,pair:0,decay:0};
+
+// ---------- path builders ----------
+// all lengths in cm; p in MeV/c
+function straight(x,y,a,len,step){
+  const pts=[];const n=Math.max(2,Math.ceil(len/step));
+  for(let i=0;i<=n;i++){const s=len*i/n;pts.push([x+Math.cos(a)*s,y+Math.sin(a)*s,i/n])}
+  return pts;
+}
+function wander(x,y,a,len,p0,p1,scatter,q){
+  const pts=[[x,y,0]];const ds=0.12;const n=Math.max(2,Math.ceil(len/ds));
+  for(let i=1;i<=n;i++){
+    const f=i/n, p=p0+(p1-p0)*f;
+    if(magnet){const Rc=p/(3*B); a+= -q*ds/Rc}
+    a+=gauss()*scatter*Math.sqrt(ds)/p;
+    x+=Math.cos(a)*ds;y+=Math.sin(a)*ds;pts.push([x,y,f]);
+    if(x<-1||x>CW+1||y<-1||y>CH+1)break;
+  }
+  return pts;
+}
+// droplets from a path: dens per cm (function of f), width cm (function of f)
+function condense(pts,dens,wid){
+  const d=[];
+  for(let i=1;i<pts.length;i++){
+    const [x0,y0]=pts[i-1],[x1,y1,f]=pts[i];
+    const dx=x1-x0,dy=y1-y0,L=Math.hypot(dx,dy);if(!L)continue;
+    const nx=-dy/L,ny=dx/L;
+    const m=dens(f)*L;let k=Math.floor(m+R());
+    while(k-->0){
+      const u=R(),w=gauss()*wid(f);
+      d.push(x0+dx*u+nx*w,y0+dy*u+ny*w,gauss(),gauss(),0.5+R()*0.9);
+    }
+  }
+  return new Float32Array(d);
+}
+function addTrack(kind,pts,drops,info,extra){
+  const tr={id:nextId++,kind,pts,drops,born:t,life:6+R()*2,info,bright:1,...(extra||{})};
+  tracks.push(tr);return tr;
+}
+
+// ---------- particles ----------
+function clipRay(x,y,a){ // distance from (x,y) along a to chamber edge
+  const c=Math.cos(a),s=Math.sin(a);let d=1e9;
+  if(c>1e-6)d=Math.min(d,(CW-x)/c); if(c<-1e-6)d=Math.min(d,-x/c);
+  if(s>1e-6)d=Math.min(d,(CH-y)/s); if(s<-1e-6)d=Math.min(d,-y/s);
+  return Math.max(0,d);
+}
+function muon(){
+  // zenith from cos^3 law through a horizontal layer; visible length = layer depth * tan
+  const ct=Math.pow(R(),0.25), th=Math.acos(ct);
+  let len=Math.min(2.2*Math.tan(th),40);
+  if(len<0.35)len=0.35+R()*0.3;
+  const a=R()*Math.PI*2, cx=R()*CW, cy=R()*CH;
+  let x=cx-Math.cos(a)*len/2, y=cy-Math.sin(a)*len/2;
+  // clip into chamber
+  const back=clipRay(cx,cy,a+Math.PI), fwd=clipRay(cx,cy,a);
+  const h=len/2, b1=Math.min(h,back), f1=Math.min(h,fwd);
+  x=cx-Math.cos(a)*b1;y=cy-Math.sin(a)*b1;len=b1+f1;
+  if(len<0.3)return;
+  const stops=R()<0.025 && len>3;
+  if(stops)len*=0.55+R()*0.3;
+  const pts=straight(x,y,a,len,0.2);
+  const drops=condense(pts,()=>20,()=>0.03);
+  tally.muon++;
+  const tr=addTrack('muon',pts,drops,stops?INFO.decay:(len>12?INFO.muonLong:INFO.muon));
+  if(stops){
+    tally.decay++;
+    const ex=pts[pts.length-1][0],ey=pts[pts.length-1][1];
+    const ea=a+(R()<.5?1:-1)*(0.6+R()*2.2);
+    const ep=wander(ex,ey,ea,8+R()*10,30,6,0.55,1);
+    addTrack('electron',ep,condense(ep,f=>8+f*10,()=>0.03),INFO.decayE,{link:tr.id});
+  }
+  // delta rays
+  let nd=0; for(let i=0;i<len;i+=1) if(R()<0.035) nd++;
+  while(nd-->0){
+    const s=R()*len, dx=x+Math.cos(a)*s, dy=y+Math.sin(a)*s;
+    const da=a+(R()<.5?1:-1)*(0.9+R()*0.6);
+    const dp=wander(dx,dy,da,0.5+R()*1.8,0.9,0.15,0.5,1);
+    addTrack('delta',dp,condense(dp,f=>10+f*14,()=>0.03),INFO.delta,{link:tr.id});
+  }
+}
+function alphaFrom(x,y,a,range,info,kind){
+  // Bragg: denser toward end; small kink near end
+  const pts=[];const n=Math.ceil(range/0.1);let px=x,py=y,aa=a;
+  for(let i=0;i<=n;i++){const f=i/n;pts.push([px,py,f]);
+    if(f>0.85)aa+=gauss()*0.07; px+=Math.cos(aa)*range/n;py+=Math.sin(aa)*range/n;}
+  const drops=condense(pts,f=>60+f*70,f=>0.045+f*0.03);
+  tally.alpha++;
+  return addTrack(kind||'alpha',pts,drops,info);
+}
+// ranges in air (cm) for alpha energies
+const RN222=[4.05,4.7,6.9];  // Rn-222, Po-218, Po-214
+const TH232=[2.6,4.0,4.3,5.0,5.6,4.7,8.6];
+function radonAlpha(){
+  const x=R()*CW,y=R()*CH,a=R()*Math.PI*2;
+  const r=RN222[Math.floor(R()*3)]*(0.55+0.45*Math.pow(R(),0.4)); // dip in/out of layer
+  alphaFrom(x,y,a,r,INFO.alphaRn);
+}
+const MANTLE={x:1.2,y:CH*0.62,r:1.1};
+const DISH={x:CW*0.66,y:CH-1.5,r:1.6};
+function mantleAlpha(){
+  const a0=Math.random()*Math.PI-Math.PI/2;
+  const sx=MANTLE.x+Math.cos(a0)*MANTLE.r*0.9, sy=MANTLE.y+Math.sin(a0)*MANTLE.r*1.4;
+  const a=a0+gauss()*0.5;
+  const r=TH232[Math.floor(R()*TH232.length)]*(0.6+0.4*Math.pow(R(),0.4));
+  alphaFrom(sx,sy,a,r,INFO.alphaTh);
+}
+function thoron(){
+  // Rn-220 drifts out from the mantle; then Po-216 0.145 s median later
+  const d=2+expo(5);
+  const ang=gauss()*0.7;
+  const x=Math.min(CW-1.5,MANTLE.x+Math.cos(ang)*d), y=Math.max(1,Math.min(CH-1,MANTLE.y+Math.sin(ang)*d+gauss()*2));
+  const a1=alphaFrom(x,y,R()*Math.PI*2,5.0*(0.85+0.15*R()),INFO.pair,'pair');
+  tally.pair++;
+  pending.push({at:t+expo(0.21),fn:()=>{const a2=alphaFrom(x,y,R()*Math.PI*2,5.6*(0.85+0.15*R()),INFO.pair,'pair');a2.link=a1.id;a1.link=a2.id;}});
+}
+function mantleBeta(){
+  const a0=R()*Math.PI-Math.PI/2;
+  const sx=MANTLE.x+Math.cos(a0)*MANTLE.r, sy=MANTLE.y+Math.sin(a0)*MANTLE.r*1.4;
+  const p=0.6+R()*2.4;
+  const ep=wander(sx,sy,a0+gauss()*0.6,4+R()*12,p,p*0.35,0.5,1);
+  tally.electron++;
+  addTrack('electron',ep,condense(ep,f=>8+f*11,()=>0.03),INFO.betaTh);
+}
+function saltBeta(){
+  const a0=-Math.PI/2+gauss()*0.9;
+  const sx=DISH.x+gauss()*DISH.r*0.5, sy=DISH.y-0.3;
+  const p=0.5+R()*1.6;
+  const ep=wander(sx,sy,a0,3+R()*12,p,p*0.3,0.5,1);
+  tally.electron++;
+  addTrack('electron',ep,condense(ep,f=>8+f*11,()=>0.03),INFO.betaK);
+}
+function compton(){
+  const x=R()*CW,y=R()*CH,p=0.25+R()*0.6;
+  const ep=wander(x,y,R()*Math.PI*2,1+R()*4,p,p*0.3,0.5,1);
+  tally.electron++;
+  addTrack('electron',ep,condense(ep,f=>7+f*10,()=>0.03),INFO.compton);
+}
+
+const INFO={
+  muon:"<b>A muon.</b> Made about fifteen kilometres up, when a cosmic-ray proton from far outside the solar system broke a nucleus of the air. It lives two millionths of a second at rest, too short to reach the ground, but it was moving so close to the speed of light that its clock ran slow and it arrived. This one came down steeply, so it crossed the thin layer in a short scratch.",
+  muonLong:"<b>A muon, nearly sideways.</b> Most muons come down steeply and cross the layer in a short dash. This one arrived close to the horizon, through far more air, and drew its whole line through the layer. Thin and straight: it is heavy, fast, and barely notices the air.",
+  decay:"<b>A muon that stopped here.</b> It had slowed enough on the way down to come to rest in the box. About two millionths of a second later it decayed into an electron, the wandering trail leaving its end at an angle, and two neutrinos that leave no trail at all.",
+  decayE:"<b>The electron from a muon's decay.</b> It leaves from where the muon stopped. The muon's mass went mostly to the two invisible neutrinos; this one carried the rest away.",
+  delta:"<b>A delta ray.</b> As the muon passed, it struck an electron off an atom of the air hard enough that the electron made a short curly trail of its own, branching from the line.",
+  alphaRn:"<b>An alpha particle,</b> two protons and two neutrons, thrown out of a radon atom in the air of the room (radon seeps up from the ground into every house). Heavy and slow, it barges a few centimetres through the air and stops, ionising everything in its way: hence the thick, dense trail, densest at the end.",
+  alphaTh:"<b>An alpha from the mantle.</b> Thorium was put into gas-lantern mantles for its bright white glow. Thorium-232 and the chain of atoms it slowly becomes throw out alphas at seven different energies, so the trails from the mantle come in a few different lengths, the longest, from polonium-212, about three times the shortest.",
+  pair:"<b>A pair from one point.</b> Thoron, radon-220, is a gas in the mantle's decay chain; atoms of it drift out into the box. When one decays it throws an alpha and becomes polonium-216, which waits a median of about a seventh of a second and throws another from the same spot. The second trail is the longer of the two.",
+  betaTh:"<b>An electron from the mantle,</b> a beta particle from lead-212, bismuth-212 or thallium-208 in the thorium chain. Light, so every molecule of air nudges it, and it wanders, more as it slows.",
+  betaK:"<b>An electron from the salt.</b> About one potassium atom in eight thousand is potassium-40, which turns into calcium by throwing out an electron, with a half-life of more than a thousand million years. There is enough of it in a dish of salt substitute, and in a banana, and in you, for a steady trickle.",
+  compton:"<b>A slow electron, knocked loose.</b> A gamma ray from the walls or the ground passed through and struck an electron off an atom of the air. The gamma ray leaves no trail; the electron does, short and crooked, because it is slow and light."
+};
+function infoFor(tr){
+  let s=INFO_TEXT(tr);
+  if(magnet&&(tr.kind==='electron'||tr.kind==='delta'))s+=" The magnet bends it; electrons all turn the same way.";
+  if(magnet&&(tr.kind==='muon'||tr.kind==='alpha'||tr.kind==='pair'))s+=" The magnet hardly bends it: it has thousands of times an electron's momentum.";
+  return s;
+}
+function INFO_TEXT(tr){return tr.info}
+
+// ---------- rates (per second) ----------
+function rates(){
+  const r={muon:1.4,radon:0.22,compton:0.35};
+  if(source==='mantle'){r.mAlpha=1.6;r.thoron=0.3;r.mBeta=0.9}
+  if(source==='salt'){r.salt=2.2}
+  return r;
+}
+const FNS={muon,radon:radonAlpha,compton,mAlpha:mantleAlpha,thoron,mBeta:mantleBeta,salt:saltBeta};
+
+// ---------- mist ----------
+const mist=[];
+for(let i=0;i<260;i++)mist.push([R()*CW,R()*CH,R(),R()*Math.PI*2]);
+
+// ---------- draw ----------
+function flow(x,y,tt){return [0.05*Math.sin(y*0.31+tt*0.13)+0.02, 0.05*Math.cos(x*0.27-tt*0.11)+0.04]}
+function drawSource(){
+  if(source==='mantle'){
+    const x=MANTLE.x*K,y=MANTLE.y*K,rx=MANTLE.r*K,ry=MANTLE.r*1.5*K;
+    ctx.save();ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle='#3a3732';ctx.fill();ctx.clip();
+    ctx.strokeStyle='#5d5850';ctx.lineWidth=0.7;
+    for(let i=-6;i<=6;i++){ctx.beginPath();ctx.moveTo(x-rx,y+i*ry/4-rx);ctx.lineTo(x+rx,y+i*ry/4+rx);ctx.stroke();ctx.beginPath();ctx.moveTo(x-rx,y+i*ry/4+rx);ctx.lineTo(x+rx,y+i*ry/4-rx);ctx.stroke();}
+    ctx.restore();
+  }else if(source==='salt'){
+    const x=DISH.x*K,y=DISH.y*K,rx=DISH.r*K,ry=DISH.r*0.45*K;
+    ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle='#2c2e31';ctx.fill();
+    ctx.beginPath();ctx.ellipse(x,y-1,rx*0.78,ry*0.7,0,0,Math.PI*2);ctx.fillStyle='#6a6d70';ctx.fill();
+  }
+}
+function trackAlpha(tr){
+  const age=t-tr.born;
+  const rise=Math.min(1,age/0.3);
+  const fade=age<0.3?1:Math.exp(-(age-0.3)/2.8);
+  return rise*fade*tr.bright;
+}
+function draw(){
+  ctx.globalCompositeOperation='source-over';
+  ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);
+  // felt glow at top rim
+  const g=ctx.createLinearGradient(0,0,0,H*0.08);g.addColorStop(0,'rgba(150,160,170,0.10)');g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H*0.08);
+  drawSource();
+  // mist rain
+  ctx.fillStyle='#fff';
+  for(const m of mist){ctx.globalAlpha=0.05+0.12*m[2]*sens;ctx.fillRect(m[0]*K,m[1]*K,1,1)}
+  // tracks
+  const sz=Math.max(1.15,K*0.058);
+  for(const tr of tracks){
+    const a=trackAlpha(tr);if(a<0.01)continue;
+    const age=t-tr.born, spread=Math.sqrt(age)*0.035+0.002, f=flow(tr.pts[0][0],tr.pts[0][1],t);
+    const ox=f[0]*age, oy=f[1]*age;
+    const hl=selected&&(tr.id===selected.id||tr.link===selected.id||(selected.link&&tr.id===selected.link))&&t<selUntil;
+    ctx.globalAlpha=Math.min(1,a*(tr.kind==='alpha'||tr.kind==='pair'?0.8:1));
+    ctx.fillStyle=hl?'#ffd98a':'#fff';
+    const d=tr.drops;
+    for(let i=0;i<d.length;i+=5){
+      const s=d[i+4]*sz;
+      ctx.fillRect((d[i]+ox+d[i+2]*spread)*K,(d[i+1]+oy+d[i+3]*spread)*K,s,s);
+    }
+  }
+  ctx.globalAlpha=1;
+  // side light falloff
+  ctx.globalCompositeOperation='multiply';
+  ctx.fillStyle=lightGrad;ctx.fillRect(0,0,W,H);
+  ctx.globalCompositeOperation='source-over';
+}
+
+// ---------- loop ----------
+let last=performance.now();
+function step(now){
+  let dt=Math.min(0.1,(now-last)/1000);last=now;
+  if(!paused){
+    t+=dt;
+    sens=Math.min(1,t/4);
+    if(sens>0.9)warmEl.style.opacity=0;
+    const r=rates();
+    for(const k in r){const n=r[k]*dt*sens*sens;let c=Math.floor(n+R());while(c-->0)FNS[k]()}
+    for(let i=pending.length-1;i>=0;i--)if(pending[i].at<=t){pending[i].fn();pending.splice(i,1)}
+    for(const m of mist){m[1]+=dt*(0.25+m[2]*0.3);m[0]+=dt*0.12*Math.sin(m[3]+t*0.2);if(m[1]>CH){m[1]=0;m[0]=R()*CW}}
+    tracks=tracks.filter(tr=>t-tr.born<tr.life||(selected&&tr.id===selected.id&&t<selUntil));
+    updateTally();
+  }
+  draw();
+  requestAnimationFrame(step);
+}
+let lastTally='';
+function updateTally(){
+  const s=`seen so far: ${tally.muon} muon${tally.muon===1?'':'s'} · ${tally.alpha} alpha${tally.alpha===1?'':'s'} · ${tally.electron} electron${tally.electron===1?'':'s'}`+(tally.pair?` · ${tally.pair} thoron pair${tally.pair===1?'':'s'}`:'')+(tally.decay?` · ${tally.decay} muon${tally.decay===1?'':'s'} stopped`:'');
+  if(s!==lastTally){tallyEl.textContent=s;lastTally=s}
+}
+
+// ---------- picking ----------
+function distToTrack(tr,x,y){
+  const age=t-tr.born,f=flow(tr.pts[0][0],tr.pts[0][1],t),ox=f[0]*age,oy=f[1]*age;
+  let best=1e9;const p=tr.pts;
+  for(let i=1;i<p.length;i++){
+    const ax=p[i-1][0]+ox,ay=p[i-1][1]+oy,bx=p[i][0]+ox,by=p[i][1]+oy;
+    const dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy;let u=L2?((x-ax)*dx+(y-ay)*dy)/L2:0;u=Math.max(0,Math.min(1,u));
+    const d=Math.hypot(ax+dx*u-x,ay+dy*u-y);if(d<best)best=d;
+  }
+  return best;
+}
+function pick(ev){
+  const r=cv.getBoundingClientRect();const x=(ev.clientX-r.left)/K,y=(ev.clientY-r.top)/K;
+  let best=null,bd=Math.max(0.5,16/K);
+  for(const tr of tracks){
+    const a=trackAlpha(tr);if(a<0.06)continue;
+    const d=distToTrack(tr,x,y)-(tr.kind==='alpha'||tr.kind==='pair'?0.1:0);
+    if(d<bd){bd=d;best=tr}
+  }
+  if(best){selected=best;selUntil=t+(paused?1e9:3);noteEl.innerHTML=infoFor(best);}
+  else{
+    if(source==='mantle'&&Math.hypot(x-MANTLE.x,(y-MANTLE.y)/1.4)<MANTLE.r*1.3){noteEl.innerHTML="<b>A gas-lantern mantle,</b> the old kind, knitted fabric soaked in thorium and cerium salts and burnt to a brittle ash lattice. The thorium glows white in a flame. It is also a weak, steady source of alphas and betas, and of thoron gas."}
+    else if(source==='salt'&&Math.hypot(x-DISH.x,(y-DISH.y)/0.45)<DISH.r*1.2){noteEl.innerHTML="<b>A dish of salt substitute,</b> mostly potassium chloride. Its electrons rise from the dish; nothing else in the kitchen cupboard is quite so busy."}
+    else noteEl.innerHTML="Nothing there just now. Tap a trail while it is still bright; they fade within a few seconds.";
+  }
+}
+cv.addEventListener('click',pick);
+
+// ---------- controls ----------
+document.querySelectorAll('#src button').forEach(b=>b.addEventListener('click',()=>{
+  source=b.dataset.s;
+  document.querySelectorAll('#src button').forEach(o=>o.setAttribute('aria-pressed',o===b));
+  noteEl.innerHTML=source==='mantle'?"The mantle sits on the floor at the left. Alphas fan out from it in a few set lengths; every so often a pair springs from one point out in the box."
+    :source==='salt'?"The dish sits at the bottom. Electrons climb out of it, crooked; try the magnet."
+    :"Only the air, and whatever passes through the roof.";
+}));
+document.getElementById('mag').addEventListener('click',e=>{magnet=!magnet;e.currentTarget.setAttribute('aria-pressed',magnet);
+  noteEl.innerHTML=magnet?"A magnet under the floor, about a tenth of a tesla. New electron trails curl, all the same way round; alphas and muons go straight on.":"Magnet off.";});
+document.getElementById('pause').addEventListener('click',e=>{paused=!paused;e.currentTarget.setAttribute('aria-pressed',paused);
+  e.currentTarget.textContent=paused?'let go':'hold';if(!paused&&selected)selUntil=t+3;});
+
+window.addEventListener('resize',resize);
+resize();
+updateTally();
+// expose a tiny hook for checks
+window.__chamber={get tracks(){return tracks},get tally(){return tally},set t(v){t=v},get t(){return t}};
+requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>

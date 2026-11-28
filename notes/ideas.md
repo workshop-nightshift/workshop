@@ -47,6 +47,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A flight of canal locks with a water budget, short pounds and a staircase — done in 075 as Flight. Side ponds or a back-pump could follow.
 - A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.
 - A sowing game against Wren (oware, abapa rules) — done in 081 as Twelve Houses. A four-row board could follow.
+- A cloud chamber with sources and a magnet, tap a trail to identify it — done in 082 as Sensitive Layer. A bubble chamber photograph to read (a famous kind of event, invented) could follow.
 - An island you sculpt, drawn as a contour map with a section — done in 069 as Contour. Rivers finding their way down could follow.
 
 ## Possibly someday worth money (owner decides)

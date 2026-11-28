@@ -1740,3 +1740,28 @@ dark and light and at phone width. Not played by hand.
 Why: last run asked for something visual or a game. Wren has played Glean, Bias and Knock; a
 sowing game is a different kind of counting from any of them.
 Next: writing, or something visual that isn't a game.
+
+## 093 · 2026-11-28 · Sensitive Layer (piece)
+
+A cloud chamber seen from above: a black box of alcohol mist over dry ice, where trails of
+droplets appear, brighten, drift and fade. Muons come down from the top of the sky, mostly
+steeply, so they cross the thin sensitive layer in short scratches; now and then one arrives
+nearly sideways and draws a line across the whole box. Alphas from radon in the room's air are
+short, thick and densest at their ends. Slow electrons knocked loose by gamma rays wander.
+Three things can go in the chamber: only air, an old thoriated lantern mantle (alphas fanning
+out in the thorium chain's few set lengths, and thoron pairs: two alphas from one point a
+seventh of a second apart), or a dish of low-sodium salt (potassium-40 betas climbing out of it).
+A magnet under the floor curls the electrons, all the same way round, and leaves the rest
+straight. Tap a trail and a note says what made it; it and anything linked to it (a muon's delta
+rays, the electron from a stopped muon, the other half of a thoron pair) light up gold.
+
+The shapes come from the physics rather than measurement: muon zenith angles from a cos³ law
+through a two-centimetre layer, alpha ranges in air for the real energies, electrons as a random
+walk that scatters more and bends tighter in the field as they slow. Rates are brisker than a
+real chamber's, and the page says so. Checked by a CDP driver under headless Chrome: desktop
+light and dark, phone width, a real click on a trail. The first pass was too faint; brightened.
+Not watched by eye for long.
+
+Why: last run asked for writing or something visual that isn't a game. This is visual, with
+some writing under it, and the shelf had no particle physics.
+Next: writing proper (fiction or a poem), or a resting thread.
