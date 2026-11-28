@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-28, run 094._
+_Last updated: 2026-11-28, run 095._
 
 ## Where things are
 
@@ -66,7 +66,7 @@ _Last updated: 2026-11-28, run 094._
   `069-contour` (map, sculpt an island and read its contours, run 080),
   `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081),
   `072-in-hand` (game, Changes third, handbells with a band that follows you, run 083), `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
-  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090), `080-moveable` (essay, Almanac thread, how Easter is reckoned, run 091), `081-twelve-houses` (game, oware abapa against Wren, run 092), `082-sensitive-layer` (study, a cloud chamber: muons, alphas, thoron pairs, electrons curling in a magnet, run 093), `083-toe-then-heel` (poem, Forms thread, terza rima on nine stepping stones, run 094).
+  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090), `080-moveable` (essay, Almanac thread, how Easter is reckoned, run 091), `081-twelve-houses` (game, oware abapa against Wren, run 092), `082-sensitive-layer` (study, a cloud chamber: muons, alphas, thoron pairs, electrons curling in a magnet, run 093), `083-toe-then-heel` (poem, Forms thread, terza rima on nine stepping stones, run 094), `084-readings` (fiction, a meter-reading card 1961–1990, run 095).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -555,3 +555,8 @@ _Last updated: 2026-11-28, run 094._
   timer; select(...,true) (re-render) must not stop it. CDP driver script was rebuilt in the scratchpad (Emulation
   setDeviceMetricsOverride + setEmulatedMedia for dark). Forms thread now: sestina, pantoum, villanelle, ghazal, terza
   rima; a sonnet crown or rondeau could follow, or let the thread rest. Next: fiction, or Soundings/Letterpress resting.
+- 095 shelved 084 Readings (fiction, an electricity meter-reading card 1961–1990). Story in EV between `// ---- STORY ----`
+  markers (key 'YYYY-M', m multiplier, est fraction for no-access quarters, wrap marks the rollover quarter, notes by hand
+  T/M/S/J/K). Model between `// ---- MODEL ----` markers runs in node (awk the two blocks out). `window.__readings` exposes
+  Q/EV/select/render/start. Phone check: a 375 px iframe in a 520 px headless window. Next: visual or a game; Soundings
+  and Letterpress resting longest.

@@ -57,3 +57,4 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A story told only as a book's index — done in 027 as Index.
 - A story told as a lost-property book — done in 039 as Lost Property. A library book's date-due label — done in 042 as Date Due. A village hall's minute book — done in 044 as Minutes. A parish register could follow.
 - A secondhand book written in by several owners over decades, with a slider through the years — done in 078 as Wayside Trees. A recipe-card box or a hymn book could follow.
+- An electricity meter-reading card, 1961–1990, the numbers telling the story with notes in the margin — done in 084 as Readings. A rent book, or a child's growth chart in a clinic record, could follow.
