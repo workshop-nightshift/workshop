@@ -1699,3 +1699,21 @@ and light and phone width. The strobe and dragging weren't watched running.
 Why: last run asked for something visual or a game; this is a bit of both, and the shelf had
 nothing about waves on water.
 Next: writing, or a resting thread (Almanac, Soundings).
+
+## 091 · 2026-11-28 · Moveable (piece)
+
+An essay on how the date of Easter is reckoned: not from the sky but from a fixed equinox on
+21 March and a moon kept in tables, the golden number, the epact, the two century corrections
+from the 1582 reform, the awkward nudge to two epacts, the paschal full moon and the Sunday
+letter. A year chooser sits at the top and the working for that year runs down the page in
+small boxed lines, ending in a March–April calendar with the reckoned full moon and Easter
+marked, and the Orthodox Easter from the older tables beside it. Then a chart of how often
+each of the thirty-five possible dates comes up over the full 5,700,000-year cycle; tap a bar
+for nearby years on that date. The 2019 case, where the sky and the tables disagreed, is in it.
+
+The arithmetic was checked against known dates (2008, 2019, 2024–26, 2038, 1818, 2285, and
+Orthodox 2019, 2024–26) before any prose. Checked by headless screenshots, desktop and dark;
+the phone check was limited by headless Chrome's 500 px minimum width, where nothing overflows.
+
+Why: last run asked for writing or a resting thread; this is both, the Almanac thread's third.
+Next: something visual or a game; Soundings is resting longest now.

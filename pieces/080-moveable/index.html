@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moveable</title>
+<style>
+:root{
+  --bg:#f5f1e8; --ink:#25231f; --soft:#6d675c; --rule:#d8d0c0; --accent:#9a3b2e; --gold:#a5791f;
+  --card:#fbf8f1; --moon:#d9cfb8; --east:#9a3b2e; --east-ink:#fff8ee; --orth:#3f5f86;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#14141a; --ink:#e4ddcf; --soft:#9a9384; --rule:#2d2e37; --accent:#e3927a; --gold:#d9b25a;
+    --card:#1a1b23; --moon:#4a4636; --east:#d9775e; --east-ink:#1a1210; --orth:#86a8d6; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:18px/1.62 Georgia,"Iowan Old Style","Palatino Linotype",serif}
+#bar{position:sticky;top:0;z-index:3;background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid var(--rule)}
+#bar .in{max-width:36rem;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#bar label{font-size:.85rem;color:var(--soft);font-style:italic}
+#bar button{font:inherit;font-size:1rem;width:2rem;height:2rem;border-radius:50%;border:1px solid var(--rule);
+  background:var(--card);color:var(--ink);cursor:pointer;line-height:1}
+#bar button:hover{border-color:var(--accent);color:var(--accent)}
+#yr{font:inherit;font-size:1.1rem;width:4.6em;text-align:center;padding:2px 4px;border:1px solid var(--rule);
+  border-radius:6px;background:var(--card);color:var(--ink);font-variant-numeric:tabular-nums}
+#ans{margin-left:auto;font-size:.95rem;font-variant-numeric:tabular-nums}
+#ans b{color:var(--accent);font-weight:normal}
+main{max-width:36rem;margin:0 auto;padding:0 16px 5rem}
+h1{font-weight:normal;font-size:2.2rem;letter-spacing:.01em;margin:2.2rem 0 .2rem}
+.sub{color:var(--soft);font-style:italic;margin:0 0 2.2rem}
+h2{font-weight:normal;font-size:1.02rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:3rem 0 .6rem}
+p{margin:0 0 1.05rem}
+.work{font:15px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--rule);
+  border-left:3px solid var(--gold);border-radius:6px;padding:10px 12px;margin:0 0 1.3rem;font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere}
+.work .k{color:var(--soft)}
+.work b{color:var(--gold);font-weight:600}
+.work em{font-style:normal;color:var(--accent)}
+.gold{color:var(--gold)}
+/* calendar */
+#cal{display:flex;flex-wrap:wrap;gap:14px 18px;margin:1rem 0 .5rem;justify-content:flex-start}
+.mon{flex:1 1 9.5rem;min-width:9.5rem;max-width:12rem}
+.mon h3{font-weight:normal;font-size:.85rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 4px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;font:12px/1 ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.grid span{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;position:relative;color:var(--ink)}
+.grid .hd{color:var(--soft);font-size:10px;aspect-ratio:auto;padding-bottom:3px}
+.grid .sun{color:var(--accent)}
+.grid .eq{box-shadow:inset 0 -2px 0 var(--gold);border-radius:2px}
+.grid .pfm{background:var(--moon)}
+.grid .opfm{box-shadow:inset 0 0 0 1.5px var(--orth)}
+.grid .east{background:var(--east);color:var(--east-ink)}
+.grid .orth{background:var(--orth);color:var(--bg)}
+.grid .east.orth{background:linear-gradient(135deg,var(--east) 50%,var(--orth) 50%)}
+.key{font-size:.82rem;color:var(--soft);display:flex;flex-wrap:wrap;gap:4px 14px;margin:.4rem 0 1.4rem}
+.key i{display:inline-block;width:.95em;height:.95em;border-radius:50%;vertical-align:-.12em;margin-right:.35em}
+/* histogram */
+#hist{display:block;width:100%;height:auto;margin:1rem 0 .3rem;cursor:pointer;touch-action:manipulation}
+#hnote{font-size:.9rem;color:var(--soft);min-height:3.2em;font-variant-numeric:tabular-nums}
+#hnote b{color:var(--ink);font-weight:normal}
+hr{border:0;border-top:1px solid var(--rule);margin:3rem auto;width:40%}
+.end{color:var(--soft);font-style:italic}
+</style>
+</head>
+<body>
+<div id="bar"><div class="in">
+  <label for="yr">year</label>
+  <button id="dn" aria-label="previous year">−</button>
+  <input id="yr" type="number" min="1583" max="9999" step="1" inputmode="numeric">
+  <button id="up" aria-label="next year">+</button>
+  <span id="ans"></span>
+</div></div>
+<main>
+<h1>Moveable</h1>
+<p class="sub">How the date of Easter is worked out. Choose any year above; the working follows it down the page.</p>
+
+<p>Christmas keeps its date. Easter moves, across five weeks of spring, and has done for most of two thousand years. The rule people learn for it is short: Easter is the first Sunday after the first full moon on or after the spring equinox.</p>
+<p>That rule is nearly right, and the way it is wrong is the interesting part. The full moon in it is not the one in the sky, and the equinox is not the one in the sky either. They are a moon and an equinox made of arithmetic, kept in tables, so that a priest in a valley with no view of the east and a clerk in a cathedral city with an observatory would come out with the same Sunday. Almanacs used to print those tables in their front pages, among the eclipses and the fair days. This is a walk through them, one line of working at a time.</p>
+
+<h2>The equinox</h2>
+<p>The real spring equinox, the moment the sun crosses the equator going north, falls on the 19th, 20th or 21st of March depending on the year and on where you stand. The reckoning does not bother with that. It says the 21st, every year, and leaves it there. That date came to be tied to the Council of Nicaea in 325, though what the council itself decided about Easter is thinly recorded, and the method was settled by others over the centuries after.</p>
+<div class="work" id="w-eq"></div>
+
+<h2>The golden number</h2>
+<p>The moon is the harder clock. Its phases do not fit the year: twelve months of the moon come to about 354 days, eleven short of the sun's 365. But nineteen years of the sun come to almost exactly 235 months of the moon, within a couple of hours. So the moon's phases fall on the same dates every nineteen years. A Greek astronomer called Meton is usually given the credit, and the nineteen-year round is still called his.</p>
+<p>Number the years of the round from 1 to 19, and the number of a year tells you where its moons fall. In old calendars those numbers were written down the margin against the days of the new moons, and they were picked out in gold, or at least in red, and the name stayed: the golden number.</p>
+<div class="work" id="w-g"></div>
+
+<h2>The epact</h2>
+<p>The other way of saying where the moon is: how old it is, in days since the new moon, at the start of the year. That age is the epact. Because each year of twelve moons runs about eleven days short, the moon is eleven days older at the next New Year, and the epact climbs by eleven each year, wrapping round at thirty. Read off the golden number, the old table gives it at once.</p>
+<div class="work" id="w-e0"></div>
+
+<h2>Two corrections</h2>
+<p>That would be the end of it, but the old calendar's year was too long. Julius Caesar's year of 365¼ days runs about eleven minutes past the sun's, and by the sixteenth century the real equinox had crept back to around the 11th of March, while the tables still said the 21st. In 1582 a reform under Pope Gregory XIII, worked out from the proposals of a physician called Aloysius Lilius and argued through by the astronomer Christopher Clavius, did two things. It dropped ten days from that October to put the equinox back. And it stopped three leap days in every four hundred years: 1700, 1800 and 1900 were not leap years, 2000 was.</p>
+<p>Every leap day the reform leaves out shifts the moon's age on any given date back by one, and that is the first correction, called the solar equation. The second goes the other way. Meton's round is not quite exact either: the real moon slips ahead of it by about a day every three hundred years. Clavius put in eight days of correction every 2,500 years, spread over the centuries in a fixed pattern. That one is the lunar equation. Both change only at the turn of a century, so for a person's whole life they are a single number each.</p>
+<div class="work" id="w-xz"></div>
+<p>There is one last nudge. Left alone, two of the epacts would give the same full moon in different years of the same round, and the table was meant never to repeat itself inside nineteen years. So in a few years an epact of 24, or of 25 late in the round, is moved on by one. It is a small fix for a tidy-minded table, and it is the reason the calculation has an awkward clause in every version of it.</p>
+<div class="work" id="w-e"></div>
+
+<h2>The paschal full moon</h2>
+<p>With the moon's age known at the start of the year, the full moon is counted forward to its fourteenth day: the day of the reckoned full moon, which the tables call the paschal full moon. The first one that falls on or after the 21st of March is the one that counts. If the table's March full moon comes before the 21st, even by a day, it is passed over and the next one, four weeks on in April, is taken instead.</p>
+<div class="work" id="w-p"></div>
+
+<h2>The Sunday letter</h2>
+<p>Last, the Sunday. The old calendars lettered every day of the year from A to G and round again, starting at the first of January, so a date kept its letter whatever the year. Whichever letter fell on the Sundays was the year's Sunday letter, the dominical letter. A leap year has two, because the extra day in February pushes the Sundays back one letter for the rest of the year. Knowing the letter, you can find the weekday of any date without counting.</p>
+<p>Easter is the first Sunday after the paschal full moon. After, not on: if the reckoned full moon is itself a Sunday, Easter is the Sunday following.</p>
+<div class="work" id="w-d"></div>
+
+<div id="cal"></div>
+<div class="key">
+  <span><i style="box-shadow:inset 0 -2px 0 var(--gold);border-radius:1px"></i>21 March</span>
+  <span><i style="background:var(--moon)"></i>reckoned full moon</span>
+  <span><i style="background:var(--east)"></i>Easter</span>
+  <span><i style="box-shadow:inset 0 0 0 1.5px var(--orth)"></i><i style="background:var(--orth)"></i>the same, by the old reckoning</span>
+</div>
+
+<h2>A moon on paper</h2>
+<p>None of this looks at the sky. The table's moon is an average moon, and the real one runs fast and slow around it, so the two disagree by a day now and then. Usually it does not matter. In 2019 it did. The real full moon came in the small hours of the 21st of March, by Greenwich time, a few hours after the real equinox, which by the sky should have made Easter the 24th of March. The tables had their March full moon before the 21st, so it did not count, and Easter waited four weeks for the next one, until the 21st of April.</p>
+<p>The reckoning never claimed to be right about the moon. It claimed to be the same for everyone, worked from a table anyone could carry, with no need to agree on who had seen what from where. That is a different thing to want, and a calendar is perhaps the place to want it.</p>
+
+<h2>Thirty-five days</h2>
+<p>The earliest Easter can be is the 22nd of March: a reckoned full moon on the 21st itself, which is a Saturday. The latest is the 25th of April. In between are thirty-five possible dates, and they do not come equally often. The whole pattern of the reformed calendar, leap days, solar and lunar corrections and all, repeats only after 5,700,000 years. Over that run, this is how often each date comes up. Tap a bar for the years near yours that land on it.</p>
+<canvas id="hist" width="720" height="260" aria-label="How often Easter falls on each date from 22 March to 25 April"></canvas>
+<div id="hnote"></div>
+<p>The shape is flat across the middle and falls away at both ends, with one odd spike near the top: the 19th of April, the commonest of all, and the 18th close behind. The 18th of April is the latest the reckoned full moon can ever fall, and the nudge to the epacts sends it extra moons, so the Sunday after it, often the 19th, comes up more than any other. The rarest is the 22nd of March, which last happened in 1818 and next happens in 2285.</p>
+
+<h2>The other Easter</h2>
+<p>Not every church took the reform. The Orthodox churches still work Easter out by the older tables, from the year of Julius Caesar and the plain nineteen-year moon with no corrections, and then write the result in the calendar everyone else uses. Their equinox, the 21st of March by the old calendar, is the 3rd of April by the new, this century and next, and their moon has drifted some days late. So their Easter usually comes later: a week, or four or five weeks. Some years the two reckonings come out on the same Sunday, and both are kept together.</p>
+<div class="work" id="w-o"></div>
+
+<hr>
+<p class="end">Worked from the reformed tables, written out as plain arithmetic. Years from 1583, the first full year of the reformed calendar.</p>
+</main>
+<script>
+"use strict";
+// ---- RECKONING ----
+// Gregorian: golden number, solar/lunar equations, epact, paschal full moon, Sunday.
+function greg(Y){
+  const G = Y % 19 + 1;
+  const C = Math.floor(Y / 100) + 1;
+  const X = Math.floor(3 * C / 4) - 12;          // solar equation: leap days dropped since 1582 (+ the ten)
+  const Z = Math.floor((8 * C + 5) / 25) - 5;    // lunar equation
+  const D = Math.floor(5 * Y / 4) - X - 10;      // March ((-D) mod 7) is a Sunday
+  const Eraw = ((11 * G + 20 + Z - X) % 30 + 30) % 30;
+  let E = Eraw; const nudged = (E === 25 && G > 11) || E === 24; if (nudged) E++;
+  let P = 44 - E; const pushed = P < 21; if (pushed) P += 30;   // day of March, >31 means April
+  const N = P + 7 - ((D + P) % 7);
+  return { G, C, X, Z, D, Eraw, E, nudged, P, pushed, N };
+}
+// Julian (old) reckoning, as a day of March in the Julian calendar.
+function jul(Y){
+  const a = Y % 4, b = Y % 7, c = Y % 19;
+  const d = (19 * c + 15) % 30, e = (2 * a + 4 * b - d + 34) % 7;
+  return { d, P: 21 + d, N: 22 + d + e, off: Math.floor(Y / 100) - Math.floor(Y / 400) - 2 };
+}
+// ---- END RECKONING ----
+
+const MON = ["January","February","March","April","May"];
+const WD = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function dt(Y, m, d){ const x = new Date(Date.UTC(2000, m, d)); x.setUTCFullYear(Y); return x; }
+function wd(Y, m, d){ return dt(Y, m, d).getUTCDay(); }
+function mar(n){ return n > 31 ? (n > 61 ? [4, n - 61] : [3, n - 31]) : [2, n]; } // [month index, day]
+function say(n){ const [m, d] = mar(n); return d + " " + MON[m]; }
+function leap(Y){ return (Y % 4 === 0 && Y % 100 !== 0) || Y % 400 === 0; }
+function letters(Y){
+  // first Sunday of January -> letter; leap years have a second letter from 1 March on.
+  let s = 1; while (wd(Y, 0, s) !== 0) s++;
+  const L = "ABCDEFG", a = L[s - 1];
+  return leap(Y) ? a + L[(s + 5) % 7] : a;
+}
+const $ = (id) => document.getElementById(id);
+let Y = 2026;
+try { const n = new Date().getFullYear(); if (n >= 1583 && n <= 9999) Y = n; } catch (e) {}
+
+function render(){
+  const g = greg(Y), j = jul(Y);
+  const ordinal = (n) => n + (n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th");
+  $("ans").innerHTML = "Easter <b>" + say(g.N) + "</b>";
+  const eqw = WD[wd(Y, 2, 21)];
+  $("w-eq").innerHTML = `<span class="k">equinox, by the reckoning</span> <b>21 March</b> ${Y}, a ${eqw}`;
+  $("w-g").innerHTML = `<span class="k">${Y} ÷ 19 leaves</span> ${Y % 19}<span class="k">; add one:</span> golden number <b>${g.G}</b>` +
+    `<br><span class="k">${Y} is the ${ordinal(g.G)} year of the nineteen</span>`;
+  const oldE = (11 * g.G + 20) % 30;
+  $("w-e0").innerHTML = `<span class="k">11 × ${g.G} + 20, wrapped at 30:</span> <b>${oldE}</b>` +
+    `<br><span class="k">the table's epact for golden number ${g.G}, before the corrections</span>`;
+  const cent = (Math.floor(Y / 100)) * 100;
+  $("w-xz").innerHTML = `<span class="k">century from</span> ${cent}` +
+    `<br><span class="k">solar equation</span> <b>−${g.X}</b> <span class="k">(the ten days of 1582 and the leap days left out since)</span>` +
+    `<br><span class="k">lunar equation</span> <b>+${g.Z}</b> <span class="k">(days the real moon has gained on Meton's)</span>`;
+  $("w-e").innerHTML = `<span class="k">epact:</span> ${oldE} + ${g.Z} − ${g.X}<span class="k">, wrapped at 30:</span> <b>${g.Eraw}</b>` +
+    (g.nudged ? `<br><em>nudged on to ${g.E}</em>` : `<br><span class="k">no nudge needed this year</span>`);
+  const [pm, pd] = mar(g.P);
+  const pre = g.pushed ? `<span class="k">44 − ${g.E} =</span> ${g.P - 30}<span class="k">: short of 21, so March's full moon comes too early and is passed over; add 30</span><br>` : "";
+  $("w-p").innerHTML = pre + `<span class="k">44 − ${g.E}${g.pushed ? " + 30" : ""} =</span> ${g.P}<span class="k">, counted from the end of February:</span> <b>${pd} ${MON[pm]}</b>, a ${WD[wd(Y, pm, pd)]}`;
+  const [em, ed] = mar(g.N);
+  const L = letters(Y);
+  $("w-d").innerHTML = `<span class="k">Sunday letter</span> <b>${L}</b>${L.length > 1 ? ` <span class="k">(a leap year: ${L[1]} from March)</span>` : ""}` +
+    `<br><span class="k">next Sunday after ${pd} ${MON[pm]}:</span> <em>Easter, ${ed} ${MON[em]} ${Y}</em>`;
+  // old reckoning, converted
+  const jn = j.N + j.off, jp = j.P + j.off;
+  const [om, od] = mar(jn);
+  const diff = (jn - g.N) / 7;
+  $("w-o").innerHTML = `<span class="k">old tables, old calendar:</span> ${say(j.N)}` +
+    `<br><span class="k">+ ${j.off} days to the reformed calendar:</span> <b>${od} ${MON[om]}</b>` +
+    `<br><span class="k">${diff === 0 ? "the same Sunday as the reformed Easter" : diff + (diff === 1 ? " week" : " weeks") + " after the reformed Easter"}</span>`;
+  drawCal(g, jp, jn);
+  drawHist();
+}
+
+function drawCal(g, jp, jn){
+  const box = $("cal"); box.innerHTML = "";
+  const showMay = jn > 61 || jp > 61;
+  for (const m of showMay ? [2, 3, 4] : [2, 3]){
+    const div = document.createElement("div"); div.className = "mon";
+    const h = document.createElement("h3"); h.textContent = MON[m]; div.appendChild(h);
+    const gr = document.createElement("div"); gr.className = "grid";
+    for (const c of "SMTWTFS"){ const s = document.createElement("span"); s.className = "hd"; s.textContent = c; gr.appendChild(s); }
+    const first = wd(Y, m, 1), len = [31, 28, 31, 30, 31][m];
+    for (let i = 0; i < first; i++) gr.appendChild(document.createElement("span"));
+    for (let d = 1; d <= len; d++){
+      const s = document.createElement("span"); s.textContent = d;
+      const n = m === 2 ? d : m === 3 ? d + 31 : d + 61;
+      const cls = [];
+      if ((first + d - 1) % 7 === 0) cls.push("sun");
+      if (n === 21) cls.push("eq");
+      if (n === g.P) cls.push("pfm");
+      if (n === jp) cls.push("opfm");
+      if (n === g.N) cls.push("east");
+      if (n === jn) cls.push("orth");
+      s.className = cls.join(" ");
+      gr.appendChild(s);
+    }
+    div.appendChild(gr); box.appendChild(div);
+  }
+}
+
+// Counts of each date over the full 5,700,000-year Gregorian cycle (22 March .. 25 April),
+// computed with greg() above and pasted in so the page doesn't spend a second redoing it.
+const COUNT = [27550,54150,81225,110200,133000,165300,186200,192850,189525,189525,192850,186200,192850,186200,192850,189525,189525,192850,186200,192850,186200,192850,189525,189525,192850,186200,192850,197400,220400,189525,162450,137750,106400,82650,42000];
+let sel = -1;
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function drawHist(){
+  const cv = $("hist"), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = cv.clientWidth || 600, H = Math.round(W * (W < 480 ? 0.55 : 0.36));
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + "px";
+  const x = cv.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, W, H);
+  const ink = css("--ink"), soft = css("--soft"), rule = css("--rule"), east = css("--east"), moon = css("--moon"), gold = css("--gold");
+  const padL = 4, padR = 4, padT = 14, padB = 30, n = COUNT.length;
+  const bw = (W - padL - padR) / n, max = 230000;
+  const here = greg(Y).N - 22;
+  x.strokeStyle = rule; x.lineWidth = 1;
+  x.beginPath(); x.moveTo(padL, H - padB + .5); x.lineTo(W - padR, H - padB + .5); x.stroke();
+  for (let i = 0; i < n; i++){
+    const h = (COUNT[i] / max) * (H - padT - padB);
+    x.fillStyle = i === here ? east : i === sel ? gold : moon;
+    x.fillRect(padL + i * bw + 1, H - padB - h, Math.max(1, bw - 2), h);
+  }
+  // April divider and labels
+  const ax = padL + 10 * bw;
+  x.strokeStyle = soft; x.setLineDash([2, 3]); x.beginPath(); x.moveTo(ax + .5, padT - 6); x.lineTo(ax + .5, H - padB + 6); x.stroke(); x.setLineDash([]);
+  x.fillStyle = soft; x.font = "11px ui-monospace,Menlo,monospace"; x.textBaseline = "top";
+  const lab = [[0, "22"], [ (31 - 22) , "31 Mar"], [10, "1 Apr"], [20, "11"], [30, "21"], [34, "25"]];
+  for (const [i, t] of lab){
+    const cx = padL + i * bw + bw / 2;
+    x.textAlign = i === 0 ? "left" : i === 34 ? "right" : i === 9 ? "right" : i === 10 ? "left" : "center";
+    const px = i === 0 ? padL : i === 34 ? W - padR : i === 9 ? ax - 3 : i === 10 ? ax + 3 : cx;
+    x.fillText(t, px, H - padB + 8);
+  }
+  x.textAlign = "left"; x.textBaseline = "alphabetic"; x.fillStyle = soft;
+  x.fillText("how often, out of every hundred years", padL, 10);
+  const pct = (c) => (c / 57000).toFixed(2);
+  const pick = sel >= 0 ? sel : here;
+  const near = []; // years near Y on that date
+  for (let y = Math.max(1583, Y - 400); y <= Math.min(9999, Y + 400) && near.length < 400; y++) if (greg(y).N - 22 === pick) near.push(y);
+  const before = near.filter((y) => y < Y).slice(-3), after = near.filter((y) => y > Y).slice(0, 4);
+  const isY = greg(Y).N - 22 === pick;
+  $("hnote").innerHTML = `<b>${say(pick + 22)}</b>: ${pct(COUNT[pick])}% of years.` +
+    (before.length ? ` Before ${Y}: ${before.join(", ")}.` : "") +
+    (isY ? ` <b>${Y}</b>.` : "") +
+    (after.length ? ` After: ${after.join(", ")}.` : ` None within four hundred years after ${Y}.`);
+  cv._geo = { padL, bw, n };
+}
+$("hist").addEventListener("click", (ev) => {
+  const cv = $("hist"), r = cv.getBoundingClientRect(), g = cv._geo; if (!g) return;
+  const i = Math.floor((ev.clientX - r.left - g.padL) / g.bw);
+  if (i >= 0 && i < g.n){ sel = (sel === i ? -1 : i); drawHist(); }
+});
+
+function setY(v){
+  v = Math.round(+v); if (!isFinite(v)) return;
+  v = Math.max(1583, Math.min(9999, v)); Y = v; sel = -1; $("yr").value = Y; render();
+}
+$("yr").addEventListener("change", (e) => setY(e.target.value));
+$("yr").addEventListener("keydown", (e) => { if (e.key === "Enter") setY(e.target.value); });
+$("dn").addEventListener("click", () => setY(Y - 1));
+$("up").addEventListener("click", () => setY(Y + 1));
+let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawHist, 120); });
+try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawHist); } catch (e) {}
+$("yr").value = Y;
+render();
+window.__moveable = { greg, jul, setY, render, letters, get Y(){ return Y; } };
+</script>
+</body>
+</html>
