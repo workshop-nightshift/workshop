@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-28, run 091._
+_Last updated: 2026-11-28, run 092._
 
 ## Where things are
 
@@ -66,7 +66,7 @@ _Last updated: 2026-11-28, run 091._
   `069-contour` (map, sculpt an island and read its contours, run 080),
   `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081),
   `072-in-hand` (game, Changes third, handbells with a band that follows you, run 083), `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
-  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090), `080-moveable` (essay, Almanac thread, how Easter is reckoned, run 091).
+  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090), `080-moveable` (essay, Almanac thread, how Easter is reckoned, run 091), `081-twelve-houses` (game, oware abapa against Wren, run 092).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -540,3 +540,7 @@ _Last updated: 2026-11-28, run 091._
   below 500 px wide, so the phone check was by measured overflow, not by eye. Possible sequels: the real moon beside the
   table's (needs a proper lunar theory, not a mean moon), or a perpetual calendar / dominical-letter wheel.
   Next: something visual or a game; Soundings resting longest.
+- 092 shelved 081 Twelve Houses (game, oware against Wren). Engine between `// ---- ENGINE ----` markers runs in node
+  (fresh/sow/legal/settle/play/choose). `window.__houses` exposes G/sow/legal/play/choose/youSow/newGame/busy and a `lvl`
+  setter. Headless UI test clicks `#hit button[data-h=N]` and waits on `__houses.busy`. Not played by hand. Possible
+  sequels: a four-row bao-style board, or a game of Wren's own invention. Next: writing, or visual that isn't a game.

@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twelve Houses</title>
+<style>
+:root{--bg:#efe9de;--fg:#211c16;--mute:#73695b;--line:#d3c9b8;--table:#5d4330;
+  --board:#b88a55;--board2:#a9794a;--grain:#9a6c40;--hole:#4a3120;--hole2:#6b4a30;
+  --seed1:#8c8a82;--seed2:#a6a197;--seed3:#76746d;--seedEdge:#3a372f;--shine:#ffffff;
+  --hi:#f2c75c;--take:#e0603f;--ink:#f6eedc;--wren:#b8412b}
+@media (prefers-color-scheme:dark){:root{--bg:#141210;--fg:#e8e2d6;--mute:#9b9183;--line:#2e2924;--table:#2a1e15;
+  --board:#6e5034;--board2:#614629;--grain:#553c23;--hole:#1d130b;--hole2:#2f2015;
+  --seed1:#9b988e;--seed2:#b3aea2;--seed3:#827f77;--seedEdge:#1b1914;--shine:#ffffff;
+  --hi:#e8bd57;--take:#ec6e4c;--ink:#e8dcc4;--wren:#e06549}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:14px 16px 64px}
+main{width:100%;max-width:640px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 10px;font-style:italic}
+#score{display:flex;justify-content:space-between;align-items:baseline;gap:4px 14px;flex-wrap:wrap;margin:6px 0 8px}
+#score .n{font-size:20px}
+#info{color:var(--mute);font-size:13px}
+#wrap{position:relative;background:var(--table);border-radius:8px;padding:8px}
+canvas{display:block;width:100%}
+#hit{position:absolute;inset:0;pointer-events:none}
+#hit button{position:absolute;pointer-events:auto;background:none;border:none;border-radius:50%;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+#hit button:disabled{cursor:default}
+#hit button:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
+#log{min-height:4.8em;margin:10px 0 0}
+#log p{margin:0}
+#log p+p{color:var(--mute);font-size:14px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 10px;flex-wrap:wrap;margin-top:12px}
+button.b{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:3px 11px;cursor:pointer}
+button.b:disabled{opacity:.4;cursor:default}
+label.t{font-size:14px;color:var(--mute);cursor:pointer}
+details{margin-top:16px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+details p{margin:.6em 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Twelve Houses</h1>
+  <p class="sub">Oware against Wren. Sow one seed into each house round the board; twos and threes are yours to take.</p>
+  <div id="score"><span><span class="n" id="s0">0</span> you &nbsp;·&nbsp; <span class="n" id="s1">0</span> Wren</span><span id="info"></span></div>
+  <div id="wrap">
+    <canvas id="cv" aria-label="An oware board: Wren's six houses along the top, yours along the bottom, Wren's store on the left and yours on the right."></canvas>
+    <div id="hit"></div>
+  </div>
+  <div id="log" aria-live="polite"></div>
+  <div class="row">
+    <span><button class="b" id="lvl">Wren: regular</button> <label class="t"><input type="checkbox" id="ghost" checked> show where it lands</label></span>
+    <button class="b" id="fresh">new game</button>
+  </div>
+  <details><summary>how it goes</summary>
+    <p>Twelve houses in two rows, six each, and four seeds in every house to begin: forty-eight in all.
+    The bottom row is yours, A to F from left to right; Wren's row runs on round the top, a to f from right
+    to left. Seeds always travel the same way round, anticlockwise.</p>
+    <p>On your turn, pick up every seed in one of your houses and sow them one by one into the houses that
+    follow. If a house holds twelve or more, the sowing goes all the way round; the house you emptied is
+    skipped and stays empty.</p>
+    <p>If your last seed lands in one of Wren's houses and makes it two or three, you take those seeds. Then
+    look at the house before it: if that is Wren's too and also holds two or three, take it as well, and so on
+    back along Wren's row until a house breaks the run. But if that would take every seed Wren has, it's a
+    grand slam, and nothing is taken at all.</p>
+    <p>Never starve the other side. If Wren's row is empty, you must sow so that something reaches it; if
+    nothing you can sow would, the game ends and you keep the seeds still on your side. The same holds for
+    Wren.</p>
+    <p>Twenty-five seeds wins, being more than half. Twenty-four each is a draw. If the seeds go round and
+    round for a long while with nobody taking any, each side keeps what lies in its own row and the count
+    is made.</p>
+    <p>The game is played, under many names and rules, from West Africa to the Caribbean; these are the
+    rules called abapa, the commonest in tournaments. Wren new to it looks two moves ahead and sometimes
+    doesn't look at all; regular looks five; sharp looks eleven.</p>
+  </details>
+</main>
+<script>
+// ---- ENGINE ----
+// b[0..5] your houses A–F left→right, b[6..11] Wren's houses a–f right→left: one anticlockwise ring.
+function fresh(){return {b:Array(12).fill(4),s:[0,0],turn:0,quiet:0,over:false,why:''}}
+function own(p,i){return p===0?(i<6):(i>=6)}
+function sideSum(b,p){let t=0;for(let i=p*6;i<p*6+6;i++)t+=b[i];return t}
+function sowPath(b,h){const n=b[h],path=[];let i=h;
+  for(let k=0;k<n;k++){i=(i+1)%12;if(i===h)i=(i+1)%12;path.push(i)}
+  return path}
+function sow(st,h){
+  const b=st.b.slice(),p=st.turn,path=sowPath(b,h);b[h]=0;
+  for(const i of path)b[i]++;
+  let caps=[],i=path[path.length-1];const lastN=b[i];
+  while(!own(p,i)&&(b[i]===2||b[i]===3)){caps.push(i);i=(i+11)%12}
+  let slam=false,would=0;
+  if(caps.length){would=caps.reduce((a,j)=>a+b[j],0);if(would===sideSum(b,1-p)){slam=true;caps=[]}}
+  const s=st.s.slice();let took=0;for(const j of caps){s[p]+=b[j];took+=b[j];b[j]=0}
+  return {st:{b,s,turn:1-p,quiet:caps.length?0:st.quiet+1,over:false,why:''},path,caps,slam,took,would,lastN,mover:p,from:h}}
+function legal(st){const p=st.turn,opp=sideSum(st.b,1-p),out=[];
+  for(let i=p*6;i<p*6+6;i++){if(!st.b[i])continue;
+    if(opp===0&&!sowPath(st.b,i).some(j=>!own(p,j)))continue;
+    out.push(i)}
+  return out}
+function sweep(st){const b=st.b;st.swept=[sideSum(b,0),sideSum(b,1)];st.s=[st.s[0]+st.swept[0],st.s[1]+st.swept[1]];st.b=Array(12).fill(0)}
+function settle(st){
+  if(st.s[0]>24||st.s[1]>24){st.over=true;st.why='half';return st}
+  if(st.s[0]===24&&st.s[1]===24){st.over=true;st.why='even';return st}
+  if(!legal(st).length){st.why=sideSum(st.b,st.turn)?'nofeed':'empty';sweep(st);st.over=true;return st}
+  if(st.quiet>=80){st.why='round';sweep(st);st.over=true;return st}
+  return st}
+function play(st,h){const r=sow(st,h);settle(r.st);return r}
+function evalFor(st,p){if(st.over){const d=st.s[p]-st.s[1-p];return d>0?1000+d:d<0?-1000+d:0}
+  return (st.s[p]-st.s[1-p])*10+(sideSum(st.b,p)-sideSum(st.b,1-p))*0.5}
+function search(st,d,a,bt){
+  if(st.over||d===0)return evalFor(st,st.turn);
+  const ch=legal(st).map(h=>play(st,h)).sort((x,y)=>y.caps.length-x.caps.length);
+  let best=-1e9;
+  for(const r of ch){const v=-search(r.st,d-1,-bt,-a);if(v>best)best=v;if(v>a)a=v;if(a>=bt)break}
+  return best}
+function choose(st,depth,rnd){rnd=rnd||Math.random;const ms=legal(st);let best=-1e9,pick=[];
+  for(const h of ms){const v=-search(play(st,h).st,depth-1,-1e9,1e9);
+    if(v>best+0.5){best=v;pick=[h]}else if(Math.abs(v-best)<=0.5)pick.push(h)}
+  return pick[Math.floor(rnd()*pick.length)]}
+// ---- END ENGINE ----
+
+const NAME=i=>i<6?'ABCDEF'[i]:'abcdef'[i-6];
+const LEVELS=[['new to it',2,0.3],['regular',5,0],['sharp',11,0]];
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $=id=>document.getElementById(id);
+const cv=$('cv'),cx=cv.getContext('2d'),hit=$('hit'),logEl=$('log');
+let G,lvl=1,starts=0,busy=false,hover=-1,ghost=true,lastMsg=['',''];
+let disp=null,hi=new Set(),taking=new Set(),handAt=-1,handN=0;
+
+function store(){try{localStorage.setItem('twelve-houses-v1',JSON.stringify({G,lvl,starts,ghost,lastMsg}))}catch(e){}}
+function restore(){try{const o=JSON.parse(localStorage.getItem('twelve-houses-v1'));
+  if(o&&o.G&&o.G.b&&o.G.b.length===12){G=o.G;lvl=o.lvl|0;starts=o.starts|0;ghost=o.ghost!==false;lastMsg=o.lastMsg||['',''];return true}}catch(e){}return false}
+
+// ---- drawing ----
+let C={},L={};
+function readColours(){const cs=getComputedStyle(document.documentElement);
+  for(const k of ['board','board2','grain','hole','hole2','seed1','seed2','seed3','seedEdge','hi','take','ink','wren','mute'])C[k]=cs.getPropertyValue('--'+k).trim()}
+function hash(a,b){let h=(a*374761393+b*668265263)>>>0;h=(h^(h>>>13))*1274126177>>>0;return (h^(h>>>16))/4294967296}
+function layout(){
+  const W=cv.clientWidth,pad=Math.max(8,W*.025),lab=Math.max(15,W*.03),gap=W*.015;
+  const sw=W<480?W*.085:W*.12,area=W-2*pad-2*sw-2*gap,cell=area/6,R=cell*.45;
+  const H=pad*2+lab*2+cell*2;
+  L={W,H,pad,lab,cell,R,sw,gap,x0:pad+sw+gap,yTop:pad+lab+cell/2,yBot:pad+lab+cell*1.5};
+  const dpr=window.devicePixelRatio||1;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.height=H+'px';
+  cx.setTransform(dpr,0,0,dpr,0,0);
+  hit.innerHTML='';
+  for(let i=0;i<6;i++){const p=pos(i),b=document.createElement('button');
+    b.style.left=(8+p.x-R)+'px';b.style.top=(8+p.y-R)+'px';b.style.width=b.style.height=(2*R)+'px';
+    b.dataset.h=i;b.onclick=()=>youSow(i);
+    b.onmouseenter=b.onfocus=()=>{hover=i;draw();say()};b.onmouseleave=b.onblur=()=>{if(hover===i){hover=-1;draw();say()}};
+    hit.appendChild(b)}
+  syncButtons()}
+function pos(i){const col=i<6?i:11-i;return {x:L.x0+L.cell*(col+.5),y:i<6?L.yBot:L.yTop}}
+function storeRect(p){const y=L.pad+L.lab*.5,h=L.H-2*L.pad-L.lab;return {x:p===0?L.W-L.pad-L.sw:L.pad,y,w:L.sw,h}}
+function seed(x,y,r,k){
+  const t=hash(k,7),fill=t<.34?C.seed1:t<.67?C.seed2:C.seed3,a=hash(k,3)*Math.PI;
+  cx.save();cx.translate(x,y);cx.rotate(a);
+  cx.beginPath();cx.ellipse(0,0,r,r*.86,0,0,7);cx.fillStyle=fill;cx.fill();
+  cx.lineWidth=Math.max(.6,r*.12);cx.strokeStyle=C.seedEdge;cx.stroke();
+  cx.beginPath();cx.ellipse(-r*.32,-r*.3,r*.32,r*.18,-.5,0,7);cx.fillStyle='rgba(255,255,255,.28)';cx.fill();
+  cx.beginPath();cx.moveTo(r*.55,-r*.1);cx.lineTo(r*.85,0);cx.strokeStyle='rgba(0,0,0,.35)';cx.lineWidth=Math.max(.5,r*.1);cx.stroke();
+  cx.restore()}
+function hollow(x,y,rx,ry){
+  const g=cx.createRadialGradient(x,y-ry*.35,ry*.1,x,y,Math.max(rx,ry));g.addColorStop(0,C.hole2);g.addColorStop(1,C.hole);
+  cx.beginPath();cx.ellipse(x,y,rx,ry,0,0,7);cx.fillStyle=g;cx.fill();
+  cx.beginPath();cx.ellipse(x,y+ry*.04,rx,ry,0,.15*Math.PI,.85*Math.PI);cx.strokeStyle='rgba(255,255,255,.12)';cx.lineWidth=1.2;cx.stroke()}
+function seedsInHouse(i,n,x,y){
+  const R=L.R,sr=R*.21;
+  for(let k=0;k<n;k++){const layer=Math.floor(k/14),j=k%14;
+    const a=j*2.39996+layer*1.13+hash(i,99)*6,rr=Math.min(R*.7,sr*1.05*Math.sqrt(j+.55));
+    const jx=(hash(i*50+k,1)-.5)*sr*.5,jy=(hash(i*50+k,2)-.5)*sr*.5;
+    seed(x+Math.cos(a)*rr+jx,y+Math.sin(a)*rr*.92+jy-layer*sr*.35,sr,i*61+k)}}
+function seedsInStore(p,n){const r=storeRect(p),sr=L.R*.17,cxp=r.x+r.w/2,cyp=r.y+r.h/2;
+  for(let k=0;k<n;k++){const a=k*2.39996,rr=Math.sqrt((k+.5)/50);
+    seed(cxp+Math.cos(a)*rr*(r.w/2-sr*1.3),cyp+Math.sin(a)*rr*(r.h/2-sr*1.6),sr,900+p*100+k)}}
+function draw(){
+  if(!L.W)return;const b=disp?disp.b:G.b,s=disp?disp.s:G.s;
+  cx.clearRect(0,0,L.W,L.H);
+  // board
+  const rr=Math.min(18,L.H*.12);
+  cx.beginPath();cx.roundRect(0,0,L.W,L.H,rr);cx.fillStyle=C.board;cx.fill();
+  cx.save();cx.clip();
+  for(let k=0;k<22;k++){const y=hash(k,5)*L.H,amp=2+hash(k,6)*4;cx.beginPath();
+    for(let x=0;x<=L.W;x+=12)cx.lineTo(x,y+Math.sin(x/(60+hash(k,8)*90)+k)*amp);
+    cx.strokeStyle=k%3?C.grain:C.board2;cx.globalAlpha=.35;cx.lineWidth=1+hash(k,9)*1.5;cx.stroke()}
+  cx.globalAlpha=1;
+  cx.fillStyle=C.board2;cx.globalAlpha=.5;cx.fillRect(L.x0-L.gap*.4,L.H/2-1,L.cell*6+L.gap*.8,2);cx.globalAlpha=1;
+  cx.restore();
+  // stores
+  for(const p of [0,1]){const r=storeRect(p);hollow(r.x+r.w/2,r.y+r.h/2,r.w/2*.92,r.h/2*.95);seedsInStore(p,s[p]);
+    cx.fillStyle=C.ink;cx.font=`${Math.round(L.lab*.8)}px Georgia,serif`;cx.textAlign='center';cx.textBaseline='middle';
+    cx.fillText(s[p],r.x+r.w/2,p===0?L.H-L.pad*.5-L.lab*.25:L.pad*.5+L.lab*.25)}
+  // ghost preview
+  let gp=null;
+  if(ghost&&hover>=0&&!busy&&!G.over&&G.turn===0&&G.b[hover]&&legal(G).includes(hover))gp=sow(G,hover);
+  for(let i=0;i<12;i++){const {x,y}=pos(i),R=L.R;
+    hollow(x,y,R,R*.94);seedsInHouse(i,b[i],x,y);
+    cx.lineWidth=2.5;
+    if(taking.has(i)){cx.beginPath();cx.arc(x,y,R+3,0,7);cx.strokeStyle=C.take;cx.stroke()}
+    else if(hi.has(i)){cx.beginPath();cx.arc(x,y,R+3,0,7);cx.strokeStyle=C.hi;cx.stroke()}
+    // labels
+    const ly=i<6?y+L.cell/2+L.lab*.45:y-L.cell/2-L.lab*.45;
+    cx.font=`${Math.round(L.lab*.78)}px Georgia,serif`;cx.textAlign='center';cx.textBaseline='middle';
+    cx.fillStyle=C.ink;cx.fillText(b[i],x+L.lab*.45,ly);
+    cx.globalAlpha=.55;cx.font=`italic ${Math.round(L.lab*.7)}px Georgia,serif`;cx.fillText(NAME(i),x-L.lab*.55,ly);cx.globalAlpha=1}
+  if(gp){
+    const last=gp.path[gp.path.length-1];
+    for(const i of gp.path){const {x,y}=pos(i);cx.beginPath();cx.arc(x,y,L.R*.12,0,7);cx.fillStyle=C.hi;cx.globalAlpha=.25;cx.fill();cx.globalAlpha=1}
+    const {x,y}=pos(last);cx.setLineDash([4,3]);cx.lineWidth=2;cx.beginPath();cx.arc(x,y,L.R+3,0,7);
+    cx.strokeStyle=gp.caps.length?C.take:C.hi;cx.stroke();
+    for(const j of gp.caps){if(j===last)continue;const q=pos(j);cx.beginPath();cx.arc(q.x,q.y,L.R+3,0,7);cx.strokeStyle=C.take;cx.stroke()}
+    cx.setLineDash([]);
+    const h=pos(hover);cx.beginPath();cx.arc(h.x,h.y,L.R+3,0,7);cx.lineWidth=2;cx.strokeStyle=C.ink;cx.globalAlpha=.6;cx.stroke();cx.globalAlpha=1}
+  // seeds in hand
+  if(handAt>=0&&handN>0){const {x,y}=pos(handAt),r=L.R*.38,bx=x+L.R*.75,by=handAt<6?y-L.R*.75:y+L.R*.75;
+    cx.beginPath();cx.arc(bx,by,r,0,7);cx.fillStyle=C.hi;cx.fill();
+    cx.fillStyle='#2a1d10';cx.font=`bold ${Math.round(r*1.05)}px Georgia,serif`;cx.textAlign='center';cx.textBaseline='middle';cx.fillText(handN,bx,by+1)}
+}
+
+// ---- words ----
+function plural(n,w){return n+' '+w+(n===1?'':'s')}
+function describe(r){
+  const who=r.mover===0?'You':'Wren',n=r.path.length,last=r.path[n-1];
+  let t=`${who} ${r.mover===0?'sow':'sows'} ${NAME(r.from)}: ${plural(n,'seed')}`;
+  if(n>=12)t+=', all the way round';
+  t+=`, the last into ${NAME(last)}`;
+  if(r.slam)return t+`. That would take every seed ${r.mover===0?'Wren has':'you have'}, a grand slam, so nothing is taken.`;
+  if(r.caps.length){const hs=r.caps.map(NAME).join(' and ');
+    return t+`, which makes it ${r.lastN===2?'two':'three'}. ${who} ${r.mover===0?'take':'takes'} ${hs}: ${plural(r.took,'seed')}.`}
+  return t+'.'}
+function endWords(){
+  const [a,b]=G.s;let why='';
+  if(G.why==='nofeed')why=(G.turn===0?'Wren has nothing left to sow and nothing you can sow reaches Wren\'s row':'You have nothing left to sow and Wren can\'t reach your row')+', so the game stops there and those seeds stay with the side they lie on. ';
+  if(G.why==='empty')why='One row is empty and the game stops. ';
+  if(G.why==='round')why='The seeds have gone round and round with nobody taking any, so each side keeps what lies in its own row. ';
+  const res=a>b?`You win, ${a} to ${b}.`:b>a?`Wren wins, ${b} to ${a}.`:`Twenty-four each: a draw.`;
+  return why+res}
+function say(){
+  let p2='';
+  if(G.over)p2=endWords();
+  else if(busy)p2=G.turn===1?'Wren is thinking.':'';
+  else if(G.turn===0){
+    const ok=legal(G);
+    if(hover>=0&&ok.includes(hover)&&ghost){const r=sow(G,hover);const last=r.path[r.path.length-1];
+      p2=`${NAME(hover)}: ${plural(r.path.length,'seed')}, the last into ${NAME(last)}`+(r.slam?', but that would be a grand slam, so nothing would be taken.':r.caps.length?`, and you'd take ${plural(r.took,'seed')}.`:'.')}
+    else if(sideSum(G.b,1)===0)p2='Wren\'s row is empty: you must sow something that reaches it.';
+    else p2='Your turn: tap one of your houses.'}
+  logEl.innerHTML=(lastMsg[0]?`<p>${lastMsg[0]}</p>`:'')+(lastMsg[1]?`<p>${lastMsg[1]}</p>`:'')+(p2?`<p>${p2}</p>`:'');
+  $('s0').textContent=G.s[0];$('s1').textContent=G.s[1];
+  const on=G.b.reduce((x,y)=>x+y,0);$('info').textContent=G.over?'':(on+' on the board · '+(25-Math.max(...G.s))+' to win');
+  $('lvl').textContent='Wren: '+LEVELS[lvl][0]}
+function syncButtons(){const ok=(!busy&&!G.over&&G.turn===0)?legal(G):[];
+  for(const b of hit.children){const i=+b.dataset.h;b.disabled=!ok.includes(i);
+    b.setAttribute('aria-label',`House ${NAME(i)}, ${plural(G.b[i],'seed')}`+(ok.includes(i)?'':', can\'t sow'))}}
+
+// ---- play ----
+const sleep=ms=>new Promise(r=>setTimeout(r,RM?Math.min(ms,40):ms));
+async function animate(r){
+  disp={b:G.b.slice(),s:G.s.slice()};hi=new Set([r.from]);taking=new Set();
+  const n=disp.b[r.from];disp.b[r.from]=0;handAt=r.from;handN=n;draw();await sleep(260);
+  const dt=Math.max(70,Math.min(200,260-n*10));
+  for(const i of r.path){disp.b[i]++;handN--;handAt=i;hi=new Set([i]);draw();await sleep(dt)}
+  handAt=-1;draw();
+  if(r.caps.length){await sleep(220);
+    for(const j of r.caps){taking.add(j);draw();await sleep(260);disp.s[r.mover]+=disp.b[j];disp.b[j]=0;draw();await sleep(140)}}
+  else if(r.slam){for(let i=6*(1-r.mover);i<6*(1-r.mover)+6;i++)taking.add(i);draw();await sleep(700)}
+  await sleep(160);
+  disp=null;hi=new Set();taking=new Set()}
+async function doMove(h){
+  busy=true;hover=-1;syncButtons();
+  const r=sow(G,h);
+  lastMsg=r.mover===0?[describe(r),'']:(lastMsg[1]===''?[lastMsg[0],describe(r)]:[describe(r),'']);
+  say();
+  await animate(r);
+  const after=r.st.b.slice();
+  G=r.st;settle(G);
+  if(G.over&&G.swept){disp={b:after,s:[G.s[0]-G.swept[0],G.s[1]-G.swept[1]]};
+    for(let i=0;i<12;i++)if(after[i])taking.add(i);draw();await sleep(900);disp=null;taking=new Set()}
+  busy=false;store();draw();say();syncButtons()}
+async function youSow(h){if(busy||G.over||G.turn!==0||!legal(G).includes(h))return;
+  await doMove(h);if(!G.over)wrenGo()}
+async function wrenGo(){if(G.over||G.turn!==1)return;
+  busy=true;syncButtons();say();await sleep(500);
+  const [,d,rnd]=LEVELS[lvl],ms=legal(G);
+  const h=Math.random()<rnd?ms[Math.floor(Math.random()*ms.length)]:choose(G,d);
+  await doMove(h)}
+function newGame(){G=fresh();starts=1-starts;G.turn=starts;lastMsg=[G.turn===0?'You go first.':'Wren goes first.',''];hover=-1;store();draw();say();syncButtons();
+  if(G.turn===1)wrenGo()}
+
+$('fresh').onclick=()=>{if(!busy)newGame()};
+$('lvl').onclick=()=>{lvl=(lvl+1)%3;store();say()};
+$('ghost').onchange=e=>{ghost=e.target.checked;store();draw();say()};
+if(!restore()){G=fresh();G.turn=0;starts=0;lastMsg=['Four seeds in every house. You go first.','']}
+$('ghost').checked=ghost;
+readColours();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColours();draw()});
+new ResizeObserver(()=>{layout();draw()}).observe(cv);
+layout();draw();say();
+if(G.turn===1&&!G.over)wrenGo();
+window.__houses={get G(){return G},set G(v){G=v},fresh,sow,legal,settle,play,choose,youSow,wrenGo,newGame,draw,get busy(){return busy},set lvl(v){lvl=v}};
+</script>
+</body>
+</html>

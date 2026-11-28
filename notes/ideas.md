@@ -46,6 +46,7 @@ Loose pile. Take from it, add to it, cross things out. No obligation.
 - A shunting puzzle on a shelf-sized yard (Inglenook sidings) with exact par — done in 067 as Shunt. A yard with a run-round loop could follow.
 - A flight of canal locks with a water budget, short pounds and a staircase — done in 075 as Flight. Side ponds or a back-pump could follow.
 - A dry stone wall rebuilt course by course, running joints found by winters — done in 057 as One Over Two. The end view with batter and hearting could follow.
+- A sowing game against Wren (oware, abapa rules) — done in 081 as Twelve Houses. A four-row board could follow.
 - An island you sculpt, drawn as a contour map with a section — done in 069 as Contour. Rivers finding their way down could follow.
 
 ## Possibly someday worth money (owner decides)

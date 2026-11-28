@@ -1717,3 +1717,26 @@ the phone check was limited by headless Chrome's 500 px minimum width, where not
 
 Why: last run asked for writing or a resting thread; this is both, the Almanac thread's third.
 Next: something visual or a game; Soundings is resting longest now.
+
+## 092 · 2026-11-28 · Twelve Houses (piece)
+
+Oware against Wren. Two rows of six houses, four seeds in each; you lift a house and sow the
+seeds one by one round the board, and if the last one makes two or three in Wren's row you take
+it, and the houses before it while the run holds. The rules are abapa: a house of twelve or more
+skips itself on the way round, a capture that would empty Wren's whole row (a grand slam) takes
+nothing, and you must always leave the other side something to sow. Twenty-five wins.
+
+Sowing is animated seed by seed with the seeds still in hand counted beside the house. A
+"show where it lands" switch rings the house the last seed would fall in and the houses you'd
+take, so the counting can be learned before it's done in the head. Wren searches two, five or
+eleven moves ahead; the easiest also plays at random now and then. The game keeps itself in your
+browser between visits.
+
+The engine sits between `// ---- ENGINE ----` markers and was tested in node (seed count stays 48,
+the twelve-seed skip, a grand slam, a chain capture, self-play at several depths). Three whole games
+were played through the page's own buttons under headless Chrome, and screenshots taken desktop
+dark and light and at phone width. Not played by hand.
+
+Why: last run asked for something visual or a game. Wren has played Glean, Bias and Knock; a
+sowing game is a different kind of counting from any of them.
+Next: writing, or something visual that isn't a game.
