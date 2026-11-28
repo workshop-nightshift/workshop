@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fog Line</title>
+<style>
+:root{--bg:#f3efe4;--fg:#1f1d19;--mute:#756e62;--line:#d8d1c1;--ink:#24435a;--mark:#b23a2a;
+--land:#e6d6ae;--landedge:#8c7748;--b0:#8fb6cf;--b1:#a9c7da;--b2:#c3d8e4;--b3:#dbe7ec;--b4:#f6f3ea;--cont:#5f86a0;--spot:#3d5566;
+--paper:rgba(255,253,246,.55);--paperedge:#9a8f78;--pencil:#a33a22;--truth:#1f1d19}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--fg:#e7e3da;--mute:#9a9488;--line:#2b2c2f;--ink:#a9c8dc;--mark:#e0745f;
+--land:#3a3427;--landedge:#9b8758;--b0:#3f6c8a;--b1:#30556f;--b2:#243f54;--b3:#1b2d3b;--b4:#14191e;--cont:#6f9ab6;--spot:#9fb7c6;
+--paper:rgba(236,232,220,.13);--paperedge:#8e8574;--pencil:#f08a64;--truth:#f1ede4}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:15px/1.5 Georgia,"Iowan Old Style",serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:14px 16px 60px}
+main{width:100%;max-width:640px}
+h1{font-size:22px;font-weight:normal;margin:0;letter-spacing:.02em}
+.sub{color:var(--mute);margin:2px 0 10px;font-style:italic}
+canvas{display:block;width:100%;height:auto;touch-action:none;border:1px solid var(--line);cursor:grab}
+canvas.drag{cursor:grabbing}
+#status{display:flex;justify-content:space-between;align-items:baseline;gap:6px 14px;flex-wrap:wrap;margin-top:8px}
+#leads{letter-spacing:.15em;color:var(--ink);font-size:13px}
+#call{min-height:1.5em;margin:6px 0 0}
+#call b{font-weight:normal;color:var(--pencil)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px 10px;flex-wrap:wrap;margin-top:10px}
+.row span{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:14px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:4px 12px;cursor:pointer}
+button.main{border-color:var(--ink);color:var(--ink)}
+button:disabled{opacity:.4;cursor:default}
+#verdict{margin:12px 0 0;min-height:1.5em}
+#verdict b{font-weight:normal;color:var(--mark)}
+ol#book{margin:12px 0 0;padding:0 0 0 2.2em;font-size:14px;color:var(--fg)}
+ol#book li{margin:1px 0}
+ol#book li i{color:var(--mute)}
+.muted{color:var(--mute);font-size:14px}
+details{margin-top:16px;color:var(--mute);font-size:14px}
+summary{cursor:pointer}
+details p{margin:.5em 0}
+</style>
+</head>
+<body>
+<main>
+  <h1>Fog Line</h1>
+  <p class="sub" id="sub">A day of fog, and no one is sure where she is. Stand in for the land with the lead going.</p>
+  <canvas id="c" width="600" height="600" aria-label="A chart of a stretch of coast with depths. A sheet of tracing paper lies over it; drag it to move it."></canvas>
+  <div id="status"><span id="mode" class="muted"></span><span id="leads" aria-label="casts left"></span></div>
+  <p id="call" aria-live="polite"></p>
+  <div class="row">
+    <span><button id="cast" class="main">heave the lead</button><button id="fix" disabled>this is where we are</button></span>
+    <button id="again">another fog</button>
+  </div>
+  <p id="verdict" aria-live="polite"></p>
+  <ol id="book"></ol>
+  <details>
+    <summary>How a line of soundings fixes a ship</summary>
+    <p>Before radio fixes, a ship that couldn't see the land could still feel for it. She steers a steady course, and at every two cables run the leadsman heaves the lead and calls the depth. The lead's hollow foot is armed with tallow, and what sticks to it says what the bottom is: sand, mud, shell, gravel, or nothing at all off rock.</p>
+    <p>The navigator pricks the soundings on a strip of tracing paper, spaced at the distance run and ruled along the course, with no idea yet where on the chart they belong. Then the paper goes over the chart, kept pointing the same way, and is slid about until its numbers sit on the chart's numbers. Where they agree, she is there.</p>
+    <p>A hand lead only reaches twenty fathoms or so; deeper than that the call is <i>no bottom</i>, written as the depth with a bar over it. That's worth something too. Each dot on the tracing is tinted the chart's colour for its depth, so you can see where a cast sits in the wrong band.</p>
+    <p>More casts make a surer fix, but she's standing in toward the land all the while. The seabed, coast and track are made up afresh for every fog; the soundings carry a little error, as real ones do.</p>
+  </details>
+</main>
+<script>
+// ---- ENGINE ----
+const ENGINE = (() => {
+const N = 36, SP = 2, CASTS = 10, LEAD = 20, G = 4; // world cables, spacing, casts, hand-lead reach, grid per cable
+function rng(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function noise2(seed){
+  const r=rng(seed), P=new Float32Array(64*64); for(let i=0;i<P.length;i++)P[i]=r();
+  const at=(i,j)=>P[((j&63)<<6)|(i&63)];
+  const f=(x,y)=>{const i=Math.floor(x),j=Math.floor(y),u=x-i,v=y-j,su=u*u*(3-2*u),sv=v*v*(3-2*v);
+    return (at(i,j)*(1-su)+at(i+1,j)*su)*(1-sv)+(at(i,j+1)*(1-su)+at(i+1,j+1)*su)*sv};
+  return (x,y)=>(f(x,y)*.55+f(x*2.1+17,y*2.1+5)*.3+f(x*4.3+3,y*4.3+31)*.15);
+}
+function world(seed){
+  const r=rng(seed*7+1), n1=noise2(seed*13+3), n2=noise2(seed*29+11), ph=r()*6.3;
+  const shoals=[]; const ns=3+Math.floor(r()*3);
+  for(let k=0;k<ns;k++)shoals.push({x:4+r()*28,y:10+r()*20,a:7+r()*11,s:1.4+r()*2.4,e:.6+r()*.8,t:r()*3.14});
+  const coast=x=>4.2+3.2*(n1(x/9,0.5)-.5)*2+1.6*Math.sin(x/5.5+ph);
+  function raw(x,y){
+    const c=coast(x), off=y-c;
+    let d=off*1.08+9*(n1(x/7+40,y/7)-.5)*Math.min(1,Math.max(0,off/5));
+    let sh=0;
+    for(const s of shoals){const dx=x-s.x,dy=y-s.y,ct=Math.cos(s.t),st=Math.sin(s.t);
+      const u=(dx*ct+dy*st)/s.s,v=(-dx*st+dy*ct)/(s.s*s.e); const g=Math.exp(-(u*u+v*v)/2); d-=s.a*g; sh=Math.max(sh,g)}
+    return [d,sh];
+  }
+  const W=N*G+1, D=new Float32Array(W*W), S=new Float32Array(W*W);
+  for(let j=0;j<W;j++)for(let i=0;i<W;i++){const [d,sh]=raw(i/G,j/G);D[j*W+i]=d;S[j*W+i]=sh}
+  const samp=(A,x,y)=>{x=Math.max(0,Math.min(N,x))*G;y=Math.max(0,Math.min(N,y))*G;
+    let i=Math.min(W-2,Math.floor(x)),j=Math.min(W-2,Math.floor(y));const u=x-i,v=y-j;
+    return (A[j*W+i]*(1-u)+A[j*W+i+1]*u)*(1-v)+(A[(j+1)*W+i]*(1-u)+A[(j+1)*W+i+1]*u)*v};
+  const depth=(x,y)=>samp(D,x,y);
+  const bottom=(x,y)=>{const d=depth(x,y),sh=samp(S,x,y),q=n2(x/5,y/5);
+    if(sh>.55&&d<9)return 'R'; if(sh>.38)return 'G'; if(d>15&&q<.5)return 'M'; if(q<.42)return 'M'; if(q<.56)return 'S'; if(q<.66)return 'fS'; return 'Sh'};
+  return {seed,N,G,W,D,depth,bottom,coast,shoals};
+}
+function track(x0,y0,brg){const s=Math.sin(brg*Math.PI/180),c=Math.cos(brg*Math.PI/180),p=[];
+  for(let i=0;i<CASTS;i++)p.push([x0+i*SP*s,y0-i*SP*c]);return p}
+// relative offsets of a track from its first cast
+function rel(brg,n){return track(0,0,brg).slice(0,n)}
+function miss(W,rec,brg,x0,y0){ // how badly a set of readings fits a start point
+  const R=rel(brg,rec.length);let m=0;
+  for(let i=0;i<rec.length;i++){const x=x0+R[i][0],y=y0+R[i][1];
+    if(x<0||y<0||x>N||y>N)return 1e9;
+    const d=W.depth(x,y), r=rec[i];
+    if(d<=0)return 1e9;
+    if(r.d==null){ if(d<LEAD-1)m+=Math.min(25,(LEAD-1-d)**2) }
+    else { m+=Math.min(25,(r.d-d)**2); if(r.b!==W.bottom(x,y))m+=(r.b[0]===W.bottom(x,y)[0])?.5:2 }
+  }
+  return m;
+}
+function voyage(W,seed){
+  const r=rng(seed*31+7);
+  for(let tries=0;tries<400;tries++){
+    const brg=Math.round((r()*80-40)/5)*5, x0=6+r()*24, y0=28+r()*6;
+    const p=track(x0,y0,brg); let ok=true,bot=0;
+    for(const [x,y] of p){if(x<2||x>N-2||y<2){ok=false;break} const d=W.depth(x,y); if(d<3){ok=false;break} if(d<=LEAD)bot++}
+    if(!ok||bot<6)continue;
+    const rec=p.map(([x,y])=>{const d=W.depth(x,y)+(r()+r()+r()-1.5)*.35;return d>LEAD?{d:null}:{d:Math.max(1,Math.round(d*2)/2),b:W.bottom(x,y)}});
+    // the whole line must point to one place
+    const t=miss(W,rec,brg,x0,y0); let rival=1e9;
+    for(let y=0;y<=N;y+=.5)for(let x=0;x<=N;x+=.5){if(Math.hypot(x-x0,y-y0)<2.5)continue;const m=miss(W,rec,brg,x,y);if(m<rival)rival=m}
+    if(rival<t+6)continue;
+    return {brg,x0,y0,pts:p,rec,tries};
+  }
+  return null;
+}
+const MARKS=[2,3,5,7,10,13,15,17,20];
+const WORDS=['nought','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const BOT={M:'mud',S:'sand',fS:'fine sand',Sh:'broken shell',G:'gravel',R:'nothing on the arming: rock'};
+function call(r){
+  if(r.d==null)return 'No bottom with this line!';
+  const n=Math.floor(r.d), h=r.d-n>0;
+  let c = h ? 'And a half '+WORDS[n]+'!' : (MARKS.includes(n)?'By the mark '+WORDS[n]+'!':'By the deep '+WORDS[n]+'!');
+  return c;
+}
+return {N,SP,CASTS,LEAD,rng,world,track,rel,miss,voyage,call,BOT};
+})();
+// ---- END ENGINE ----
+
+(() => {
+const E=ENGINE, cv=document.getElementById('c'), cx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+const BANDS=[3,5,10,20];
+let W,V,S,base,col,px,scale,dpr;
+function colors(){const cs=getComputedStyle(document.documentElement),g=k=>cs.getPropertyValue(k).trim();
+  col={land:g('--land'),landedge:g('--landedge'),b:[g('--b0'),g('--b1'),g('--b2'),g('--b3'),g('--b4')],cont:g('--cont'),spot:g('--spot'),
+    paper:g('--paper'),paperedge:g('--paperedge'),pencil:g('--pencil'),truth:g('--truth'),ink:g('--ink'),mark:g('--mark'),fg:g('--fg'),mute:g('--mute')}}
+const band=d=>d<=0?-1:(d<3?0:d<5?1:d<10?2:d<20?3:4);
+function hex(c){const m=c.match(/^#([0-9a-f]{6})$/i);if(m){const v=parseInt(m[1],16);return[v>>16,(v>>8)&255,v&255]}
+  const n=c.match(/[\d.]+/g);return n?n.slice(0,3).map(Number):[128,128,128]}
+function size(){dpr=Math.min(2,window.devicePixelRatio||1);const w=Math.round(cv.getBoundingClientRect().width||600);
+  px=Math.round(w*dpr);cv.width=px;cv.height=px;scale=px/E.N}
+function drawBase(){
+  base=document.createElement('canvas');base.width=px;base.height=px;const b=base.getContext('2d');
+  const img=b.createImageData(px,px),dt=img.data, B=new Int8Array(px*px);
+  const pal=col.b.map(hex), land=hex(col.land), ce=hex(col.cont), le=hex(col.landedge);
+  for(let j=0;j<px;j++)for(let i=0;i<px;i++)B[j*px+i]=band(W.depth((i+.5)/scale,(j+.5)/scale));
+  const lw=Math.max(1,Math.round(dpr*.9));
+  for(let j=0;j<px;j++)for(let i=0;i<px;i++){const k=j*px+i,v=B[k];let c=v<0?land:pal[v];
+    let edge=false;for(let o=1;o<=lw&&!edge;o++){if(i+o<px&&B[k+o]!==v)edge=true;if(j+o<px&&B[k+o*px]!==v)edge=true}
+    if(edge)c=(v<0||B[Math.min(px*px-1,k+1)]<0||B[Math.min(px*px-1,k+px)]<0)?le:ce;
+    dt[k*4]=c[0];dt[k*4+1]=c[1];dt[k*4+2]=c[2];dt[k*4+3]=255}
+  b.putImageData(img,0,0);
+  // spot soundings
+  const r=E.rng(W.seed*3+5), stp=Math.max(3,30*dpr/scale);
+  const fs=Math.round(9.5*dpr);b.textAlign='center';b.textBaseline='middle';
+  for(let y=stp/2;y<E.N;y+=stp)for(let x=stp/2;x<E.N;x+=stp){
+    const xx=x+(r()-.5)*stp*.6, yy=y+(r()-.5)*stp*.6, d=W.depth(xx,yy); if(d<=.5)continue;
+    const X=xx*scale,Y=yy*scale, R0=22*dpr, cxp=px-R0-12*dpr, cyp=E.N*scale*.55;
+    if(Math.hypot(X-cxp,Y-cyp)<R0+12*dpr||(X>px-5*scale-30*dpr&&Y>px-34*dpr))continue;
+    b.fillStyle=col.spot;b.font='italic '+fs+'px Georgia,serif';
+    b.fillText(String(Math.round(d)),xx*scale,yy*scale);
+    if(r()<.45){b.font='italic '+Math.round(fs*.75)+'px Georgia,serif';b.fillText(W.bottom(xx,yy).replace('R','rk').replace('Sh','sh').replace('fS','fs').toLowerCase(),xx*scale,yy*scale+fs*.95)}
+  }
+  // rocks awash on shoals
+  for(const s of W.shoals){const d=W.depth(s.x,s.y);if(d>0&&d<2.2){b.fillStyle=col.landedge;b.font=Math.round(12*dpr)+'px Georgia,serif';b.fillText('✣',s.x*scale,s.y*scale)}}
+  // compass and scale
+  const R=22*dpr, ox=px-R-12*dpr, oy=E.N*scale*.55;
+  b.strokeStyle=col.cont;b.fillStyle=col.cont;b.lineWidth=dpr;
+  b.beginPath();b.arc(ox,oy,R,0,7);b.stroke();
+  b.beginPath();b.moveTo(ox,oy-R*1.15);b.lineTo(ox+R*.18,oy);b.lineTo(ox,oy+R*.9);b.lineTo(ox-R*.18,oy);b.closePath();b.fill();
+  b.font='italic '+Math.round(11*dpr)+'px Georgia,serif';b.fillText('N',ox,oy-R*1.15-8*dpr);
+  const sy=px-14*dpr, sx=px-12*dpr-5*scale;
+  b.beginPath();b.moveTo(sx,sy);b.lineTo(sx+5*scale,sy);b.moveTo(sx,sy-3*dpr);b.lineTo(sx,sy+3*dpr);b.moveTo(sx+5*scale,sy-3*dpr);b.lineTo(sx+5*scale,sy+3*dpr);b.stroke();
+  b.fillText('half a mile',sx+2.5*scale,sy-9*dpr);
+  b.textAlign='left';b.fillStyle=col.landedge;b.fillText('Soundings in fathoms',8*dpr,12*dpr);
+}
+function draw(){
+  if(!base)return;
+  cx.clearRect(0,0,px,px);cx.drawImage(base,0,0);
+  const n=S.rec.length;
+  if(S.fixed){ // the true track, inked in
+    cx.strokeStyle=col.truth;cx.fillStyle=col.truth;cx.lineWidth=1.6*dpr;cx.setLineDash([]);
+    const p=V.pts.slice(0,n);cx.beginPath();p.forEach(([x,y],i)=>i?cx.lineTo(x*scale,y*scale):cx.moveTo(x*scale,y*scale));cx.stroke();
+    for(const [x,y] of p){cx.beginPath();cx.arc(x*scale,y*scale,2.6*dpr,0,7);cx.fill()}
+    const [lx,ly]=p[n-1];cx.beginPath();cx.arc(lx*scale,ly*scale,7*dpr,0,7);cx.stroke();
+  }
+  if(!n)return;
+  const R=E.rel(V.brg,n), pts=R.map(([a,b])=>[(S.tx+a)*scale,(S.ty+b)*scale]);
+  // paper
+  const s=Math.sin(V.brg*Math.PI/180),c=Math.cos(V.brg*Math.PI/180);
+  const len=(n-1)*E.SP*scale, pad=2.4*scale, half=2.6*scale;
+  cx.save();cx.translate(pts[0][0],pts[0][1]);cx.rotate(V.brg*Math.PI/180);
+  cx.fillStyle=col.paper;cx.strokeStyle=col.paperedge;cx.lineWidth=dpr;cx.setLineDash([4*dpr,3*dpr]);
+  cx.beginPath();cx.rect(-half,-len-pad,half*2,len+pad*2);cx.fill();cx.stroke();cx.setLineDash([]);
+  cx.strokeStyle=col.pencil;cx.globalAlpha=.7;cx.beginPath();cx.moveTo(0,pad*.8);cx.lineTo(0,-len-pad*.8);cx.stroke();
+  cx.beginPath();cx.moveTo(-4*dpr,-len-pad*.8+6*dpr);cx.lineTo(0,-len-pad*.8);cx.lineTo(4*dpr,-len-pad*.8+6*dpr);cx.stroke();cx.globalAlpha=1;
+  cx.restore();
+  const fs=Math.round(11*dpr);cx.font='bold '+fs+'px Georgia,serif';cx.textBaseline='middle';
+  pts.forEach(([x,y],i)=>{const r=S.rec[i], bb=r.d==null?4:band(r.d);
+    cx.fillStyle=col.b[bb];cx.strokeStyle=col.pencil;cx.lineWidth=1.3*dpr;
+    cx.beginPath();cx.arc(x,y,3.6*dpr,0,7);cx.fill();cx.stroke();
+    const side=i%2?1:-1, ox=c*side*9*dpr, oy=s*side*9*dpr;
+    cx.textAlign=side>0?'left':'right';cx.fillStyle=col.pencil;
+    const t=r.d==null?String(E.LEAD):(r.d%1?Math.floor(r.d)+'½':String(r.d));
+    cx.fillText(t,x+ox,y+oy);
+    if(r.d==null){const w=cx.measureText(t).width,x0=side>0?x+ox:x+ox-w;cx.lineWidth=1.1*dpr;cx.beginPath();cx.moveTo(x0,y+oy-fs*.62);cx.lineTo(x0+w,y+oy-fs*.62);cx.stroke()}
+  });
+}
+function leads(){ $('leads').textContent='●'.repeat(E.CASTS-S.rec.length)+'○'.repeat(S.rec.length) }
+function mode(){
+  const n=S.rec.length;
+  $('mode').textContent = S.fixed ? 'The fog thins. Her real track is inked in.' :
+    !n ? 'Course '+String(V.brg<0?360+V.brg:V.brg).padStart(3,'0')+'°, two cables between casts.' :
+    n<3 ? 'Keep sounding; the tracing paper is on the chart.' : 'Drag the tracing until its numbers agree with the chart’s.';
+  $('cast').disabled = S.fixed || n>=E.CASTS || S.anchored;
+  $('fix').disabled = S.fixed || n<3;
+  leads();
+}
+function book(){
+  $('book').innerHTML=S.rec.map((r,i)=>'<li>'+E.call(r)+(r.d==null?'':' <i>'+(r.b==='R'?'rock':E.BOT[r.b])+'</i>')+'</li>').join('');
+}
+function cast(){
+  if(S.fixed||S.rec.length>=E.CASTS)return;
+  const r=V.rec[S.rec.length];S.rec.push(r);
+  $('call').innerHTML='<b>'+E.call(r)+'</b>'+(r.d==null?'':' The arming: '+E.BOT[r.b]+'.');
+  if(r.d!=null&&r.d<=5&&S.rec.length<E.CASTS){S.anchored=true;$('call').innerHTML+=' Shoaling fast: the master won’t stand in further.'}
+  else if(S.rec.length>=E.CASTS)$('call').innerHTML+=' That’s as far in as she’ll go blind.';
+  book();mode();draw();
+}
+function fix(){
+  if(S.fixed||S.rec.length<3)return;S.fixed=true;
+  const e=Math.hypot(S.tx-V.x0,S.ty-V.y0), n=S.rec.length;
+  const say = e<1 ? 'a fix the master would sign for.' : e<2.5 ? 'near enough to shape a course in by.' : e<5 ? 'you’d want another line before trusting it.' : 'lost in it. The fog had you.';
+  const bc=E.miss(W,S.rec,V.brg,V.x0,V.y0), yc=E.miss(W,S.rec,V.brg,S.tx,S.ty);
+  let more='';
+  if(e>=2.5&&yc<=bc+1)more=' The numbers did fit there nearly as well as at the truth: '+n+' casts weren’t enough to tell the two apart.';
+  $('verdict').innerHTML='Out by <b>'+(e<.25?'barely a boat’s length':(e/10).toFixed(2)+' of a mile ('+e.toFixed(1)+' cables)')+'</b> on '+n+' casts: '+say+more;
+  try{const k='fogline-v1',o=JSON.parse(localStorage.getItem(k)||'{}');o.n=(o.n||0)+1;if(o.best==null||e<o.best)o.best=e;localStorage.setItem(k,JSON.stringify(o));
+    $('verdict').innerHTML+=' <span class="muted">('+o.n+' fog'+(o.n>1?'s':'')+'; best '+o.best.toFixed(1)+' cables.)</span>'}catch(_){}
+  mode();draw();
+}
+function newFog(seed){
+  for(let k=0;k<20;k++){W=E.world(seed);V=E.voyage(W,seed);if(V)break;seed=(seed*1103515245+12345)>>>0}
+  S={rec:[],tx:0,ty:0,fixed:false,anchored:false,seed};
+  // start the paper near the middle of the chart, its line centred
+  const R=E.rel(V.brg,E.CASTS),mx=R[E.CASTS-1][0]/2,my=R[E.CASTS-1][1]/2;S.tx=E.N/2-mx;S.ty=E.N/2-my;
+  $('call').textContent='';$('verdict').textContent='';$('book').innerHTML='';
+  $('sub').textContent='Fog no. '+(seed%10000)+'. A day of fog, and no one is sure where she is. Stand in for the land with the lead going.';
+  colors();size();drawBase();mode();draw();
+}
+// dragging the paper
+let drag=null;
+cv.addEventListener('pointerdown',e=>{if(!S.rec.length||S.fixed)return;cv.setPointerCapture(e.pointerId);cv.classList.add('drag');
+  drag={x:e.clientX,y:e.clientY,tx:S.tx,ty:S.ty}});
+cv.addEventListener('pointermove',e=>{if(!drag)return;const k=cv.getBoundingClientRect().width/E.N;
+  S.tx=drag.tx+(e.clientX-drag.x)/k;S.ty=drag.ty+(e.clientY-drag.y)/k;
+  const R=E.rel(V.brg,S.rec.length);
+  // keep at least one dot on the chart
+  const xs=R.map(p=>p[0]),ys=R.map(p=>p[1]);
+  S.tx=Math.max(-Math.max(...xs),Math.min(E.N-Math.min(...xs),S.tx));S.ty=Math.max(-Math.max(...ys),Math.min(E.N-Math.min(...ys),S.ty));
+  draw()});
+const end=()=>{drag=null;cv.classList.remove('drag')};
+cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+window.addEventListener('keydown',e=>{if(!S.rec.length||S.fixed)return;const m={ArrowLeft:[-.25,0],ArrowRight:[.25,0],ArrowUp:[0,-.25],ArrowDown:[0,.25]}[e.key];
+  if(m&&document.activeElement===cv){S.tx+=m[0];S.ty+=m[1];draw();e.preventDefault()}});
+cv.tabIndex=0;
+$('cast').onclick=cast;$('fix').onclick=fix;$('again').onclick=()=>newFog((Math.random()*1e9)>>>0);
+let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{size();drawBase();draw()},150)});
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{colors();drawBase();draw()})}catch(_){}
+newFog((Date.now()/1000)>>>0);
+window.__fog={E,get W(){return W},get V(){return V},get S(){return S},cast,fix,newFog,draw};
+})();
+</script>
+</body>
+</html>
