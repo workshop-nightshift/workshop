@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ripple Tank</title>
+<style>
+:root{--bg:#e9e6dd;--fg:#1f2124;--mute:#5a5d60;--line:#1f212433;--on:#1f2124;--onfg:#f1eee6;--rim:#3a3833}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1014;--fg:#e2e0da;--mute:#a19e96;--line:#e2e0da33;--on:#e2e0da;--onfg:#0d1014;--rim:#2a2e33}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font:16px/1.5 Georgia,"Iowan Old Style",serif;padding:20px 16px 80px}
+main{max-width:880px;margin:0 auto}
+h1{font-size:24px;font-weight:normal;font-style:italic;margin:0 0 2px;letter-spacing:.02em}
+.sub{margin:0 0 14px;color:var(--mute);font-style:italic}
+.tank{position:relative;border:6px solid var(--rim);border-radius:4px;background:var(--rim);line-height:0}
+canvas{width:100%;display:block;touch-action:none;cursor:crosshair}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0;align-items:center}
+button{font:inherit;font-size:15px;color:var(--fg);background:none;border:1px solid var(--line);border-radius:4px;padding:4px 10px;cursor:pointer}
+button[aria-pressed=true]{background:var(--on);color:var(--onfg);border-color:var(--on)}
+label{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--mute);font-style:italic}
+input[type=range]{width:150px;accent-color:var(--fg)}
+.ctl{gap:10px 22px}
+.ctl .push{margin-left:auto;display:flex;gap:6px}
+#note{margin:14px 0 0;min-height:4.5em;max-width:40em}
+.how{margin:22px 0 0;color:var(--mute);font-size:14px;max-width:40em}
+[hidden]{display:none!important}
+@media (max-width:560px){input[type=range]{width:120px}.ctl .push{margin-left:0}}
+</style>
+</head>
+<body>
+<main>
+<h1>Ripple Tank</h1>
+<p class="sub">A shallow tray of water lit from above, its ripples thrown onto the paper underneath. Tap the water to drop into it.</p>
+<div class="tank"><canvas id="c" aria-label="a ripple tank seen from above; bright lines are wave crests focusing the light; tap to make a drop"></canvas></div>
+<div class="row" role="group" aria-label="set-up" id="presets">
+  <button data-p="one">one dipper</button>
+  <button data-p="two">two dippers</button>
+  <button data-p="gap">a gap</button>
+  <button data-p="gaps">two gaps</button>
+  <button data-p="lens">shallows</button>
+  <button data-p="still">still water</button>
+</div>
+<div class="row ctl">
+  <label id="fl">frequency <input id="freq" type="range" min="0" max="100" value="45"></label>
+  <label id="sl"><span id="sn">apart</span> <input id="sec" type="range"></label>
+  <div class="push">
+    <button id="strobe" aria-pressed="false" title="light the tank once per stroke of the dipper, so the waves look still">strobe</button>
+    <button id="clear">calm</button>
+  </div>
+</div>
+<p id="note"></p>
+<p class="how">How it works: the water is a grid 240 cells across, each cell pulled toward the average of its eight neighbours, which is enough to make waves. A crest is a little convex lens and gathers the light into a bright line; a trough spreads it into shadow, so what you see is the curvature of the surface, as on the paper under a real tank. The edges are lined with sponge, except in still water, where they are glass and the ripples come back.</p>
+</main>
+<script>
+// ---- SIM ----
+const GW = 240, C2 = 0.45, BAND = 26;
+let GH, N, u, p, q, S, fade, c2, wall, damp, plate;
+let t = 0, sources = [], omega = 0.25, ramp = 0;
+function alloc(gh){
+  GH = gh; N = GW*GH;
+  u = new Float32Array(N); p = new Float32Array(N); q = new Float32Array(N);
+  S = new Float32Array(N); fade = new Float32Array(N); c2 = new Float32Array(N); wall = new Uint8Array(N); damp = new Float32Array(N); plate = new Uint8Array(N);
+}
+function step(){
+  const W = GW;
+  for (let y = 1; y < GH-1; y++){
+    let i = y*W + 1;
+    for (let x = 1; x < W-1; x++, i++){
+      if (wall[i]){ q[i] = 0; continue; }
+      const lap = (4*(u[i-1] + u[i+1] + u[i-W] + u[i+W]) + u[i-W-1] + u[i-W+1] + u[i+W-1] + u[i+W+1] - 20*u[i])/6;
+      q[i] = u[i] + (u[i] - p[i])*damp[i] + c2[i]*lap;
+    }
+  }
+  const o = p; p = u; u = q; q = o;
+  t++;
+  const a = Math.min(1, t*omega/(4*Math.PI));
+  for (const s of sources){
+    const v = 1.0 * a * Math.sin(omega*t + s.ph);
+    for (const i of s.cells) u[i] = v;
+  }
+}
+function drop(gx, gy, amp){
+  const r = 4;
+  for (let dy = -r*2; dy <= r*2; dy++) for (let dx = -r*2; dx <= r*2; dx++){
+    const x = Math.round(gx)+dx, y = Math.round(gy)+dy;
+    if (x < 1 || y < 1 || x >= GW-1 || y >= GH-1) continue;
+    const i = y*GW + x; if (wall[i]) continue;
+    const v = amp*Math.exp(-(dx*dx+dy*dy)/(r*r*0.5));
+    u[i] -= v; p[i] -= v;
+  }
+}
+// ---- END SIM ----
+
+// ---- SET-UPS ----
+const P = {
+  one:  { sec:null, note:"A single dipper, bobbing up and down. Every ring travels at the same speed, so turning the frequency up packs the rings closer together: speed is frequency times wavelength, whatever the frequency." },
+  two:  { sec:{name:"apart", min:8, max:80, val:38}, note:"Two dippers in step. Where a crest from one meets a trough from the other the water hardly moves, and those quiet lines fan out between the bright ones. Move the dippers apart, or raise the frequency, and more quiet lines appear." },
+  gap:  { sec:{name:"gap", min:4, max:90, val:16}, note:"A straight bar makes straight waves. Through a wide gap they carry on mostly straight, with a shadow either side; narrow the gap toward a single wavelength and what comes through spreads out in half-rings. Sound has long waves and bends round doorways; light's are tiny, so its shadows are sharp." },
+  gaps: { sec:{name:"apart", min:14, max:80, val:34}, note:"Each gap becomes a dipper of its own, both kept in step by the same straight wave, and beyond the wall is the two-dipper pattern again. Thomas Young showed light doing this in the early 1800s, and took it as proof that light is a wave." },
+  lens: { sec:{name:"water over the plate", min:20, max:90, val:44}, note:"A sheet of glass lies under the water in the shape of a lens, so the water over it is shallow, and waves slow down in shallow water. The middle of each wave is held back longest, so the straight waves curve and close in to a focus. Make the water over the plate shallower and the focus comes nearer." },
+  still:{ sec:null, freq:false, note:"No dipper. Tap or drag in the water. Here the tank's sides are bare glass instead of sponge, so the ripples come back off them and cross themselves until they die away." }
+};
+let cur = "one", secVal = {};
+for (const k in P) if (P[k].sec) secVal[k] = P[k].sec.val;
+function lambda(){ return 32 - (+freqEl.value/100)*22; }   // wavelength in cells, 32 … 10
+function setOmega(){ omega = 2*Math.PI*Math.sqrt(C2)/lambda(); }
+function disc(cx, cy, r){
+  const out = [];
+  for (let y = Math.floor(cy-r); y <= Math.ceil(cy+r); y++) for (let x = Math.floor(cx-r); x <= Math.ceil(cx+r); x++){
+    if ((x-cx)**2 + (y-cy)**2 <= r*r && x > 0 && y > 0 && x < GW-1 && y < GH-1) out.push(y*GW+x);
+  }
+  return out;
+}
+let marks = [], lensGeo = null;       // for drawing: dippers and bar
+function build(keep){
+  const k = cur, sv = secVal[k];
+  const sponge = k !== "still";
+  wall.fill(0); plate.fill(0); c2.fill(C2); sources = []; marks = [];
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++){
+    const d = Math.min(x, y, GW-1-x, GH-1-y);
+    let f = sponge ? (d < BAND ? 1 - 0.25*Math.pow(1 - d/BAND, 2) : 0.9999) : 0.9985;
+    damp[y*GW+x] = f;
+    fade[y*GW+x] = sponge ? Math.min(1, Math.max(0, (d - 4)/(BAND*0.6 - 4))) : 1;
+  }
+  const cx = GW/2;
+  if (k === "one"){
+    const cy = GH*0.42; sources.push({cells:disc(cx, cy, 1.6), ph:0}); marks.push({dot:[cx, cy]});
+  } else if (k === "two"){
+    const cy = GH*0.3;
+    for (const s of [-1, 1]){ const x = cx + s*sv/2; sources.push({cells:disc(x, cy, 1.6), ph:0}); marks.push({dot:[x, cy]}); }
+  } else if (k === "gap" || k === "gaps" || k === "lens"){
+    const by = Math.round(BAND*0.7), cells = [];
+    for (let x = 1; x < GW-1; x++) cells.push(by*GW + x);
+    sources.push({cells, ph:0}); marks.push({bar:by});
+    if (k === "lens"){
+      const h = 46, th = 48, R = (h*h + th*th/4)/th, ly = by + 20 + th/2;
+      lensGeo = { cx, h, R, y1: ly + R - th/2, y2: ly - R + th/2 };
+      const frac = sv/100;
+      for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++){
+        const dx = x - cx;
+        const m = R - Math.max(Math.hypot(dx, y - lensGeo.y1), Math.hypot(dx, y - lensGeo.y2));
+        const w = Math.min(1, Math.max(0, m/2 + 0.5)), i = y*GW+x;
+        if (w > 0){ c2[i] = C2*(1 - w*(1 - frac)); plate[i] = w > 0.5 ? 1 : 0; }
+      }
+    } else {
+      const wy = Math.round(GH*0.4), gaps = [];
+      if (k === "gap") gaps.push([cx - sv/2, cx + sv/2]);
+      else { const w = 5; for (const s of [-1, 1]){ const g = cx + s*sv/2; gaps.push([g - w/2, g + w/2]); } }
+      for (let y = wy; y < wy+3; y++) for (let x = 0; x < GW; x++){
+        if (!gaps.some(g => x >= g[0] && x < g[1])) wall[y*GW+x] = 1;
+      }
+    }
+  }
+  if (!keep){ u.fill(0); p.fill(0); q.fill(0); t = 0; }
+  else for (let i = 0; i < N; i++) if (wall[i]){ u[i] = 0; p[i] = 0; }
+}
+// ---- END SET-UPS ----
+
+// ---- VIEW ----
+const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+const off = document.createElement("canvas"), octx = off.getContext("2d");
+const freqEl = document.getElementById("freq"), secEl = document.getElementById("sec");
+const noteEl = document.getElementById("note"), strobeEl = document.getElementById("strobe");
+const dark = matchMedia("(prefers-color-scheme: dark)");
+let img, pal, gain = 8, strobe = false, lastFlash = -1;
+function palette(){
+  pal = dark.matches
+    ? { lo:[6,12,20], mid:[34,47,60], hi:[200,228,238], wall:[12,13,15], plate:[60,82,92] }
+    : { lo:[84,100,114], mid:[206,210,202], hi:[255,253,242], wall:[52,50,46], plate:[176,196,188] };
+}
+function size(){
+  const w = cv.parentElement.clientWidth - 12;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(w*dpr); cv.height = Math.round(w*dpr*GH/GW);
+  cv.style.height = (w*GH/GW) + "px";
+}
+function render(){
+  const d = img.data, W = GW, lo = pal.lo, mi = pal.mid, hi = pal.hi;
+  // curvature, square-root compressed so faint waves still show beside strong ones, faded into the sponge
+  let ss = 0, n = 0;
+  for (let y = 1; y < GH-1; y++){
+    let i = y*W + 1;
+    for (let x = 1; x < W-1; x++, i++){
+      if (wall[i]){ S[i] = 0; continue; }
+      const l = (4*(u[i-1]+u[i+1]+u[i-W]+u[i+W]) + u[i-W-1]+u[i-W+1]+u[i+W-1]+u[i+W+1] - 20*u[i])/6;
+      const c = (l < 0 ? -Math.sqrt(-l) : Math.sqrt(l)) * fade[i];
+      S[i] = c;
+      if (fade[i] === 1 && (i % 5) === 0){ ss += c*c; n++; }
+    }
+  }
+  const rms = Math.sqrt(ss/Math.max(1, n));
+  const want = Math.min(40, 0.32/Math.max(rms, 1e-3));
+  gain += (want - gain)*0.1;
+  const OW = GW*2, OH = GH*2;
+  for (let oy = 0; oy < OH; oy++){
+    let gy = (oy + 0.5)/2 - 0.5; if (gy < 0) gy = 0; if (gy > GH-1.001) gy = GH-1.001;
+    const y0 = gy|0, fy = gy - y0, cy = Math.min(GH-1, (oy/2)|0);
+    for (let ox = 0; ox < OW; ox++){
+      const j = (oy*OW + ox)*4, cxi = cy*W + ((ox/2)|0);
+      if (wall[cxi]){ d[j] = pal.wall[0]; d[j+1] = pal.wall[1]; d[j+2] = pal.wall[2]; d[j+3] = 255; continue; }
+      let gx = (ox + 0.5)/2 - 0.5; if (gx < 0) gx = 0; if (gx > W-1.001) gx = W-1.001;
+      const x0 = gx|0, fx = gx - x0, i = y0*W + x0;
+      const c = (S[i]*(1-fx) + S[i+1]*fx)*(1-fy) + (S[i+W]*(1-fx) + S[i+W+1]*fx)*fy;
+      let s = c*gain; if (s < -0.72) s = -0.72;
+      const I = 1/(1+s), v = 1 - Math.exp(-0.7*I);
+      let r, g, bb;
+      if (v < 0.5){ const k = v/0.5; r = lo[0]+(mi[0]-lo[0])*k; g = lo[1]+(mi[1]-lo[1])*k; bb = lo[2]+(mi[2]-lo[2])*k; }
+      else { const k = (v-0.5)/0.5; r = mi[0]+(hi[0]-mi[0])*k; g = mi[1]+(hi[1]-mi[1])*k; bb = mi[2]+(hi[2]-mi[2])*k; }
+      if (plate[cxi]){ r = r*0.8 + pal.plate[0]*0.2; g = g*0.8 + pal.plate[1]*0.2; bb = bb*0.8 + pal.plate[2]*0.2; }
+      d[j] = r; d[j+1] = g; d[j+2] = bb; d[j+3] = 255;
+    }
+  }
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(off, 0, 0, cv.width, cv.height);
+  const sx = cv.width/GW, sy = cv.height/GH;
+  ctx.lineWidth = Math.max(1, sx*0.6);
+  for (const m of marks){
+    ctx.strokeStyle = dark.matches ? "#c9c4b8" : "#2b2a27";
+    ctx.fillStyle = dark.matches ? "#8c877c" : "#55524b";
+    if (m.dot){ ctx.beginPath(); ctx.arc((m.dot[0]+0.5)*sx, (m.dot[1]+0.5)*sy, Math.max(3, sx*2.2), 0, 7); ctx.fill(); ctx.stroke(); }
+    if (m.bar !== undefined){ ctx.fillRect(BAND*sx, (m.bar+0.5)*sy - Math.max(1.5, sy*0.5), (GW-2*BAND)*sx, Math.max(3, sy*1.0)); }
+  }
+  if (cur === "lens"){
+    ctx.strokeStyle = dark.matches ? "#9fc0c855" : "#2b4a4a44"; ctx.lineWidth = Math.max(1, sx*0.4);
+    const L = lensGeo, a = Math.asin(L.h/L.R);
+    ctx.beginPath();
+    ctx.arc((L.cx+0.5)*sx, (L.y1+0.5)*sy, L.R*sx, -Math.PI/2 - a, -Math.PI/2 + a);
+    ctx.arc((L.cx+0.5)*sx, (L.y2+0.5)*sy, L.R*sx, Math.PI/2 - a, Math.PI/2 + a);
+    ctx.closePath(); ctx.stroke();
+  }
+}
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let running = true;
+function frame(){
+  if (running){
+    const steps = 3;
+    for (let s = 0; s < steps; s++) step();
+    if (strobe && sources.length){
+      const period = 2*Math.PI/omega * 1.02;        // a touch slow, so the waves creep forward
+      const k = Math.floor(t/period);
+      if (k !== lastFlash){ lastFlash = k; render(); }
+    } else render();
+  }
+  requestAnimationFrame(frame);
+}
+function choose(k){
+  cur = k;
+  for (const b of document.querySelectorAll("#presets button")) b.setAttribute("aria-pressed", b.dataset.p === k);
+  const pr = P[k];
+  document.getElementById("fl").hidden = pr.freq === false;
+  document.getElementById("sl").hidden = !pr.sec;
+  strobeEl.hidden = pr.freq === false;
+  if (pr.sec){ document.getElementById("sn").textContent = pr.sec.name; secEl.min = pr.sec.min; secEl.max = pr.sec.max; secEl.value = secVal[k]; }
+  noteEl.textContent = pr.note;
+  build(false);
+  if (k === "still"){ drop(GW*0.38, GH*0.45, 2.2); }
+  render();
+}
+// ---- END VIEW ----
+
+// ---- INPUT ----
+let down = false, lastG = null;
+function gridAt(e){
+  const r = cv.getBoundingClientRect();
+  return [(e.clientX - r.left)/r.width*GW, (e.clientY - r.top)/r.height*GH];
+}
+cv.addEventListener("pointerdown", e => {
+  down = true; cv.setPointerCapture(e.pointerId);
+  const g = gridAt(e); drop(g[0], g[1], 2.2); lastG = g;
+  if (strobe) render();
+});
+cv.addEventListener("pointermove", e => {
+  if (!down) return;
+  const g = gridAt(e);
+  if (Math.hypot(g[0]-lastG[0], g[1]-lastG[1]) >= 3){ drop(g[0], g[1], 0.9); lastG = g; }
+});
+for (const ev of ["pointerup", "pointercancel"]) cv.addEventListener(ev, () => { down = false; });
+document.getElementById("presets").addEventListener("click", e => { const b = e.target.closest("button"); if (b) choose(b.dataset.p); });
+freqEl.addEventListener("input", setOmega);
+secEl.addEventListener("input", () => { secVal[cur] = +secEl.value; build(true); });
+strobeEl.addEventListener("click", () => { strobe = !strobe; strobeEl.setAttribute("aria-pressed", strobe); lastFlash = -1; });
+document.getElementById("clear").addEventListener("click", () => { build(false); render(); });
+dark.addEventListener("change", () => { palette(); render(); });
+window.addEventListener("resize", () => { size(); render(); });
+document.addEventListener("visibilitychange", () => { running = !document.hidden; });
+// ---- END INPUT ----
+
+(function init(){
+  const w = cv.parentElement.clientWidth - 12;
+  alloc(Math.round(GW*(w < 560 ? 1.2 : 0.7)));
+  off.width = GW*2; off.height = GH*2; img = octx.createImageData(GW*2, GH*2);
+  palette(); size(); setOmega();
+  if (reduce){ strobe = true; strobeEl.setAttribute("aria-pressed", "true"); }
+  choose("one");
+  window.__ripple = { get S(){ return {cur, t, GH, gain, omega, u}; }, step, render, drop, choose, build, set strobe(v){ strobe = v; }, setFreq(v){ freqEl.value = v; setOmega(); }, setSec(v){ secEl.value = v; secVal[cur] = v; build(true); } };
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

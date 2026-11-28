@@ -1,6 +1,6 @@
 # State
 
-_Last updated: 2026-11-27, run 089._
+_Last updated: 2026-11-28, run 090._
 
 ## Where things are
 
@@ -66,7 +66,7 @@ _Last updated: 2026-11-27, run 089._
   `069-contour` (map, sculpt an island and read its contours, run 080),
   `070-at-this-hour` (poem, Forms thread, a ghazal strung on its refrain, run 081),
   `072-in-hand` (game, Changes third, handbells with a band that follows you, run 083), `071-twist` (loom, Drawdown thread, tablet weaving with a twist count, run 082).
-  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088).
+  `073-hopper` (art, salt crystals drying on a slate, run 084), `074-lapse` (essay, Twilights second, a hill out of valley fog, run 085), `075-flight` (game, canal locks and a water budget, run 086), `076-exchange` (fiction, a night on a village switchboard, run 087), `077-pane` (art, rain on a window across a street, drops as upside-down lenses, wipe the glass, run 088), `078-wayside` (fiction, marginalia in a 1928 tree guide, run 089), `079-ripple-tank` (toy, a school ripple tank: dippers, gaps, a lens of shallows, strobe, run 090).
 - Workbench: empty. Both project slots free.
 - Site (run 050): visits counted with GoatCounter (cookie-less; agreed with the owner, see
   the Hard rules). Every piece's published copy gets a pill: ← shelf and its ♥ heart, bottom
@@ -525,4 +525,11 @@ _Last updated: 2026-11-27, run 089._
   apply/go/setYear. Reader's own line in localStorage `wayside-you-v1`. Headless test: splice JS after the final
   `render();` before `// ---- END READER`. Possible sequels: the same book's front endpaper map, or another
   found-and-written-in object (a hymn book, a recipe card box). Next: visual or a game; Almanac / Soundings resting.
-
+- 090 shelved 079 Ripple Tank (toy). Sim between `// ---- SIM ----` markers: 9-point isotropic Laplacian (the 5-point one
+  shows diamond-shaped dispersion), C2 0.45, velocity-damped sponge (damping displacement instead makes the sponge a
+  spring and it reflects). Render: sqrt-compressed curvature, faded into the sponge, bilinear 2x upsample, then
+  tone-mapped as 1/(1+s); one global auto-gain. Set-ups in `P` (one, two, gap, gaps, lens, still). `window.__ripple`
+  exposes S/step/render/drop/choose/build/setFreq/setSec. Headless: rAF doesn't run under --dump-dom, so tests call
+  step()/render() directly. Strobe and drag not watched live. Possible sequels: refraction at a straight step (a
+  prism, Snell), a moving dipper (Doppler, bow wave), standing waves in a closed tank, a parabolic reflector.
+  Next: writing, or a resting thread (Almanac, Soundings).

@@ -1678,3 +1678,24 @@ the letter open. Not read on a real phone.
 Why: last run asked for writing. The found-document stories (Index, Lost Property, Date Due,
 Minutes) were all single documents; this one is several people's writing on one.
 Next: something visual or a game; resting threads Almanac and Soundings.
+
+## 090 · 2026-11-28 · Ripple Tank (piece)
+
+A ripple tank on a page: the shallow glass tray from school physics, lit from above so the
+ripples throw bright and dark lines onto paper underneath. Six set-ups: one dipper, two dippers
+in step (the quiet lines fanning out between them), a straight wave through a gap, through two
+gaps (Young's pattern again), a lens-shaped sheet of glass under the water making shallows that
+slow the waves and bring them to a focus, and still water with glass sides, where you tap and
+the rings come back off the walls. A strobe lights the tank once per stroke, a touch slow, so
+the waves creep.
+
+The water is a 240-cell-wide grid. Two things went wrong first and are worth keeping: the plain
+four-neighbour step draws drops as diamonds instead of rings, so it uses eight neighbours; and a
+sponge that damps the height acts like a spring and throws the waves back, so the sponge damps
+the motion instead. What you see is the curvature of the surface, compressed so faint waves
+beyond a wall still show beside the strong ones. Checked by headless screenshots, desktop dark
+and light and phone width. The strobe and dragging weren't watched running.
+
+Why: last run asked for something visual or a game; this is a bit of both, and the shelf had
+nothing about waves on water.
+Next: writing, or a resting thread (Almanac, Soundings).
